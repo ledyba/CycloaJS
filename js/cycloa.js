@@ -2,51 +2,19 @@ var cycloa  = {};
 /**
  * エミュレータ本体の名前空間
  * @type {Object}
+ * @const
  */
 cycloa.core = {};
+
+
 /**
- * 例外用の名前空間
+ * ビューのための名前空間
  * @type {Object}
+ * @const
  */
-cycloa.exc = {};
-/**
- * 例外のベースクラスです
- * @param {String} message メッセージ
- * @constructor
- * @class
- */
-cycloa.exc.Exception = function (message) {
-	/**
-	 * 例外のメッセージのインスタンス
-	 * @type {String}
-	 */
-	this.message = message;
-	/**
-	 * 例外のメッセージを返します。
-	 * @return {String}
-	 */
-	this.getMessage = function (){
-		return this.message;
-	}
-};
-/**
- * エミュレータのコアで発生した例外です
- * @param {String} message
- * @constructor
- * @class
- */
-cycloa.exc.CoreException = function (message) {
-	this.prototype = new Exception("[CoreException] "+ message);
-};
-/**
- * 実装するべきメソッドを実装してない例外です
- * @param {String} message
- * @constructor
- * @class
- */
-cycloa.exc.NotImplementedError = function (message) {
-	this.prototype = new Excption("[NotImplementedException] "+message);
-};
+cycloa.view = {};
+
+
 /**
  * エミュレータ上のデバイスを抽象化します。
  * デバイスは信号線を持ち、デバッグウィンドウを表示でき、
@@ -69,7 +37,6 @@ cycloa.core.Device = function(){
 		throw new cycloa.exc.NotImplementedError("Please implement this method.");
 	};
 	this.connectSignals = function () {
-
 	}
 };
 /**
@@ -80,4 +47,3 @@ cycloa.core.Device = function(){
 cycloa.core.Processor = function() {
 	this.prototype = new cycloa.core.Device();
 };
-
