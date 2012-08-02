@@ -1,3 +1,5 @@
+"use strict";
+
 var cycloa  = {};
 /**
  * エミュレータ本体の名前空間
