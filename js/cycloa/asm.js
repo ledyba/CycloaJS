@@ -370,34 +370,38 @@ cycloa.asm.decode_table = [
 	{'opcode':cycloa.asm.opcode.SBC,'addr_mode':cycloa.asm.addr_mode.AbsoluteX,'operand_size':cycloa.asm.operand_size.AbsoluteX},
 	{'opcode':cycloa.asm.opcode.INC,'addr_mode':cycloa.asm.addr_mode.AbsoluteX,'operand_size':cycloa.asm.operand_size.AbsoluteX},
 	null];
+/**
+ * @constructor
+ */
 cycloa.asm.Decoder = function (){
-	/**
-	 * 実際に命令をデコードし、登録されたハンドラを呼び出します
-	 * @param {Array} code
-	 * @param {Integer} base_addr
-	 */
-	this.invoke = function(code, base_addr){
-		for(var i=0;i<code.length;++i){
-			var addr = base_addr+i;
-			var info = cycloa.asm.decode_table[code[i]];
-			if(info != null){
-				var operand = null;
-				if(info.operand_size == 1){
-					operand = code[++i];
-				}else if(info.operand_size == 2){
-					operand = code[++i] | (code[++i] << 8);
-				}
-				this.handler(addr, info.opcode, info.addr_mode, operand);
-			}else{
-				this.handler(addr, null, null, null);
+
+};
+/**
+ * 実際に命令をデコードし、登録されたハンドラを呼び出します
+ * @param {Array} code
+ * @param {Integer} base_addr
+ */
+cycloa.asm.Decoder.prototype.invoke = function(code, base_addr){
+	for(var i=0;i<code.length;++i){
+		var addr = base_addr+i;
+		var info = cycloa.asm.decode_table[code[i]];
+		if(info != null){
+			var operand = null;
+			if(info.operand_size == 1){
+				operand = code[++i];
+			}else if(info.operand_size == 2){
+				operand = code[++i] | (code[++i] << 8);
 			}
+			this.handler(addr, info.opcode, info.addr_mode, operand);
+		}else{
+			this.handler(addr, null, null, null);
 		}
-	};
-	/**
-	 * ハンドラを登録します
-	 * @param {function} handler
-	 */
-	this.registerHandler = function(handler){
-		this.handler = handler;
-	};
+	}
+};
+/**
+ * ハンドラを登録します
+ * @param {function} handler
+ */
+cycloa.asm.Decoder.prototype.registerHandler = function(handler){
+	this.handler = handler;
 };

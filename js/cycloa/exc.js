@@ -37,8 +37,9 @@ cycloa.exc.Exception = function (message) {
  * @class
  */
 cycloa.exc.CoreException = function (message) {
-	this.prototype = new Exception("[CoreException] "+ message);
+	cycloa.exc.Exception.apply(this, "[CoreException] "+ message);
 };
+cycloa.exc.CoreException.prototype.__proto__ = cycloa.exc.Exception.prototype;
 /**
  * 実装するべきメソッドを実装してない例外です
  * @param {String} message
@@ -46,5 +47,6 @@ cycloa.exc.CoreException = function (message) {
  * @class
  */
 cycloa.exc.NotImplementedException = function (message) {
-	this.prototype = new Excption("[NotImplementedException] "+message);
+	cycloa.exc.Exception.apply(this, "[NotImplementedException] "+ message);
 };
+cycloa.exc.NotImplementedException.prototype.__proto__ = cycloa.exc.Exception.prototype;
