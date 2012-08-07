@@ -12,14 +12,14 @@ var cycloa  = {
  * エミュレータ本体の名前空間
  * @type {Object}
  * @namespace
- * @constant
+ * @const
  */
 cycloa.core = {};
 
 /**
  * @class
  * @constructor
- * @constant
+ * @const
  */
 cycloa.core.Board = function(){
 
@@ -29,7 +29,7 @@ cycloa.core.Board = function(){
  * プロセッサの身体部分を表すクラスです。
  * @class
  * @constructor
- * @constant
+ * @const
  */
 cycloa.core.Processor = function() {
 	/** @type {Number} */
@@ -161,7 +161,7 @@ cycloa.core.Processor = function() {
 
 /**
  * Pレジスタのフラグ
- * @constant
+ * @const
  * @type {Object}
  * @enum {Number}
  */
@@ -177,7 +177,7 @@ cycloa.core.Processor.FLAG = {
 };
 /**
  * 演算結果ごとのZNフラグの値
- * @constant
+ * @const
  * @type {Uint8Array}
  */
 cycloa.core.Processor.ZNFlagCache = new Uint8Array()([
@@ -200,7 +200,7 @@ cycloa.core.Processor.ZNFlagCache = new Uint8Array()([
 ]);
 /**
  * 命令ごとに必要なクロック数
- * @constant
+ * @const
  * @type {Uint8Array}
  */
 cycloa.core.Processor.CycleTable = new Uint8Array()([
@@ -223,7 +223,7 @@ cycloa.core.Processor.CycleTable = new Uint8Array()([
 ]);
 
 /**
- * @constant
+ * @const
  * @type {Number}
  */
 cycloa.core.Processor.RESET_CLOCK = 6;
@@ -232,7 +232,7 @@ cycloa.core.Processor.RESET_CLOCK = 6;
  * プロセッサの動作方式を抽象化するクラス。
  * 上のProcessorにアタッチして下さい。
  * @class
- * @constant
+ * @const
  * @constructor
  */
 cycloa.core.ProcessorSpirit = function () {
