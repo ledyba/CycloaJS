@@ -1,7 +1,5 @@
 "use strict";
 
-var cycloa;
-if(!cycloa) cycloa = {};
 /**
  * アセンブラに関する定数などのための名前空間
  * @type {Object}

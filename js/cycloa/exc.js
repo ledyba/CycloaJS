@@ -1,7 +1,4 @@
 "use strict";
-
-var cycloa;
-if(!cycloa) cycloa = {};
 /**
  * 例外用の名前空間
  * @type {Object}
@@ -25,6 +22,7 @@ cycloa.exc.Exception = function (message) {
 	this.message = message;
 	/**
 	 * 例外のメッセージを返します。
+	 * @function
 	 * @return {String}
 	 */
 	this.getMessage = function (){
