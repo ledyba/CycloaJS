@@ -3,6 +3,7 @@
  * 例外用の名前空間
  * @type {Object}
  * @const
+ * @namespace
  */
 cycloa.exc = {};
 

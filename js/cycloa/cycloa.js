@@ -2,6 +2,7 @@
 
 /**
  * cycloa名前空間本体
+ * @namespace
  * @type {Object}
  */
 var cycloa  = {
@@ -10,6 +11,7 @@ var cycloa  = {
 /**
  * エミュレータ本体の名前空間
  * @type {Object}
+ * @namespace
  * @constant
  */
 cycloa.core = {};

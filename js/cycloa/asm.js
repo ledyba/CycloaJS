@@ -3,6 +3,7 @@
 /**
  * アセンブラに関する定数などのための名前空間
  * @type {Object}
+ * @namespace
  */
 cycloa.asm = {};
 /**
