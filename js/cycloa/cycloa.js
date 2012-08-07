@@ -163,6 +163,7 @@ cycloa.core.Processor = function() {
  * Pレジスタのフラグ
  * @constant
  * @type {Object}
+ * @enum {Number}
  */
 cycloa.core.Processor.FLAG = {
 	C: 1,

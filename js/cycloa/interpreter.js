@@ -7,6 +7,10 @@
  */
 cycloa.core.InterpreterSpirit = function(){
 	this.prototype = new cycloa.core.ProcessorSpirit();
+	/**
+	 *
+	 * @override cycloa.core.ProcessorSpirit.run
+	 */
 	this.run = function(){
 		/**
 		 * @const

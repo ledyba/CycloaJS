@@ -10,6 +10,7 @@ cycloa.asm = {};
  * オペコード一覧
  * @const
  * @type {Object}
+ * @enum {Number}
  */
 cycloa.asm.opcode = {
 	'LDA':0,
@@ -72,6 +73,7 @@ cycloa.asm.opcode = {
  * アドレッシングモード一覧
  * @type {Object}
  * @const
+ * @enum {Number}
  */
 cycloa.asm.addr_mode = {
 	'None': 0,
