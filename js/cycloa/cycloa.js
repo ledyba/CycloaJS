@@ -28,7 +28,7 @@ cycloa.Board.prototype = {
 	 * @return {Number} data of the address
 	 */
 	readCPU: function(addr){
-		throw new cycloa.exc.NotImplementedException("Please implement readCPU");
+		throw new cycloa.err.NotImplementedException("Please implement readCPU");
 		return 0;
 	},
 	/**
@@ -36,13 +36,13 @@ cycloa.Board.prototype = {
 	 * @param {Number} val
 	 */
 	writeCPU: function(addr, val){
-		throw new cycloa.exc.NotImplementedException("Please implement writeCPU");
+		throw new cycloa.err.NotImplementedException("Please implement writeCPU");
 	},
 	/**
 	 *
 	 */
 	run: function(){
-		throw new cycloa.exc.NotImplementedException("Please implement run");
+		throw new cycloa.err.NotImplementedException("Please implement run");
 	},
 	/**
 	 * @public

@@ -178,7 +178,7 @@ cycloa.core.ProcessorSpirit.prototype = {
 	 * 命令を実行する。実装してください。
 	 */
 	run: function(){
-		throw new cycloa.exc.NotImplementedException("Please implement ProcessorSpirit#run");
+		throw new cycloa.err.NotImplementedException("Please implement ProcessorSpirit#run");
 	}
 };
 

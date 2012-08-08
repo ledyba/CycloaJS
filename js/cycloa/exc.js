@@ -8,7 +8,7 @@ if(!cycloa) cycloa = {};
  * @const
  * @namespace
  */
-cycloa.exc = {};
+cycloa.err = {};
 
 /**
  * 例外のベースクラスです
@@ -17,7 +17,7 @@ cycloa.exc = {};
  * @const
  * @constructor
  */
-cycloa.exc.Exception = function (name, message) {
+cycloa.err.Exception = function (name, message) {
 	/**
 	 * 例外のメッセージのインスタンス
 	 * @type {String}
@@ -31,30 +31,30 @@ cycloa.exc.Exception = function (name, message) {
 	this.name = name;
 	this.message = "["+name.toString()+"] "+message;
 };
-cycloa.exc.Exception.prototype.toString = function(){
+cycloa.err.Exception.prototype.toString = function(){
 	return this.message;
 };
 /**
  * エミュレータのコアで発生した例外です
  * @param {String} message
  * @constructor
- * @extends cycloa.exc.Exception
+ * @extends cycloa.err.Exception
  */
-cycloa.exc.CoreException = function (message) {
-	cycloa.exc.Exception.call(this, "CoreException", message);
+cycloa.err.CoreException = function (message) {
+	cycloa.err.Exception.call(this, "CoreException", message);
 };
-cycloa.exc.CoreException.prototype = {
-	__proto__ : cycloa.exc.Exception.prototype
+cycloa.err.CoreException.prototype = {
+	__proto__ : cycloa.err.Exception.prototype
 };
 /**
  * 実装するべきメソッドを実装してない例外です
  * @param {String} message
  * @constructor
- * @extends cycloa.exc.Exception
+ * @extends cycloa.err.Exception
  */
-cycloa.exc.NotImplementedException = function (message) {
-	cycloa.exc.Exception.call(this, "NotImplementedException", message);
+cycloa.err.NotImplementedException = function (message) {
+	cycloa.err.Exception.call(this, "NotImplementedException", message);
 };
-cycloa.exc.NotImplementedException.prototype = {
-	__proto__: cycloa.exc.Exception.prototype
+cycloa.err.NotImplementedException.prototype = {
+	__proto__: cycloa.err.Exception.prototype
 };

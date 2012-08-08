@@ -527,7 +527,7 @@ cycloa.asm.Decoder.prototype = {
 		var offset = addr - this.baseaddr;
 		var opcode = this.code[offset];
 		if(opcode === undefined){
-			throw new cycloa.exc.CoreException("Invalid addr: "+addr.toString(16));
+			throw new cycloa.err.CoreException("Invalid addr: "+addr.toString(16));
 		}
 		var info = cycloa.asm.decode_table[opcode];
 		if (info) {

@@ -33,7 +33,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 		 */
 		var func = cycloa.core.InterpreterSpirit.OperationTable[opcode];
 		if(!func){
-			throw new cycloa.exc.CoreException("Unknwon opcode: "+opcode);
+			throw new cycloa.err.CoreException("Unknwon opcode: "+opcode);
 		}
 		func.call(this);
 	},
