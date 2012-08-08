@@ -35,7 +35,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 		if(!func){
 			throw new cycloa.exc.CoreException("Unknwon opcode: "+opcode);
 		}
-		func.apply(this);
+		func.call(this);
 	},
 	/**@private
 	 * @function
@@ -155,7 +155,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 		return this.p.read(srcAddr) | (this.p.read((srcAddr & 0xff00) | ((srcAddr+1) & 0x00ff)) << 8); //bug of NES
 	},
 	updateFlagZN: function(val){
-		this.p.P = (this.p.P & 0x7D) | cycloa.core.Processor.ZNFlagCache[val&0xff];
+		this.p.P = (this.p.P & 0x7D) | cycloa.core.ZNFlagCache[val&0xff];
 	},
 	/**@private
 	 * @function
@@ -226,7 +226,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	/**@private
 	 * @function */
 	PHP: function() {
-		this.push(this.p.P | cycloa.core.Processor.FLAG.B); // bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
+		this.push(this.p.P | cycloa.core.FLAG.B); // bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
 	},
 	/**@private
 	 * @function */
@@ -234,7 +234,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 		/**@const
 		 * @type {Number} */
 		var newP = this.pop();
-		if((this.p.P & cycloa.core.Processor.FLAG.I) == cycloa.core.Processor.FLAG.I && (newP & cycloa.core.Processor.FLAG.I) == 0){
+		if((this.p.P & cycloa.core.FLAG.I) == cycloa.core.FLAG.I && (newP & cycloa.core.FLAG.I) == 0){
 			// FIXME: ここどうする？？
 			this.p.needStatusRewrite = true;
 			this.p.newStatus =newP;
@@ -261,13 +261,13 @@ cycloa.core.InterpreterSpirit.prototype = {
 		var val = this.p.read(addr);
 		/**@const
 		 * @type {Number} */
-		var result = (this.p.A + val + (this.p.P & cycloa.core.Processor.FLAG.C)) & 0xffff;
+		var result = (this.p.A + val + (this.p.P & cycloa.core.FLAG.C)) & 0xffff;
 		/**@const
 		 * @type {Number} */
 		var newA = result & 0xff;
-		this.p.P = (this.p.P & ~(cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.C))
+		this.p.P = (this.p.P & ~(cycloa.core.FLAG.V | cycloa.core.FLAG.C))
 			| ((((this.p.A ^ val) & 0x80) ^ 0x80) & ((this.p.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-			| ((result >> 8) & cycloa.core.Processor.FLAG.C); //set C flag
+			| ((result >> 8) & cycloa.core.FLAG.C); //set C flag
 		this.updateFlagZN(this.p.A = newA);
 	},
 	/**@private
@@ -279,13 +279,13 @@ cycloa.core.InterpreterSpirit.prototype = {
 		var val = this.p.read(addr);
 		/**@const
 		 * @type {Number} */
-		var result = (this.p.A - val - ((this.p.P & cycloa.core.Processor.FLAG.C) ^ cycloa.core.Processor.FLAG.C)) & 0xffff;
+		var result = (this.p.A - val - ((this.p.P & cycloa.core.FLAG.C) ^ cycloa.core.FLAG.C)) & 0xffff;
 		/**@const
 		 * @type {Number} */
 		var newA = result & 0xff;
-		this.p.P = (this.p.P & ~(cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.C))
+		this.p.P = (this.p.P & ~(cycloa.core.FLAG.V | cycloa.core.FLAG.C))
 			| ((this.p.A ^ val) & (this.p.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-			| (((result >> 8) & cycloa.core.Processor.FLAG.C) ^ cycloa.core.Processor.FLAG.C);
+			| (((result >> 8) & cycloa.core.FLAG.C) ^ cycloa.core.FLAG.C);
 		this.updateFlagZN(this.p.A = newA);
 	},
 	/**@private
@@ -343,9 +343,9 @@ cycloa.core.InterpreterSpirit.prototype = {
 		/**@const
 		 * @type {Number} */
 		var val = this.p.read(addr);
-		this.p.P = (this.p.P & (0xff & ~(cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.N | cycloa.core.Processor.FLAG.Z)))
-			| (val & (cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.N))
-			| (cycloa.core.Processor.ZNFlagCache[this.p.A & val] & cycloa.core.Processor.FLAG.Z);
+		this.p.P = (this.p.P & (0xff & ~(cycloa.core.FLAG.V | cycloa.core.FLAG.N | cycloa.core.FLAG.Z)))
+			| (val & (cycloa.core.FLAG.V | cycloa.core.FLAG.N))
+			| (cycloa.core.ZNFlagCache[this.p.A & val] & cycloa.core.FLAG.Z);
 	},
 	/**@private
 	 * @function */
@@ -463,7 +463,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	/**@private
 	 * @function */
 	CLC: function() {
-		this.p.P &= ~(cycloa.core.Processor.FLAG.C);
+		this.p.P &= ~(cycloa.core.FLAG.C);
 	},
 	/**@private
 	 * @function */
@@ -471,33 +471,33 @@ cycloa.core.InterpreterSpirit.prototype = {
 		// http://twitter.com/#!/KiC6280/status/112348378100281344
 		// http://twitter.com/#!/KiC6280/status/112351125084180480
 		this.p.needStatusRewrite = true;
-		this.p.newStatus = this.p.P & ~(cycloa.core.Processor.FLAG.I);
-		//this.p.P &= ~(cycloa.core.Processor.FLAG.I);
+		this.p.newStatus = this.p.P & ~(cycloa.core.FLAG.I);
+		//this.p.P &= ~(cycloa.core.FLAG.I);
 	},
 	/**@private
 	 * @function */
 	CLV: function() {
-		this.p.P &= ~(cycloa.core.Processor.FLAG.V);
+		this.p.P &= ~(cycloa.core.FLAG.V);
 	},
 	/**@private
 	 * @function */
 	CLD: function() {
-		this.p.P &= ~(cycloa.core.Processor.FLAG.D);
+		this.p.P &= ~(cycloa.core.FLAG.D);
 	},
 	/**@private
 	 * @function */
 	SEC: function() {
-		this.p.P |= cycloa.core.Processor.FLAG.C;
+		this.p.P |= cycloa.core.FLAG.C;
 	},
 	/**@private
 	 * @function */
 	SEI: function() {
-		this.p.P |= cycloa.core.Processor.FLAG.I;
+		this.p.P |= cycloa.core.FLAG.I;
 	},
 	/**@private
 	 * @function */
 	SED: function() {
-		this.p.P |= cycloa.core.Processor.FLAG.D;
+		this.p.P |= cycloa.core.FLAG.D;
 	},
 	/**@private
 	 * @function */
@@ -512,22 +512,22 @@ cycloa.core.InterpreterSpirit.prototype = {
 		//…と合ったけど、他の資料だと違う。http://nesdev.parodius.com/6502.txt
 		//DQ4はこうしないと、動かない。
 		/*
-		 if((this.p.P & cycloa.core.Processor.FLAG.I) == cycloa.core.Processor.FLAG.I){
+		 if((this.p.P & cycloa.core.FLAG.I) == cycloa.core.FLAG.I){
 		 return;
 		 }*/
 		this.p.PC++;
 		this.push((this.p.PC >> 8) & 0xFF);
 		this.push(this.p.PC & 0xFF);
-		this.p.P |= cycloa.core.Processor.FLAG.B;
+		this.p.P |= cycloa.core.FLAG.B;
 		this.push(this.p.P);
-		this.p.P |= cycloa.core.Processor.FLAG.I;
+		this.p.P |= cycloa.core.FLAG.I;
 		this.p.PC = (this.p.read(0xFFFE) | (this.p.read(0xFFFF) << 8));
 	},
 	/**@private
 	 * @function
 	 * @param {Number} addr */
 	BCC: function(addr) {
-		if((this.p.P & cycloa.core.Processor.FLAG.C) == 0){
+		if((this.p.P & cycloa.core.FLAG.C) == 0){
 			if(((this.p.PC ^ addr) & 0x0100) != 0){
 				this.p.consumeClock(2);
 			}else{
@@ -540,7 +540,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 * @function
 	 * @param {Number} addr */
 	BCS: function(addr) {
-		if((this.p.P & cycloa.core.Processor.FLAG.C) == cycloa.core.Processor.FLAG.C){
+		if((this.p.P & cycloa.core.FLAG.C) == cycloa.core.FLAG.C){
 			if(((this.p.PC ^ addr) & 0x0100) != 0){
 				this.p.consumeClock(2);
 			}else{
@@ -553,7 +553,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 * @function
 	 * @param {Number} addr */
 	BEQ: function(addr) {
-		if((this.p.P & cycloa.core.Processor.FLAG.Z) == cycloa.core.Processor.FLAG.Z){
+		if((this.p.P & cycloa.core.FLAG.Z) == cycloa.core.FLAG.Z){
 			if(((this.p.PC ^ addr) & 0x0100) != 0){
 				this.p.consumeClock(2);
 			}else{
@@ -566,7 +566,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 * @function
 	 * @param {Number} addr */
 	BNE: function(addr) {
-		if((this.p.P & cycloa.core.Processor.FLAG.Z) == 0){
+		if((this.p.P & cycloa.core.FLAG.Z) == 0){
 			if(((this.p.PC ^ addr) & 0x0100) != 0){
 				this.p.consumeClock(2);
 			}else{
@@ -579,7 +579,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 * @function
 	 * @param {Number} addr */
 	BVC: function(addr) {
-		if((this.p.P & cycloa.core.Processor.FLAG.V) == 0){
+		if((this.p.P & cycloa.core.FLAG.V) == 0){
 			if(((this.p.PC ^ addr) & 0x0100) != 0){
 				this.p.consumeClock(2);
 			}else{
@@ -592,7 +592,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 * @function
 	 * @param {Number} addr */
 	BVS: function(addr) {
-		if((this.p.P & cycloa.core.Processor.FLAG.V) == cycloa.core.Processor.FLAG.V){
+		if((this.p.P & cycloa.core.FLAG.V) == cycloa.core.FLAG.V){
 			if(((this.p.PC ^ addr) & 0x0100) != 0){
 				this.p.consumeClock(2);
 			}else{
@@ -605,7 +605,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 * @function
 	 * @param {Number} addr */
 	BPL: function(addr) {
-		if((this.p.P & cycloa.core.Processor.FLAG.N) == 0){
+		if((this.p.P & cycloa.core.FLAG.N) == 0){
 			if(((this.p.PC ^ addr) & 0x0100) != 0){
 				this.p.consumeClock(2);
 			}else{
@@ -618,7 +618,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 * @function
 	 * @param {Number} addr */
 	BMI: function(addr) {
-		if((this.p.P & cycloa.core.Processor.FLAG.N) == cycloa.core.Processor.FLAG.N){
+		if((this.p.P & cycloa.core.FLAG.N) == cycloa.core.FLAG.N){
 			if(((this.p.PC ^ addr) & 0x0100) != 0){
 				this.p.consumeClock(2);
 			}else{
