@@ -20,9 +20,13 @@ cycloa.core = {};
  * @class
  * @constructor
  * @const
- * @interface
  */
 cycloa.core.Board = function(){
+	/**
+	 * @protected
+	 * @type {cycloa.core.Processor}
+	 */
+	this.processor = undefined;
 };
 
 /**
@@ -40,8 +44,24 @@ cycloa.core.Board.prototype.readCPU = function(addr){
 cycloa.core.Board.prototype.writeCPU = function(addr, val){
 	throw new cycloa.exc.NotImplementedException("Please implement writeCPU");
 };
+/**
+ *
+ */
+cycloa.core.Board.prototype.run = function(){
+	throw new cycloa.exc.NotImplementedException("Please implement run");
+};
 
 /**
+ * @public
+ * @function
+ * @param {cycloa.core.Processor} processor
+ */
+cycloa.core.Board.prototype.attachProcessor = function(processor){
+	this.processor = processor;
+	this.processor.connectBoard(this);
+};
+
+	/**
  * プロセッサの身体部分を表すクラスです。
  * @class
  * @constructor
@@ -122,7 +142,7 @@ cycloa.core.Processor.prototype.connectBoard = function(board) {
  * @function
  */
 cycloa.core.Processor.prototype.run = function(){
-	this.P |= this.FLAG.ALWAYS_SET; //必ずセットしてあるらしい。プログラム側から無理にいじっちゃった時用
+	this.P |= cycloa.core.Processor.FLAG.ALWAYS_SET; //必ずセットしてあるらしい。プログラム側から無理にいじっちゃった時用
 	this.spirit.run();
 };
 /**
@@ -196,7 +216,7 @@ cycloa.core.Processor.FLAG = {
  * @const
  * @type {Uint8Array}
  */
-cycloa.core.Processor.ZNFlagCache = new Uint8Array()([
+cycloa.core.Processor.ZNFlagCache = new Uint8Array([
 	0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -219,7 +239,7 @@ cycloa.core.Processor.ZNFlagCache = new Uint8Array()([
  * @const
  * @type {Uint8Array}
  */
-cycloa.core.Processor.CycleTable = new Uint8Array()([
+cycloa.core.Processor.CycleTable = new Uint8Array([
 	7, 6, 2, 8, 3, 3, 5, 5,3, 2, 2, 2, 4, 4, 6, 6,
 	2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
 	6, 6, 2, 8, 3, 3, 5, 5,4, 2, 2, 2, 4, 4, 6, 6,
