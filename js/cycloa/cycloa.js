@@ -6,7 +6,7 @@
  * @type {Object}
  */
 var cycloa;
-if(!cycloa) cycloa = {};
+if(!cycloa) cycloa = new Object;
 
 cycloa.debug = false;
 
@@ -29,7 +29,6 @@ cycloa.Board.prototype = {
 	 */
 	readCPU: function(addr){
 		throw new cycloa.err.NotImplementedException("Please implement readCPU");
-		return 0;
 	},
 	/**
 	 * @param {Number} addr

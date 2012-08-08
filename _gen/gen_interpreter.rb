@@ -31,12 +31,12 @@ def makeClos(isBranch)
 			addrFunc = MODE_TO_FUNC[(isBranch && mode == :Immediate) ? :Relative : mode];
 			if addrFunc.nil?
 				if nil_only
-					Functions[op] = "this.#{opsym}(); /* 0x#{op.to_s(16)}, #{opsym}, #{mode} */"
+					Functions[op] = "this.#{opsym}() /* 0x#{op.to_s(16)}, #{opsym}, #{mode} */"
 				else
-					Functions[op] = "this.#{opsym}_(); /* 0x#{op.to_s(16)}, #{opsym}, #{mode} */"
+					Functions[op] = "this.#{opsym}_() /* 0x#{op.to_s(16)}, #{opsym}, #{mode} */"
 				end
 			else
-				Functions[op] = "this.#{opsym}(this.#{addrFunc}()); /* 0x#{op.to_s(16)}, #{opsym}, #{mode} */"
+				Functions[op] = "this.#{opsym}(this.#{addrFunc}()) /* 0x#{op.to_s(16)}, #{opsym}, #{mode} */"
 			end
 		}
 	};
@@ -50,12 +50,15 @@ puts "["
 Functions.each_index { |i|
 	func = Functions[i]
 	if func.nil?
-		puts "\tundefined,"
+		print "\tundefined"
 	else
-		puts "\tfunction(){#{func}},"
+		print "\tfunction(){return #{func};}"
+	end
+	if i+1 < Functions.size
+		puts ","
 	end
 }
-puts "]"
+puts "];"
 
 
 

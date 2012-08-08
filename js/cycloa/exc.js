@@ -1,6 +1,6 @@
 "use strict";
 var cycloa;
-if(!cycloa) cycloa = {};
+if(!cycloa) cycloa = new Object;
 
 /**
  * 例外用の名前空間
@@ -8,7 +8,7 @@ if(!cycloa) cycloa = {};
  * @const
  * @namespace
  */
-cycloa.err = {};
+cycloa.err = new Object;
 
 /**
  * 例外のベースクラスです
