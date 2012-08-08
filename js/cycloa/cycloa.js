@@ -28,40 +28,40 @@ cycloa.core.Board = function(){
 	 */
 	this.processor = undefined;
 };
-
-/**
- * @param {Number} addr
- * @return {Number} data of the address
- */
-cycloa.core.Board.prototype.readCPU = function(addr){
-	throw new cycloa.exc.NotImplementedException("Please implement readCPU");
-	return 0;
-};
-/**
- * @param {Number} addr
- * @param {Number} val
- */
-cycloa.core.Board.prototype.writeCPU = function(addr, val){
-	throw new cycloa.exc.NotImplementedException("Please implement writeCPU");
-};
-/**
- *
- */
-cycloa.core.Board.prototype.run = function(){
-	throw new cycloa.exc.NotImplementedException("Please implement run");
-};
-
-/**
- * @public
- * @function
- * @param {cycloa.core.Processor} processor
- */
-cycloa.core.Board.prototype.attachProcessor = function(processor){
-	this.processor = processor;
-	this.processor.connectBoard(this);
-};
-
+cycloa.core.Board.prototype = {
 	/**
+	 * @param {Number} addr
+	 * @return {Number} data of the address
+	 */
+	readCPU: function(addr){
+		throw new cycloa.exc.NotImplementedException("Please implement readCPU");
+		return 0;
+	},
+	/**
+	 * @param {Number} addr
+	 * @param {Number} val
+	 */
+	writeCPU: function(addr, val){
+		throw new cycloa.exc.NotImplementedException("Please implement writeCPU");
+	},
+	/**
+	 *
+	 */
+	run: function(){
+		throw new cycloa.exc.NotImplementedException("Please implement run");
+	},
+	/**
+	 * @public
+	 * @function
+	 * @param {cycloa.core.Processor} processor
+	 */
+	attachProcessor: function(processor){
+		this.processor = processor;
+		this.processor.connectBoard(this);
+	}
+};
+
+/**
  * プロセッサの身体部分を表すクラスです。
  * @class
  * @constructor
@@ -96,105 +96,112 @@ cycloa.core.Processor = function() {
 	this.board = undefined;
 };
 
-cycloa.core.Processor.prototype.reserveNMI = function(){
-	if(cycloa.debug) {
-		assertFalse(this.NMI);
-	}
-	this.NMI = true;
-};
-cycloa.core.Processor.prototype.reserveIRQ = function() {
-	if(cycloa.debug) {
-		assertFalse(this.IRQ);
-	}
-	this.IRQ = true;
-};
-cycloa.core.Processor.prototype.releaseNMI = function() {
-	if(cycloa.debug) {
-		assertTrue(this.NMI);
-	}
-	this.NMI = false;
-};
-cycloa.core.Processor.prototype.releaseIRQ = function(){
-	if(cycloa.debug) {
-		assertTrue(this.IRQ);
-	}
-	this.IRQ = false;
-};
 /**
- * CPUの命令を実際に実行するスピリットを接続する
- * @function
- * @param {cycloa.core.ProcessorSpirit} spirit
+ * @const
+ * @type {Object}
  */
-cycloa.core.Processor.prototype.attachSpirit = function(spirit){
-	this.spirit = spirit;
-	this.spirit.connectProcessor(this);
-};
-/**
- * このプロセッサを実装する基盤オブジェクトをセットする
- * @function
- * @param {cycloa.core.Board} board
- */
-cycloa.core.Processor.prototype.connectBoard = function(board) {
-	this.board = board;
-};
-/**
- * CPUの命令を実行する
- * @function
- */
-cycloa.core.Processor.prototype.run = function(){
-	this.P |= cycloa.core.Processor.FLAG.ALWAYS_SET; //必ずセットしてあるらしい。プログラム側から無理にいじっちゃった時用
-	this.spirit.run();
-};
-/**
- * データからアドレスを読み込む
- * @function
- * @param {Number} addr
- * @return {Number} data
- */
-cycloa.core.Processor.prototype.read = function(addr){
-	return this.board.readCPU(addr);
-};
-/**
- * 書き込む
- * @function
- * @param {Number} addr
- * @param {Number} val
- */
-cycloa.core.Processor.prototype.write = function(addr, val) {
-	this.board.writeCPU(addr, val);
-};
-cycloa.core.Processor.prototype.consumeClock = function(clk){
+cycloa.core.Processor.prototype = {
+	reserveNMI: function(){
+		if(cycloa.debug) {
+			assertFalse(this.NMI);
+		}
+		this.NMI = true;
+	},
+	reserveIRQ: function() {
+		if(cycloa.debug) {
+			assertFalse(this.IRQ);
+		}
+		this.IRQ = true;
+	},
+	releaseNMI: function() {
+		if(cycloa.debug) {
+			assertTrue(this.NMI);
+		}
+		this.NMI = false;
+	},
+	releaseIRQ: function(){
+		if(cycloa.debug) {
+			assertTrue(this.IRQ);
+		}
+		this.IRQ = false;
+	},
+	/**
+	 * CPUの命令を実際に実行するスピリットを接続する
+	 * @function
+	 * @param {cycloa.core.ProcessorSpirit} spirit
+	 */
+	attachSpirit: function(spirit){
+		this.spirit = spirit;
+		this.spirit.connectProcessor(this);
+	},
+	/**
+	 * このプロセッサを実装する基盤オブジェクトをセットする
+	 * @function
+	 * @param {cycloa.core.Board} board
+	 */
+	connectBoard: function(board) {
+		this.board = board;
+	},
+	/**
+	 * CPUの命令を実行する
+	 * @function
+	 */
+	run: function(){
+		this.P |= cycloa.core.Processor.FLAG.ALWAYS_SET; //必ずセットしてあるらしい。プログラム側から無理にいじっちゃった時用
+		this.spirit.run();
+	},
+	/**
+	 * データからアドレスを読み込む
+	 * @function
+	 * @param {Number} addr
+	 * @return {Number} data
+	 */
+	read: function(addr){
+		return this.board.readCPU(addr);
+	},
+	/**
+	 * 書き込む
+	 * @function
+	 * @param {Number} addr
+	 * @param {Number} val
+	 */
+	write: function(addr, val) {
+		this.board.writeCPU(addr, val);
+	},
+	consumeClock: function(clk){
 
-};
-/**
- * @function
- */
-cycloa.core.Processor.prototype.onHardReset = function () {
-	//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
-	this.P = 0x24;
-	this.A = 0x0;
-	this.X = 0x0;
-	this.Y = 0x0;
-	this.SP = 0xfd;
-	this.write(0x4017, 0x00);
-	this.write(0x4015, 0x00);
-	this.PC = (this.read(0xFFFC) | (this.read(0xFFFD) << 8));
+	},
+	/**
+	 * @function
+	 */
+	onHardReset: function () {
+		//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
+		this.P = 0x24;
+		this.A = 0x0;
+		this.X = 0x0;
+		this.Y = 0x0;
+		this.SP = 0xfd;
+		this.write(0x4017, 0x00);
+		this.write(0x4015, 0x00);
+		this.PC = (this.read(0xFFFC) | (this.read(0xFFFD) << 8));
 
-	this.NMI = false;
-	this.IRQ = false;
-};
-cycloa.core.Processor.prototype.onReset = function() {
-	//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
-	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-	this.consumeClock(this.RESET_CLOCK);
-	this.SP -= 0x03;
-	this.P |= this.FLAG.I;
-	this.write(0x4015, 0x0);
-	this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
+		this.NMI = false;
+		this.IRQ = false;
+	},
+	onReset: function() {
+		//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
+		//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
+		this.consumeClock(this.RESET_CLOCK);
+		this.SP -= 0x03;
+		this.P |= this.FLAG.I;
+		this.write(0x4015, 0x0);
+		this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
 
-	this.NMI = false;
-	this.IRQ = false;
+		this.NMI = false;
+		this.IRQ = false;
+	}
 };
+
 /**
  * Pレジスタのフラグ
  * @const
@@ -278,16 +285,20 @@ cycloa.core.ProcessorSpirit = function () {
 	 */
 	this.p = undefined;
 };
-/**
- * Processorと接続する
- * @param {cycloa.core.Processor} p
- */
-cycloa.core.ProcessorSpirit.prototype.connectProcessor = function(p){
-	this.p = p;
-};
-/**
- * 命令を実行する。実装してください。
- */
-cycloa.core.ProcessorSpirit.prototype.run = function(){
-	throw new cycloa.exc.NotImplementedException("Please implement ProcessorSpirit#run");
+
+cycloa.core.ProcessorSpirit.prototype = {
+	/**
+	 * Processorと接続する
+	 * @param {cycloa.core.Processor} p
+	 * @final
+	 */
+	connectProcessor: function(p){
+		this.p = p;
+	},
+	/**
+	 * 命令を実行する。実装してください。
+	 */
+	run: function(){
+		throw new cycloa.exc.NotImplementedException("Please implement ProcessorSpirit#run");
+	}
 };

@@ -8,647 +8,649 @@
 cycloa.core.InterpreterSpirit = function(){
 	cycloa.core.ProcessorSpirit.apply(this);
 };
-/**
- * @const
- * @type {*}
- * @private
- */
-cycloa.core.InterpreterSpirit.prototype.__proto__ = cycloa.core.ProcessorSpirit.prototype;
-/**
- *
- * @override cycloa.core.ProcessorSpirit.run
- */
-cycloa.core.InterpreterSpirit.prototype.run = function(){
-	/** @const
-	 * @type {Number} */
-	var opcode = this.p.read(this.p.PC++);
+
+cycloa.core.InterpreterSpirit.prototype = {
 	/**
 	 * @const
-	 * @type {Function}
+	 * @type {*}
+	 * @private
 	 */
-	var func = cycloa.core.InterpreterSpirit.OperationTable[opcode];
-	if(!func){
-		throw new cycloa.exc.CoreException("Unknwon opcode: "+opcode);
-	}
-	func.apply(this);
-};
-/**@private
- * @function
- * @param {Number} val */
-cycloa.core.InterpreterSpirit.prototype.push = function(val) {
-	this.p.write(0x0100 | ((this.p.SP--) & 0xff), val);
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.pop = function() {
-	return this.p.read(0x0100 | ((this.p.SP++) & 0xff));
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrImmediate = function() {
-	return this.p.PC++;
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrAbsolute = function() {
-	return this.p.read(this.p.PC++) | (this.p.read(this.p.PC++) << 8);
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrZeroPage = function() {
-	return this.p.read(this.PC++);
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrZeroPageIdxX = function() {
-	return (this.p.read(this.p.PC++) + this.p.X) & 0xff;
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrZeroPageIdxY = function() {
-	return (this.p.read(this.p.PC++) + this.p.Y) & 0xff;
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrAbsoluteIdxX = function() {
-	/** @const
-	 *  @type {Number} */
-	var orig = this.p.read(this.p.PC++) | (this.p.read(this.p.PC++) << 8);
-	/** @const
-	 *  @type {Number} */
-	var addr = orig + this.p.X;
-	if(((addr ^ orig) & 0x0100) != 0){
-		this.p.consumeClock(1);
-	}
-	return addr;
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrAbsoluteIdxY = function() {
-	/** @const
-	 *  @type {Number} */
-	var orig = this.p.read(this.p.PC++) | (this.p.read(this.p.PC++) << 8);
-	/** @const
-	 *  @type {Number} */
-	var addr = orig + this.p.Y;
-	if(((addr ^ orig) & 0x0100) != 0){
-		this.p.consumeClock(1);
-	}
-	return addr;
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrRelative = function() {
-	/** @const
-	 *  @type {Number} */
-	var offset = this.p.read(this.PC++);
-	return (offset >= 128 ? (offset-256) : offset) + this.p.PC;
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrIndirectX = function() {
-	/** @const
-	 *  @type {Number} */
-	var idx = (this.p.read(this.p.PC++) + this.p.X) & 0xff;
-	return this.p.read(idx) | (this.p.read((idx+1)&0xff) << 8);
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrIndirectY = function() {
-	/** @const
-	 *  @type {Number} */
-	var idx = this.p.read(this.PC++);
-	/** @const
-	 *  @type {Number} */
-	var orig = this.p.read(idx) | (this.p.read((idx+1)&0xff) << 8);
-	/** @const
-	 *  @type {Number} */
-	var addr = orig + this.Y;
-	if(((addr ^ orig) & 0x0100) != 0){
-		this.p.consumeClock(1);
-	}
-	return addr;
-};
-/**@private
- * @function
- * @return {Number} */
-cycloa.core.InterpreterSpirit.prototype.addrAbsoluteIndirect = function() { // used only in JMP
-	/** @const
-	 *  @type {Number} */
-	var srcAddr = this.p.read(this.PC++) | (this.p.read(this.PC++) << 8);
-	return this.p.read(srcAddr) | (this.p.read((srcAddr & 0xff00) | ((srcAddr+1) & 0x00ff)) << 8); //bug of NES
-};
-cycloa.core.InterpreterSpirit.prototype.updateFlagZN = function(val){
-	this.p.P = (this.p.P & 0x7D) | cycloa.core.Processor.ZNFlagCache[val&0xff];
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.LDA = function(addr){
-	this.updateFlagZN(this.p.A = this.p.read(addr));
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.LDY = function(addr) {
-	this.updateFlagZN(this.p.Y = this.p.read(addr));
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.LDX = function(addr) {
-	this.updateFlagZN(this.p.X = this.p.read(addr));
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.STA = function(addr) {
-	this.p.write(addr, this.p.A);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.STX = function(addr) {
-	this.p.write(addr, this.p.X);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.STY = function(addr) {
-	this.p.write(addr, this.p.Y);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.TXA = function() {
-	this.updateFlagZN(this.p.A = this.p.X);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.TYA = function() {
-	this.updateFlagZN(this.p.A = this.p.Y);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.TXS = function() {
-	this.p.SP = this.p.X;
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.TAY = function() {
-	this.updateFlagZN(this.p.Y = this.p.A);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.TAX = function() {
-	this.updateFlagZN(this.p.X = this.p.A);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.TSX = function() {
-	this.updateFlagZN(this.p.X = this.p.SP);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.PHP = function() {
-	this.push(this.p.P | cycloa.core.Processor.FLAG.B); // bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.PLP = function() {
-	/**@const
-	 * @type {Number} */
-	var newP = this.pop();
-	if((this.p.P & cycloa.core.Processor.FLAG.I) == cycloa.core.Processor.FLAG.I && (newP & cycloa.core.Processor.FLAG.I) == 0){
-		// FIXME: ここどうする？？
+	__proto__: cycloa.core.ProcessorSpirit.prototype,
+	/**
+	 *
+	 * @override cycloa.core.ProcessorSpirit.run
+	 */
+	run: function(){
+		/** @const
+		 * @type {Number} */
+		var opcode = this.p.read(this.p.PC++);
+		/**
+		 * @const
+		 * @type {Function}
+		 */
+		var func = cycloa.core.InterpreterSpirit.OperationTable[opcode];
+		if(!func){
+			throw new cycloa.exc.CoreException("Unknwon opcode: "+opcode);
+		}
+		func.apply(this);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} val */
+	push: function(val) {
+		this.p.write(0x0100 | ((this.p.SP--) & 0xff), val);
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	pop: function() {
+		return this.p.read(0x0100 | ((this.p.SP++) & 0xff));
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrImmediate: function() {
+		return this.p.PC++;
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrAbsolute: function() {
+		return this.p.read(this.p.PC++) | (this.p.read(this.p.PC++) << 8);
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrZeroPage: function() {
+		return this.p.read(this.PC++);
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrZeroPageIdxX: function() {
+		return (this.p.read(this.p.PC++) + this.p.X) & 0xff;
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrZeroPageIdxY: function() {
+		return (this.p.read(this.p.PC++) + this.p.Y) & 0xff;
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrAbsoluteIdxX: function() {
+		/** @const
+		 *  @type {Number} */
+		var orig = this.p.read(this.p.PC++) | (this.p.read(this.p.PC++) << 8);
+		/** @const
+		 *  @type {Number} */
+		var addr = orig + this.p.X;
+		if(((addr ^ orig) & 0x0100) != 0){
+			this.p.consumeClock(1);
+		}
+		return addr;
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrAbsoluteIdxY: function() {
+		/** @const
+		 *  @type {Number} */
+		var orig = this.p.read(this.p.PC++) | (this.p.read(this.p.PC++) << 8);
+		/** @const
+		 *  @type {Number} */
+		var addr = orig + this.p.Y;
+		if(((addr ^ orig) & 0x0100) != 0){
+			this.p.consumeClock(1);
+		}
+		return addr;
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrRelative: function() {
+		/** @const
+		 *  @type {Number} */
+		var offset = this.p.read(this.PC++);
+		return (offset >= 128 ? (offset-256) : offset) + this.p.PC;
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrIndirectX: function() {
+		/** @const
+		 *  @type {Number} */
+		var idx = (this.p.read(this.p.PC++) + this.p.X) & 0xff;
+		return this.p.read(idx) | (this.p.read((idx+1)&0xff) << 8);
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrIndirectY: function() {
+		/** @const
+		 *  @type {Number} */
+		var idx = this.p.read(this.PC++);
+		/** @const
+		 *  @type {Number} */
+		var orig = this.p.read(idx) | (this.p.read((idx+1)&0xff) << 8);
+		/** @const
+		 *  @type {Number} */
+		var addr = orig + this.Y;
+		if(((addr ^ orig) & 0x0100) != 0){
+			this.p.consumeClock(1);
+		}
+		return addr;
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrAbsoluteIndirect: function() { // used only in JMP
+		/** @const
+		 *  @type {Number} */
+		var srcAddr = this.p.read(this.PC++) | (this.p.read(this.PC++) << 8);
+		return this.p.read(srcAddr) | (this.p.read((srcAddr & 0xff00) | ((srcAddr+1) & 0x00ff)) << 8); //bug of NES
+	},
+	updateFlagZN: function(val){
+		this.p.P = (this.p.P & 0x7D) | cycloa.core.Processor.ZNFlagCache[val&0xff];
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	LDA: function(addr){
+		this.updateFlagZN(this.p.A = this.p.read(addr));
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	LDY: function(addr) {
+		this.updateFlagZN(this.p.Y = this.p.read(addr));
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	LDX: function(addr) {
+		this.updateFlagZN(this.p.X = this.p.read(addr));
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	STA: function(addr) {
+		this.p.write(addr, this.p.A);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	STX: function(addr) {
+		this.p.write(addr, this.p.X);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	STY: function(addr) {
+		this.p.write(addr, this.p.Y);
+	},
+	/**@private
+	 * @function */
+	TXA: function() {
+		this.updateFlagZN(this.p.A = this.p.X);
+	},
+	/**@private
+	 * @function */
+	TYA: function() {
+		this.updateFlagZN(this.p.A = this.p.Y);
+	},
+	/**@private
+	 * @function */
+	TXS: function() {
+		this.p.SP = this.p.X;
+	},
+	/**@private
+	 * @function */
+	TAY: function() {
+		this.updateFlagZN(this.p.Y = this.p.A);
+	},
+	/**@private
+	 * @function */
+	TAX: function() {
+		this.updateFlagZN(this.p.X = this.p.A);
+	},
+	/**@private
+	 * @function */
+	TSX: function() {
+		this.updateFlagZN(this.p.X = this.p.SP);
+	},
+	/**@private
+	 * @function */
+	PHP: function() {
+		this.push(this.p.P | cycloa.core.Processor.FLAG.B); // bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
+	},
+	/**@private
+	 * @function */
+	PLP: function() {
+		/**@const
+		 * @type {Number} */
+		var newP = this.pop();
+		if((this.p.P & cycloa.core.Processor.FLAG.I) == cycloa.core.Processor.FLAG.I && (newP & cycloa.core.Processor.FLAG.I) == 0){
+			// FIXME: ここどうする？？
+			this.p.needStatusRewrite = true;
+			this.p.newStatus =newP;
+		}else{
+			this.p.P = newP;
+		}
+	},
+	/**@private
+	 * @function */
+	PHA: function() {
+		this.push(this.p.A);
+	},
+	/**@private
+	 * @function */
+	PLA: function() {
+		this.p.updateFlagZN(this.p.A = this.pop());
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	ADC: function(addr) {
+		/**@const
+		 * @type {Number} */
+		var val = this.p.read(addr);
+		/**@const
+		 * @type {Number} */
+		var result = (this.p.A + val + (this.p.P & cycloa.core.Processor.FLAG.C)) & 0xffff;
+		/**@const
+		 * @type {Number} */
+		var newA = result & 0xff;
+		this.p.P = (this.p.P & ~(cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.C))
+			| ((((this.p.A ^ val) & 0x80) ^ 0x80) & ((this.p.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
+			| ((result >> 8) & cycloa.core.Processor.FLAG.C); //set C flag
+		this.updateFlagZN(this.p.A = newA);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	SBC: function(addr) {
+		/**@const
+		 * @type {Number} */
+		var val = this.p.read(addr);
+		/**@const
+		 * @type {Number} */
+		var result = (this.p.A - val - ((this.p.P & cycloa.core.Processor.FLAG.C) ^ cycloa.core.Processor.FLAG.C)) & 0xffff;
+		/**@const
+		 * @type {Number} */
+		var newA = result & 0xff;
+		this.p.P = (this.p.P & ~(cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.C))
+			| ((this.p.A ^ val) & (this.p.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
+			| (((result >> 8) & cycloa.core.Processor.FLAG.C) ^ cycloa.core.Processor.FLAG.C);
+		this.updateFlagZN(this.p.A = newA);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	CPX: function(addr) {
+		/**@const
+		 * @type {Number} */
+		var val = (this.p.X - this.p.read(addr)) & 0xffff;
+		this.updateFlagZN(val & 0xff);
+		this.p.P = (this.p.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	CPY: function(addr) {
+		/**@const
+		 * @type {Number} */
+		var val = (this.p.Y - this.p.read(addr)) & 0xffff;
+		this.updateFlagZN(val & 0xff);
+		this.p.P = (this.p.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	CMP: function(addr) {
+		/**@const
+		 * @type {Number} */
+		var val = (this.p.A - this.p.read(addr)) & 0xffff;
+		this.updateFlagZN(val & 0xff);
+		this.p.P = (this.p.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	AND: function(addr) {
+		this.updateFlagZN(this.p.A &= this.p.read(addr));
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	EOR: function(addr) {
+		this.updateFlagZN(this.p.A ^= this.p.read(addr));
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	ORA: function(addr) {
+		this.updateFlagZN(this.p.A |= this.p.read(addr));
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	BIT: function(addr) {
+		/**@const
+		 * @type {Number} */
+		var val = this.p.read(addr);
+		this.p.P = (this.p.P & (0xff & ~(cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.N | cycloa.core.Processor.FLAG.Z)))
+			| (val & (cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.N))
+			| (cycloa.core.Processor.ZNFlagCache[this.p.A & val] & cycloa.core.Processor.FLAG.Z);
+	},
+	/**@private
+	 * @function */
+	ASL_: function() {
+		this.p.P = (this.p.P & 0xFE) | (this.p.A & 0xff) >> 7;
+		this.updateFlagZN((this.p.A <<= 1) & 0xff);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	ASL: function(addr) {
+		var val = this.p.read(addr);
+		this.p.P = (this.p.P & 0xFE) | val >> 7;
+		val <<= 1;
+		this.p.write(addr, val);
+		this.updateFlagZN(val);
+	},
+	/**@private
+	 * @function */
+	LSR_: function() {
+		this.p.P = (this.p.P & 0xFE) | (this.p.A & 0x01);
+		this.p.A >>= 1;
+		this.updateFlagZN(this.p.A);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	LSR: function(addr) {
+		var val = this.p.read(addr);
+		this.p.P = (this.p.P & 0xFE) | (val & 0x01);
+		val >>= 1;
+		this.p.write(addr, val);
+		this.updateFlagZN(val);
+	},
+	/**@private
+	 * @function */
+	ROL_: function() {
+		var carry = (this.p.A & 0xff) >> 7;
+		this.p.A = (this.p.A << 1) | (this.p.P & 0x01);
+		this.p.P = (this.p.P & 0xFE) | carry;
+		this.updateFlagZN(this.p.A);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	ROL: function(addr) {
+		var val = this.p.read(addr);
+		/**@const
+		 * @type {Number} */
+		var carry = val >> 7;
+		val = ((val << 1) & 0xff) | (this.p.P & 0x01);
+		this.p.P = (this.p.P & 0xFE) | carry;
+		this.updateFlagZN(val);
+		this.p.write(addr, val);
+	},
+	/**@private
+	 * @function */
+	ROR_: function() {
+		this.p.P = (this.p.P & 0xFE) | (this.p.A & 0x01);
+		this.updateFlagZN( this.p.A = ((this.p.A >> 1) & 0xff) | ((this.p.P & 0x01) << 7) );
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	ROR: function(addr) { //FIXME: オーバーロード
+		var val = this.p.read(addr);
+		/**@const
+		 * @type {Number} */
+		var carry = val & 0x01;
+		val = (val >> 1) | ((this.p.P & 0x01) << 7);
+		this.p.P = (this.p.P & 0xFE) | carry;
+		this.updateFlagZN(val);
+		this.p.write(addr, val);
+	},
+	/**@private
+	 * @function */
+	INX: function() {
+		this.updateFlagZN(++this.p.X);
+	},
+	/**@private
+	 * @function */
+	INY: function() {
+		this.updateFlagZN(++this.p.Y);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	INC: function(addr) {
+		/**@const
+		 * @type {Number} */
+		var val = (this.p.read(addr)+1) & 0xff;
+		this.updateFlagZN(val);
+		this.p.write(addr, val);
+	},
+	/**@private
+	 * @function */
+	DEX: function() {
+		this.updateFlagZN(--this.p.X);
+	},
+	/**@private
+	 * @function */
+	DEY: function() {
+		this.updateFlagZN(--this.p.Y);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	DEC: function(addr) {
+		/**@const
+		 * @type {Number} */
+		var val = (this.p.read(addr)-1) & 0xff;
+		this.updateFlagZN(val);
+		this.p.write(addr, val);
+	},
+	/**@private
+	 * @function */
+	CLC: function() {
+		this.p.P &= ~(cycloa.core.Processor.FLAG.C);
+	},
+	/**@private
+	 * @function */
+	CLI: function() {
+		// http://twitter.com/#!/KiC6280/status/112348378100281344
+		// http://twitter.com/#!/KiC6280/status/112351125084180480
 		this.p.needStatusRewrite = true;
-		this.p.newStatus =newP;
-	}else{
-		this.p.P = newP;
-	}
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.PHA = function() {
-	this.push(this.p.A);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.PLA = function() {
-	this.p.updateFlagZN(this.p.A = this.pop());
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.ADC = function(addr) {
-	/**@const
-	 * @type {Number} */
-	var val = this.p.read(addr);
-	/**@const
-	 * @type {Number} */
-	var result = (this.p.A + val + (this.p.P & cycloa.core.Processor.FLAG.C)) & 0xffff;
-	/**@const
-	 * @type {Number} */
-	var newA = result & 0xff;
-	this.p.P = (this.p.P & ~(cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.C))
-		| ((((this.p.A ^ val) & 0x80) ^ 0x80) & ((this.p.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-		| ((result >> 8) & cycloa.core.Processor.FLAG.C); //set C flag
-	this.updateFlagZN(this.p.A = newA);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.SBC = function(addr) {
-	/**@const
-	 * @type {Number} */
-	var val = this.p.read(addr);
-	/**@const
-	 * @type {Number} */
-	var result = (this.p.A - val - ((this.p.P & cycloa.core.Processor.FLAG.C) ^ cycloa.core.Processor.FLAG.C)) & 0xffff;
-	/**@const
-	 * @type {Number} */
-	var newA = result & 0xff;
-	this.p.P = (this.p.P & ~(cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.C))
-		| ((this.p.A ^ val) & (this.p.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-		| (((result >> 8) & cycloa.core.Processor.FLAG.C) ^ cycloa.core.Processor.FLAG.C);
-	this.updateFlagZN(this.p.A = newA);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.CPX = function(addr) {
-	/**@const
-	 * @type {Number} */
-	var val = (this.p.X - this.p.read(addr)) & 0xffff;
-	this.updateFlagZN(val & 0xff);
-	this.p.P = (this.p.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.CPY = function(addr) {
-	/**@const
-	 * @type {Number} */
-	var val = (this.p.Y - this.p.read(addr)) & 0xffff;
-	this.updateFlagZN(val & 0xff);
-	this.p.P = (this.p.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.CMP = function(addr) {
-	/**@const
-	 * @type {Number} */
-	var val = (this.p.A - this.p.read(addr)) & 0xffff;
-	this.updateFlagZN(val & 0xff);
-	this.p.P = (this.p.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.AND = function(addr) {
-	this.updateFlagZN(this.p.A &= this.p.read(addr));
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.EOR = function(addr) {
-	this.updateFlagZN(this.p.A ^= this.p.read(addr));
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.ORA = function(addr) {
-	this.updateFlagZN(this.p.A |= this.p.read(addr));
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.BIT = function(addr) {
-	/**@const
-	 * @type {Number} */
-	var val = this.p.read(addr);
-	this.p.P = (this.p.P & (0xff & ~(cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.N | cycloa.core.Processor.FLAG.Z)))
-		| (val & (cycloa.core.Processor.FLAG.V | cycloa.core.Processor.FLAG.N))
-		| (cycloa.core.Processor.ZNFlagCache[this.p.A & val] & cycloa.core.Processor.FLAG.Z);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.ASL_ = function() {
-	this.p.P = (this.p.P & 0xFE) | (this.p.A & 0xff) >> 7;
-	this.updateFlagZN((this.p.A <<= 1) & 0xff);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.ASL = function(addr) {
-	var val = this.p.read(addr);
-	this.p.P = (this.p.P & 0xFE) | val >> 7;
-	val <<= 1;
-	this.p.write(addr, val);
-	this.updateFlagZN(val);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.LSR_ = function() {
-	this.p.P = (this.p.P & 0xFE) | (this.p.A & 0x01);
-	this.p.A >>= 1;
-	this.updateFlagZN(this.p.A);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.LSR = function(addr) {
-	var val = this.p.read(addr);
-	this.p.P = (this.p.P & 0xFE) | (val & 0x01);
-	val >>= 1;
-	this.p.write(addr, val);
-	this.updateFlagZN(val);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.ROL_ = function() {
-	var carry = (this.p.A & 0xff) >> 7;
-	this.p.A = (this.p.A << 1) | (this.p.P & 0x01);
-	this.p.P = (this.p.P & 0xFE) | carry;
-	this.updateFlagZN(this.p.A);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.ROL = function(addr) {
-	var val = this.p.read(addr);
-	/**@const
-	 * @type {Number} */
-	var carry = val >> 7;
-	val = ((val << 1) & 0xff) | (this.p.P & 0x01);
-	this.p.P = (this.p.P & 0xFE) | carry;
-	this.updateFlagZN(val);
-	this.p.write(addr, val);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.ROR_ = function() {
-	this.p.P = (this.p.P & 0xFE) | (this.p.A & 0x01);
-	this.updateFlagZN( this.p.A = ((this.p.A >> 1) & 0xff) | ((this.p.P & 0x01) << 7) );
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.ROR = function(addr) { //FIXME: オーバーロード
-	var val = this.p.read(addr);
-	/**@const
-	 * @type {Number} */
-	var carry = val & 0x01;
-	val = (val >> 1) | ((this.p.P & 0x01) << 7);
-	this.p.P = (this.p.P & 0xFE) | carry;
-	this.updateFlagZN(val);
-	this.p.write(addr, val);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.INX = function() {
-	this.updateFlagZN(++this.p.X);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.INY = function() {
-	this.updateFlagZN(++this.p.Y);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.INC = function(addr) {
-	/**@const
-	 * @type {Number} */
-	var val = (this.p.read(addr)+1) & 0xff;
-	this.updateFlagZN(val);
-	this.p.write(addr, val);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.DEX = function() {
-	this.updateFlagZN(--this.p.X);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.DEY = function() {
-	this.updateFlagZN(--this.p.Y);
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.DEC = function(addr) {
-	/**@const
-	 * @type {Number} */
-	var val = (this.p.read(addr)-1) & 0xff;
-	this.updateFlagZN(val);
-	this.p.write(addr, val);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.CLC = function() {
-	this.p.P &= ~(cycloa.core.Processor.FLAG.C);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.CLI = function() {
-	// http://twitter.com/#!/KiC6280/status/112348378100281344
-	// http://twitter.com/#!/KiC6280/status/112351125084180480
-	this.p.needStatusRewrite = true;
-	this.p.newStatus = this.p.P & ~(cycloa.core.Processor.FLAG.I);
-	//this.p.P &= ~(cycloa.core.Processor.FLAG.I);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.CLV = function() {
-	this.p.P &= ~(cycloa.core.Processor.FLAG.V);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.CLD = function() {
-	this.p.P &= ~(cycloa.core.Processor.FLAG.D);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.SEC = function() {
-	this.p.P |= cycloa.core.Processor.FLAG.C;
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.SEI = function() {
-	this.p.P |= cycloa.core.Processor.FLAG.I;
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.SED = function() {
-	this.p.P |= cycloa.core.Processor.FLAG.D;
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.NOP = function() {
-	//NOP。そう、何もしない。
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.BRK = function() {
-	//NES ON FPGAには、
-	//「割り込みが確認された時、Iフラグがセットされていれば割り込みは無視します。」
-	//…と合ったけど、他の資料だと違う。http://nesdev.parodius.com/6502.txt
-	//DQ4はこうしないと、動かない。
-	/*
-	 if((this.p.P & cycloa.core.Processor.FLAG.I) == cycloa.core.Processor.FLAG.I){
-	 return;
-	 }*/
-	this.p.PC++;
-	this.push((this.p.PC >> 8) & 0xFF);
-	this.push(this.p.PC & 0xFF);
-	this.p.P |= cycloa.core.Processor.FLAG.B;
-	this.push(this.p.P);
-	this.p.P |= cycloa.core.Processor.FLAG.I;
-	this.p.PC = (this.p.read(0xFFFE) | (this.p.read(0xFFFF) << 8));
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.BCC = function(addr) {
-	if((this.p.P & cycloa.core.Processor.FLAG.C) == 0){
-		if(((this.p.PC ^ addr) & 0x0100) != 0){
-			this.p.consumeClock(2);
-		}else{
-			this.p.consumeClock(1);
+		this.p.newStatus = this.p.P & ~(cycloa.core.Processor.FLAG.I);
+		//this.p.P &= ~(cycloa.core.Processor.FLAG.I);
+	},
+	/**@private
+	 * @function */
+	CLV: function() {
+		this.p.P &= ~(cycloa.core.Processor.FLAG.V);
+	},
+	/**@private
+	 * @function */
+	CLD: function() {
+		this.p.P &= ~(cycloa.core.Processor.FLAG.D);
+	},
+	/**@private
+	 * @function */
+	SEC: function() {
+		this.p.P |= cycloa.core.Processor.FLAG.C;
+	},
+	/**@private
+	 * @function */
+	SEI: function() {
+		this.p.P |= cycloa.core.Processor.FLAG.I;
+	},
+	/**@private
+	 * @function */
+	SED: function() {
+		this.p.P |= cycloa.core.Processor.FLAG.D;
+	},
+	/**@private
+	 * @function */
+	NOP: function() {
+		//NOP。そう、何もしない。
+	},
+	/**@private
+	 * @function */
+	BRK: function() {
+		//NES ON FPGAには、
+		//「割り込みが確認された時、Iフラグがセットされていれば割り込みは無視します。」
+		//…と合ったけど、他の資料だと違う。http://nesdev.parodius.com/6502.txt
+		//DQ4はこうしないと、動かない。
+		/*
+		 if((this.p.P & cycloa.core.Processor.FLAG.I) == cycloa.core.Processor.FLAG.I){
+		 return;
+		 }*/
+		this.p.PC++;
+		this.push((this.p.PC >> 8) & 0xFF);
+		this.push(this.p.PC & 0xFF);
+		this.p.P |= cycloa.core.Processor.FLAG.B;
+		this.push(this.p.P);
+		this.p.P |= cycloa.core.Processor.FLAG.I;
+		this.p.PC = (this.p.read(0xFFFE) | (this.p.read(0xFFFF) << 8));
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	BCC: function(addr) {
+		if((this.p.P & cycloa.core.Processor.FLAG.C) == 0){
+			if(((this.p.PC ^ addr) & 0x0100) != 0){
+				this.p.consumeClock(2);
+			}else{
+				this.p.consumeClock(1);
+			}
+			this.p.PC = addr;
 		}
-		this.p.PC = addr;
-	}
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.BCS = function(addr) {
-	if((this.p.P & cycloa.core.Processor.FLAG.C) == cycloa.core.Processor.FLAG.C){
-		if(((this.p.PC ^ addr) & 0x0100) != 0){
-			this.p.consumeClock(2);
-		}else{
-			this.p.consumeClock(1);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	BCS: function(addr) {
+		if((this.p.P & cycloa.core.Processor.FLAG.C) == cycloa.core.Processor.FLAG.C){
+			if(((this.p.PC ^ addr) & 0x0100) != 0){
+				this.p.consumeClock(2);
+			}else{
+				this.p.consumeClock(1);
+			}
+			this.p.PC = addr;
 		}
-		this.p.PC = addr;
-	}
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.BEQ = function(addr) {
-	if((this.p.P & cycloa.core.Processor.FLAG.Z) == cycloa.core.Processor.FLAG.Z){
-		if(((this.p.PC ^ addr) & 0x0100) != 0){
-			this.p.consumeClock(2);
-		}else{
-			this.p.consumeClock(1);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	BEQ: function(addr) {
+		if((this.p.P & cycloa.core.Processor.FLAG.Z) == cycloa.core.Processor.FLAG.Z){
+			if(((this.p.PC ^ addr) & 0x0100) != 0){
+				this.p.consumeClock(2);
+			}else{
+				this.p.consumeClock(1);
+			}
+			this.p.PC = addr;
 		}
-		this.p.PC = addr;
-	}
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.BNE = function(addr) {
-	if((this.p.P & cycloa.core.Processor.FLAG.Z) == 0){
-		if(((this.p.PC ^ addr) & 0x0100) != 0){
-			this.p.consumeClock(2);
-		}else{
-			this.p.consumeClock(1);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	BNE: function(addr) {
+		if((this.p.P & cycloa.core.Processor.FLAG.Z) == 0){
+			if(((this.p.PC ^ addr) & 0x0100) != 0){
+				this.p.consumeClock(2);
+			}else{
+				this.p.consumeClock(1);
+			}
+			this.p.PC = addr;
 		}
-		this.p.PC = addr;
-	}
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.BVC = function(addr) {
-	if((this.p.P & cycloa.core.Processor.FLAG.V) == 0){
-		if(((this.p.PC ^ addr) & 0x0100) != 0){
-			this.p.consumeClock(2);
-		}else{
-			this.p.consumeClock(1);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	BVC: function(addr) {
+		if((this.p.P & cycloa.core.Processor.FLAG.V) == 0){
+			if(((this.p.PC ^ addr) & 0x0100) != 0){
+				this.p.consumeClock(2);
+			}else{
+				this.p.consumeClock(1);
+			}
+			this.p.PC = addr;
 		}
-		this.p.PC = addr;
-	}
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.BVS = function(addr) {
-	if((this.p.P & cycloa.core.Processor.FLAG.V) == cycloa.core.Processor.FLAG.V){
-		if(((this.p.PC ^ addr) & 0x0100) != 0){
-			this.p.consumeClock(2);
-		}else{
-			this.p.consumeClock(1);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	BVS: function(addr) {
+		if((this.p.P & cycloa.core.Processor.FLAG.V) == cycloa.core.Processor.FLAG.V){
+			if(((this.p.PC ^ addr) & 0x0100) != 0){
+				this.p.consumeClock(2);
+			}else{
+				this.p.consumeClock(1);
+			}
+			this.p.PC = addr;
 		}
-		this.p.PC = addr;
-	}
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.BPL = function(addr) {
-	if((this.p.P & cycloa.core.Processor.FLAG.N) == 0){
-		if(((this.p.PC ^ addr) & 0x0100) != 0){
-			this.p.consumeClock(2);
-		}else{
-			this.p.consumeClock(1);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	BPL: function(addr) {
+		if((this.p.P & cycloa.core.Processor.FLAG.N) == 0){
+			if(((this.p.PC ^ addr) & 0x0100) != 0){
+				this.p.consumeClock(2);
+			}else{
+				this.p.consumeClock(1);
+			}
+			this.p.PC = addr;
 		}
-		this.p.PC = addr;
-	}
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.BMI = function(addr) {
-	if((this.p.P & cycloa.core.Processor.FLAG.N) == cycloa.core.Processor.FLAG.N){
-		if(((this.p.PC ^ addr) & 0x0100) != 0){
-			this.p.consumeClock(2);
-		}else{
-			this.p.consumeClock(1);
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	BMI: function(addr) {
+		if((this.p.P & cycloa.core.Processor.FLAG.N) == cycloa.core.Processor.FLAG.N){
+			if(((this.p.PC ^ addr) & 0x0100) != 0){
+				this.p.consumeClock(2);
+			}else{
+				this.p.consumeClock(1);
+			}
+			this.p.PC = addr;
 		}
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	JSR: function(addr) {
+		this.p.PC--;
+		this.push((this.p.PC >> 8) & 0xFF);
+		this.push(this.p.PC & 0xFF);
 		this.p.PC = addr;
+	},
+	/**@private
+	 * @function
+	 * @param {Number} addr */
+	JMP: function(addr) {
+		this.p.PC = addr;
+	},
+	/**@private
+	 * @function */
+	RTI: function() {
+		this.p.P = this.pop();
+		this.p.PC = this.pop() | (this.pop() << 8);
+	},
+	/**@private
+	 * @function */
+	RTS: function() {
+		this.p.PC = this.pop() | (this.pop() << 8) + 1;
 	}
 };
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.JSR = function(addr) {
-	this.p.PC--;
-	this.push((this.p.PC >> 8) & 0xFF);
-	this.push(this.p.PC & 0xFF);
-	this.p.PC = addr;
-};
-/**@private
- * @function
- * @param {Number} addr */
-cycloa.core.InterpreterSpirit.prototype.JMP = function(addr) {
-	this.p.PC = addr;
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.RTI = function() {
-	this.p.P = this.pop();
-	this.p.PC = this.pop() | (this.pop() << 8);
-};
-/**@private
- * @function */
-cycloa.core.InterpreterSpirit.prototype.RTS = function() {
-	this.p.PC = this.pop() | (this.pop() << 8) + 1;
-};
-
 /**
  * @const
  * @type {Function[]}

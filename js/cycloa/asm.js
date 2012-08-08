@@ -5,77 +5,78 @@
  * @type {Object}
  * @namespace
  */
-cycloa.asm = {};
-/**
- * オペコード一覧
- * @const
- * @type {Object}
- * @enum {Number}
- */
-cycloa.asm.opcode = {
-	'LDA':0,
-	'LDX':1,
-	'LDY':2,
-	'STA':3,
-	'STX':4,
-	'STY':5,
-	'TAX':6,
-	'TAY':7,
-	'TSX':8,
-	'TXA':9,
-	'TXS':10,
-	'TYA':11,
-	'ADC':12,
-	'AND':13,
-	'ASL':14,
-	'BIT':15,
-	'CMP':16,
-	'CPX':17,
-	'CPY':18,
-	'DEC':19,
-	'DEX':20,
-	'DEY':21,
-	'EOR':22,
-	'INC':23,
-	'INX':24,
-	'INY':25,
-	'LSR':26,
-	'ORA':27,
-	'ROL':28,
-	'ROR':29,
-	'SBC':30,
-	'PHA':31,
-	'PHP':32,
-	'PLA':33,
-	'PLP':34,
-	'CLC':35,
-	'CLD':36,
-	'CLI':37,
-	'CLV':38,
-	'SEC':39,
-	'SED':40,
-	'SEI':41,
-	'BRK':42,
-	'NOP':43,
-	'RTS':44,
-	'RTI':45,
-	'JMP':46,
-	'JSR':47,
-	'BCC':48,
-	'BCS':49,
-	'BEQ':50,
-	'BMI':51,
-	'BNE':52,
-	'BPL':53,
-	'BVC':54,
-	'BVS':55};
-/**
- * アドレッシングモード一覧
- * @type {Object}
- * @const
- * @enum {Number}
- */
-cycloa.asm.addr_mode = {
+cycloa.asm = {
+	/**
+	 * オペコード一覧
+	 * @const
+	 * @type {Object}
+	 * @enum {Number}
+	 */
+	opcode: {
+		LDA:0,
+		LDX:1,
+		LDY:2,
+		STA:3,
+		STX:4,
+		STY:5,
+		TAX:6,
+		TAY:7,
+		TSX:8,
+		TXA:9,
+		TXS:10,
+		TYA:11,
+		ADC:12,
+		AND:13,
+		ASL:14,
+		BIT:15,
+		CMP:16,
+		CPX:17,
+		CPY:18,
+		DEC:19,
+		DEX:20,
+		DEY:21,
+		EOR:22,
+		INC:23,
+		INX:24,
+		INY:25,
+		LSR:26,
+		ORA:27,
+		ROL:28,
+		ROR:29,
+		SBC:30,
+		PHA:31,
+		PHP:32,
+		PLA:33,
+		PLP:34,
+		CLC:35,
+		CLD:36,
+		CLI:37,
+		CLV:38,
+		SEC:39,
+		SED:40,
+		SEI:41,
+		BRK:42,
+		NOP:43,
+		RTS:44,
+		RTI:45,
+		JMP:46,
+		JSR:47,
+		BCC:48,
+		BCS:49,
+		BEQ:50,
+		BMI:51,
+		BNE:52,
+		BPL:53,
+		BVC:54,
+		BVS:55
+	},
+	/**
+	 * アドレッシングモード一覧
+	 * @type {Object}
+	 * @const
+	 * @enum {Number}
+	 */
+	addr_mode: {
 	'None': 0,
 	'Immediate': 1,
 	'Zeropage': 2,
@@ -88,32 +89,32 @@ cycloa.asm.addr_mode = {
 	'IndirectX': 9,
 	'IndirectY': 10,
 	'Relative': 11
-};
-/**
- * アドレッシングモードごとのオペランドの一覧
- * @type {Object}
- * @const
- */
-cycloa.asm.operand_size = {
-	'None': 0,
-	'Immediate': 1,
-	'ZeroPage': 1,
-	'ZeroPageX': 1,
-	'ZeroPageY': 1,
-	'Absolute': 2,
-	'AbsoluteX': 2,
-	'AbsoluteY': 2,
-	'Indirect': 1,
-	'IndirectX': 1,
-	'IndirectY': 1,
-	'Relative': 1
-};
-/**
- * 命令デコードテーブル
- * @type {Object[]}
- * @const
- */
-cycloa.asm.decode_table = [
+	},
+	/**
+	 * アドレッシングモードごとのオペランドバイト数の一覧
+	 * @type {Object}
+	 * @const
+	 */
+	operand_size: {
+	None: 0,
+	Immediate: 1,
+	ZeroPage: 1,
+	ZeroPageX: 1,
+	ZeroPageY: 1,
+	Absolute: 2,
+	AbsoluteX: 2,
+	AbsoluteY: 2,
+	Indirect: 1,
+	IndirectX: 1,
+	IndirectY: 1,
+	Relative: 1
+	},
+	/**
+	 * 命令デコードテーブル
+	 * @type {Object[]}
+	 * @const
+	 */
+	decode_table: [
 	{'opcode':cycloa.asm.opcode.BRK,'addr_mode':cycloa.asm.addr_mode.None,'operand_size':cycloa.asm.operand_size.None},
 	{'opcode':cycloa.asm.opcode.ORA,'addr_mode':cycloa.asm.addr_mode.IndirectX,'operand_size':cycloa.asm.operand_size.IndirectX},
 	null,
@@ -369,39 +370,41 @@ cycloa.asm.decode_table = [
 	null,
 	{'opcode':cycloa.asm.opcode.SBC,'addr_mode':cycloa.asm.addr_mode.AbsoluteX,'operand_size':cycloa.asm.operand_size.AbsoluteX},
 	{'opcode':cycloa.asm.opcode.INC,'addr_mode':cycloa.asm.addr_mode.AbsoluteX,'operand_size':cycloa.asm.operand_size.AbsoluteX},
-	null];
-/**
- * @constructor
- */
-cycloa.asm.Decoder = function (){
-
-};
-/**
- * 実際に命令をデコードし、登録されたハンドラを呼び出します
- * @param {Array} code
- * @param {Integer} base_addr
- */
-cycloa.asm.Decoder.prototype.invoke = function(code, base_addr){
-	for(var i=0;i<code.length;++i){
-		var addr = base_addr+i;
-		var info = cycloa.asm.decode_table[code[i]];
-		if(info != null){
-			var operand = null;
-			if(info.operand_size == 1){
-				operand = code[++i];
-			}else if(info.operand_size == 2){
-				operand = code[++i] | (code[++i] << 8);
-			}
-			this.handler(addr, info.opcode, info.addr_mode, operand);
-		}else{
-			this.handler(addr, null, null, null);
-		}
+	null],
+	/**
+	 * @constructor
+	 */
+	Decoder: function (){
 	}
 };
-/**
- * ハンドラを登録します
- * @param {function} handler
- */
-cycloa.asm.Decoder.prototype.registerHandler = function(handler){
-	this.handler = handler;
+cycloa.asm.Decoder.prototype = {
+	/**
+	 * 実際に命令をデコードし、登録されたハンドラを呼び出します
+	 * @param {Uint8Array} code
+	 * @param {Integer} base_addr
+	 */
+	invoke: function(code, base_addr){
+		for(var i=0;i<code.length;++i){
+			var addr = base_addr+i;
+			var info = cycloa.asm.decode_table[code[i]];
+			if(info != null){
+				var operand = null;
+				if(info.operand_size == 1){
+					operand = code[++i];
+				}else if(info.operand_size == 2){
+					operand = code[++i] | (code[++i] << 8);
+				}
+				this.handler(addr, info.opcode, info.addr_mode, operand);
+			}else{
+				this.handler(addr, null, null, null);
+			}
+		}
+	},
+	/**
+	 * ハンドラを登録します
+	 * @param {function} handler
+	 */
+	registerHandler: function(handler){
+		this.handler = handler;
+	}
 };

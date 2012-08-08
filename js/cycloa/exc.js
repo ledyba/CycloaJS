@@ -21,13 +21,15 @@ cycloa.exc.Exception = function (message) {
 	 * @const
 	 */
 	this.message = message;
+};
+cycloa.exc.Exception.prototype = {
 	/**
 	 * 例外のメッセージを返します。
 	 * @function
 	 * @return {String}
 	 */
-	this.getMessage = function (){
-		return this.message;
+	getMessage: function (){
+	return this.message;
 	}
 };
 /**
@@ -39,7 +41,9 @@ cycloa.exc.Exception = function (message) {
 cycloa.exc.CoreException = function (message) {
 	cycloa.exc.Exception.apply(this, "[CoreException] "+ message);
 };
-cycloa.exc.CoreException.prototype.__proto__ = cycloa.exc.Exception.prototype;
+cycloa.exc.CoreException.prototype = {
+	__proto__: cycloa.exc.Exception.prototype
+};
 /**
  * 実装するべきメソッドを実装してない例外です
  * @param {String} message
@@ -49,4 +53,6 @@ cycloa.exc.CoreException.prototype.__proto__ = cycloa.exc.Exception.prototype;
 cycloa.exc.NotImplementedException = function (message) {
 	cycloa.exc.Exception.apply(this, "[NotImplementedException] "+ message);
 };
-cycloa.exc.NotImplementedException.prototype.__proto__ = cycloa.exc.Exception.prototype;
+cycloa.exc.NotImplementedException.prototype = {
+	__proto__: cycloa.exc.Exception.prototype
+};
