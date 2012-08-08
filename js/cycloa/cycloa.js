@@ -5,9 +5,9 @@
  * @namespace
  * @type {Object}
  */
-var cycloa  = {
-	debug: false
-};
+var cycloa;
+if(!cycloa) cycloa = {};
+cycloa.debug = false;
 /**
  * エミュレータ本体の名前空間
  * @type {Object}

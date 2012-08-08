@@ -1,4 +1,7 @@
 "use strict";
+var cycloa;
+if(!cycloa) cycloa = {};
+
 /**
  * 例外用の名前空間
  * @type {Object}
@@ -10,9 +13,8 @@ cycloa.exc = {};
 /**
  * 例外のベースクラスです
  * @param {String} message メッセージ
- * @constructor
- * @class
  * @const
+ * @constructor
  */
 cycloa.exc.Exception = function (message) {
 	/**
@@ -39,7 +41,7 @@ cycloa.exc.Exception.prototype = {
  * @class
  */
 cycloa.exc.CoreException = function (message) {
-	cycloa.exc.Exception.apply(this, "[CoreException] "+ message);
+	cycloa.exc.Exception.apply(this, ["[CoreException] "+ message]);
 };
 cycloa.exc.CoreException.prototype = {
 	__proto__: cycloa.exc.Exception.prototype
@@ -51,7 +53,7 @@ cycloa.exc.CoreException.prototype = {
  * @class
  */
 cycloa.exc.NotImplementedException = function (message) {
-	cycloa.exc.Exception.apply(this, "[NotImplementedException] "+ message);
+	cycloa.exc.Exception.apply(this,["[NotImplementedException] "+ message]);
 };
 cycloa.exc.NotImplementedException.prototype = {
 	__proto__: cycloa.exc.Exception.prototype

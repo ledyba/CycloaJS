@@ -1,4 +1,7 @@
 "use strict";
+var cycloa;
+if(!cycloa) cycloa = {};
+if(!cycloa.core) cycloa.core = {};
 
 /**
  * @extends cycloa.core.ProcessorSpirit
@@ -62,7 +65,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 * @function
 	 * @return {Number} */
 	addrZeroPage: function() {
-		return this.p.read(this.PC++);
+		return this.p.read(this.p.PC++);
 	},
 	/**@private
 	 * @function
@@ -112,7 +115,7 @@ cycloa.core.InterpreterSpirit.prototype = {
 	addrRelative: function() {
 		/** @const
 		 *  @type {Number} */
-		var offset = this.p.read(this.PC++);
+		var offset = this.p.read(this.p.PC++);
 		return (offset >= 128 ? (offset-256) : offset) + this.p.PC;
 	},
 	/**@private
