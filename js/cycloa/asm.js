@@ -235,7 +235,7 @@ cycloa.asm.addr_decoder = [
 	 * @return {Number}
 	 */
 	function(pr) {  /* ZeroPageY */
-		return (pr.read(pr.PC+1) + this.pr.Y) & 0xff;
+		return (pr.read(pr.PC+1) + pr.Y) & 0xff;
 	},
 	/**
 	 * @param {cycloa.core.Processor} pr
