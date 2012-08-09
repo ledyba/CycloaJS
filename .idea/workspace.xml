@@ -2,11 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed42b9b7-df62-4d1d-a09b-dbb9a90e439b" name="Default" comment="JSDoc追加">
-      <change type="DELETED" beforePath="D:\Dropbox\mitoh\CycloaJS\js\cycloa\asm.js" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_gen/gen_interpreter.rb" afterPath="$PROJECT_DIR$/_gen/gen_interpreter.rb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_gen/opcode_info.rb" afterPath="$PROJECT_DIR$/_gen/opcode_info.rb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_gen/log.txt" afterPath="$PROJECT_DIR$/_gen/log.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/cycloa/core.js" afterPath="$PROJECT_DIR$/js/cycloa/core.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/cycloa/util.js" afterPath="$PROJECT_DIR$/js/cycloa/util.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/interpreter_test.js" afterPath="$PROJECT_DIR$/test/interpreter_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/performance.html" afterPath="$PROJECT_DIR$/performance.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/processor_debug_board.js" afterPath="$PROJECT_DIR$/test/processor_debug_board.js" />
     </list>
     <ignored path="CycloaJS.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -35,7 +37,7 @@
       <file leaf-file-name="interpreter_test.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/interpreter_test.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="10" column="18" selection-start="343" selection-end="343" vertical-scroll-proportion="0.0">
+            <state line="18" column="0" selection-start="74" selection-end="501" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -44,7 +46,7 @@
       <file leaf-file-name="processor_debug_board.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/processor_debug_board.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="70" column="9" selection-start="1394" selection-end="1406" vertical-scroll-proportion="0.0">
+            <state line="7" column="19" selection-start="160" selection-end="160" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -53,7 +55,7 @@
       <file leaf-file-name="cycloa.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/js/cycloa/cycloa.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="36" column="4" selection-start="571" selection-end="571" vertical-scroll-proportion="0.0">
+            <state line="25" column="0" selection-start="329" selection-end="329" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -62,7 +64,34 @@
       <file leaf-file-name="core.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/js/cycloa/core.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="871" column="0" selection-start="20021" selection-end="20021" vertical-scroll-proportion="0.8120301">
+            <state line="328" column="56" selection-start="8204" selection-end="8204" vertical-scroll-proportion="-0.3224543">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="performance.html" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/performance.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="34" column="55" selection-start="1152" selection-end="1152" vertical-scroll-proportion="-23.8">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="err.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/js/cycloa/err.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="11" column="0" selection-start="147" selection-end="147" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="unit_test.html" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/unit_test.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="8" column="67" selection-start="479" selection-end="479" vertical-scroll-proportion="-5.6">
               <folding />
             </state>
           </provider>
@@ -91,30 +120,30 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/humans.txt" />
-        <option value="$PROJECT_DIR$/index.html" />
-        <option value="$PROJECT_DIR$/js/mod.js" />
         <option value="$PROJECT_DIR$/js/cycloa/inst.js" />
         <option value="$PROJECT_DIR$/test/asm_test.js" />
         <option value="$PROJECT_DIR$/js/cycloa.js" />
         <option value="$PROJECT_DIR$/test/ProcessorDebugBoard.js" />
         <option value="$PROJECT_DIR$/js/cycloa/processor.js" />
-        <option value="$PROJECT_DIR$/test/processor_debug_board.js" />
         <option value="$PROJECT_DIR$/js/cycloa/exc.js" />
-        <option value="$PROJECT_DIR$/js/cycloa/cycloa.js" />
         <option value="$PROJECT_DIR$/js/cycloa/interpreter.js" />
         <option value="$PROJECT_DIR$/test/interpreter_test.js" />
         <option value="$PROJECT_DIR$/js/cycloa/util.js" />
         <option value="$PROJECT_DIR$/js/cycloa/asm.js" />
+        <option value="$PROJECT_DIR$/unit_test.js.html" />
+        <option value="$PROJECT_DIR$/unit_test.html" />
+        <option value="$PROJECT_DIR$/test/processor_debug_board.js" />
+        <option value="$PROJECT_DIR$/js/cycloa/cycloa.js" />
+        <option value="$PROJECT_DIR$/performance.html" />
         <option value="$PROJECT_DIR$/js/cycloa/core.js" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-8" />
-    <option name="y" value="-8" />
-    <option name="width" value="1616" />
-    <option name="height" value="886" />
+    <option name="x" value="1919" />
+    <option name="y" value="27" />
+    <option name="width" value="1922" />
+    <option name="height" value="1174" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -265,17 +294,21 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="192" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="984" />
+    <property name="DefaultHtmlFileTemplate" value="Html5" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="984" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="984" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="192" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="188" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
-    <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\Dropbox\mitoh\CycloaJS\js\cycloa" />
     </key>
@@ -303,22 +336,11 @@
     </configuration>
     <configuration default="false" name="Init" type="JavascriptDebugSession" factoryName="Local">
       <JSDebuggerConfigurationSettings>
-        <option name="engineId" value="firefox" />
+        <option name="engineId" value="chrome" />
         <option name="fileUrl" value="file://$PROJECT_DIR$/index.html" />
       </JSDebuggerConfigurationSettings>
       <RunnerSettings RunnerId="JavascriptDebugRunner" />
       <ConfigurationWrapper RunnerId="JavascriptDebugRunner" />
-      <method />
-    </configuration>
-    <configuration default="false" name="asm_test.js" type="JSTestDriver:ConfigurationType" factoryName="JsTestDriver">
-      <setting name="configLocationType" value="JS_FILE" />
-      <setting name="configType" value="GENERATED" />
-      <setting name="jsFile" value="$PROJECT_DIR$/test/asm_test.js" />
-      <setting name="serverType" value="INTERNAL" />
-      <RunnerSettings RunnerId="JsTestDriverClientRunner" />
-      <RunnerSettings RunnerId="JstdCoverageProgramRunner" />
-      <ConfigurationWrapper RunnerId="JsTestDriverClientRunner" />
-      <ConfigurationWrapper RunnerId="JstdCoverageProgramRunner" />
       <method />
     </configuration>
     <configuration default="false" name="interpreter_test.js" type="JSTestDriver:ConfigurationType" factoryName="JsTestDriver">
@@ -332,10 +354,9 @@
       <ConfigurationWrapper RunnerId="JstdCoverageProgramRunner" />
       <method />
     </configuration>
-    <list size="3">
+    <list size="2">
       <item index="0" class="java.lang.String" itemvalue="JavaScript Debug.Init" />
-      <item index="1" class="java.lang.String" itemvalue="JsTestDriver.asm_test.js" />
-      <item index="2" class="java.lang.String" itemvalue="JsTestDriver.interpreter_test.js" />
+      <item index="1" class="java.lang.String" itemvalue="JsTestDriver.interpreter_test.js" />
     </list>
   </component>
   <component name="ShelveChangesManager" show_recycled="false" />
@@ -395,18 +416,18 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1616" height="886" extended-state="6" />
+    <frame x="1919" y="27" width="1922" height="1174" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32875368" sideWeight="0.49786553" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32875368" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2506427" sideWeight="0.7894737" order="4" side_tool="true" content_ui="tabs" x="3638" y="177" width="153" height="328" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14524421" sideWeight="0.7894737" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25080043" sideWeight="0.81452405" order="4" side_tool="true" content_ui="tabs" x="3638" y="177" width="153" height="328" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14674494" sideWeight="0.81452405" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.12293144" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.08065366" sideWeight="0.3326791" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21295388" sideWeight="0.28815368" order="13" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21052632" sideWeight="0.708111" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="JsTestDriver Server" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18559557" sideWeight="0.8271078" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21000981" sideWeight="0.29082176" order="13" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21000981" sideWeight="0.7054429" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="JsTestDriver Server" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18547596" sideWeight="0.82390606" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19725221" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -417,8 +438,8 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25133404" sideWeight="0.38665357" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Command Line Tools Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32978722" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Thumbnails" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32973504" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Command Line Tools Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32978722" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -501,11 +522,6 @@
         <state line="104" column="4" selection-start="3689" selection-end="3689" vertical-scroll-proportion="0.19919518" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/asm_test.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="3" column="20" selection-start="58" selection-end="58" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/js/plugins.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
@@ -521,11 +537,6 @@
         <state line="35" column="43" selection-start="1514" selection-end="1514" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/cycloa/exc.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="11" column="0" selection-start="147" selection-end="147" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavascriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/HTML5.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="1530" column="9" selection-start="27112" selection-end="27112" vertical-scroll-proportion="0.33333334" />
@@ -538,26 +549,49 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/processor_debug_board.js">
+    <entry file="file://$PROJECT_DIR$/js/cycloa/err.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="70" column="9" selection-start="1394" selection-end="1406" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/cycloa/cycloa.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="36" column="4" selection-start="571" selection-end="571" vertical-scroll-proportion="0.0" />
+        <state line="11" column="0" selection-start="147" selection-end="147" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/interpreter_test.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="18" selection-start="343" selection-end="343" vertical-scroll-proportion="0.0">
+        <state line="18" column="0" selection-start="74" selection-end="501" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/cycloa/cycloa.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="25" column="0" selection-start="329" selection-end="329" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/processor_debug_board.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="7" column="19" selection-start="160" selection-end="160" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/unit_test.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="8" column="67" selection-start="479" selection-end="479" vertical-scroll-proportion="-5.6">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/performance.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="34" column="55" selection-start="1152" selection-end="1152" vertical-scroll-proportion="-23.8">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/cycloa/core.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="871" column="0" selection-start="20021" selection-end="20021" vertical-scroll-proportion="0.8120301">
+        <state line="328" column="56" selection-start="8204" selection-end="8204" vertical-scroll-proportion="-0.3224543">
           <folding />
         </state>
       </provider>

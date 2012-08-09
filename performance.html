@@ -3,17 +3,41 @@
 <head>
 	<meta charset="UTF-8">
 	<script src="http://code.jquery.com/jquery-latest.js"></script>
-	<link rel="stylesheet" href="http://github.com/jquery/qunit/raw/master/qunit/qunit.css" type="text/css" media="screen" />
-	<script type="text/javascript" src="http://github.com/jquery/qunit/raw/master/qunit/qunit.js"></script>
 	<script type="text/javascript" src="js/cycloa/cycloa.js"></script>
 	<script type="text/javascript" src="js/cycloa/err.js"></script>
 	<script type="text/javascript" src="js/cycloa/util.js"></script>
 	<script type="text/javascript" src="js/cycloa/core.js"></script>
 	<script type="text/javascript" src="test/processor_debug_board.js"></script>
 	<script type="text/javascript" src="test/interpreter_test.js"></script>
+	<script>
+		function log(msg){
+			console.log(msg);
+		}
+		function run(){
+			var board = new ProcessorDebugBoard();
+			var processor = new cycloa.core.Processor();
+			var spirit = new cycloa.core.PrecompileSpirit(processor);
+			processor.attachSpirit(spirit);
+			board.attachProcessor(processor);
+			var v = function(){
+				processor.run();
+			};
+			var start = new Date();
+			for(var t = 0; t < 300; ++t){
+				processor.onHardReset();
+				processor.PC = 0xC000;
+				for(var i=0;i<5000;++i){
+					board.run();
+				}
+			}
+			var end = new Date();
+			var time = end-start;
+			console.log("nclocks: "+board.clock+" /time: "+time+"ms / "+(board.clock/time)+"Hz");
+		}
+	</script>
 	<title>unit test</title>
 </head>
 <body>
-
+	<input id="start" onclick="run();" type="button" value="start" />
 </body>
 </html>

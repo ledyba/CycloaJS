@@ -3,7 +3,7 @@ module Opcode
 =begin
 	各命令のアドレッシングモード別のオペコードを格納。nilの場合は存在しない事を示す。
 =end
-	OPCODE_TABLE = {
+	INST_TABLE = {
 		:LDA => 
 		{
 			:Immediate => 0xA9,
@@ -17,7 +17,7 @@ module Opcode
 			:IndirectX => 0xA1,
 			:IndirectY => 0xB1,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:LDX => 
 		{
@@ -32,7 +32,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:LDY => 
 		{
@@ -47,7 +47,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:STA => 
 		{
@@ -62,7 +62,7 @@ module Opcode
 			:IndirectX => 0x81,
 			:IndirectY => 0x91,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:STX => 
 		{
@@ -77,7 +77,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:STY => 
 		{
@@ -92,7 +92,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:TAX => 
 		{
@@ -107,7 +107,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0xAA
+			:None => 0xAA
 		},
 		:TAY => 
 		{
@@ -122,7 +122,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0xA8
+			:None => 0xA8
 		},
 		:TSX => 
 		{
@@ -137,7 +137,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0xBA
+			:None => 0xBA
 		},
 		:TXA => 
 		{
@@ -152,7 +152,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x8A
+			:None => 0x8A
 		},
 		:TXS => 
 		{
@@ -167,7 +167,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x9A
+			:None => 0x9A
 		},
 		:TYA => 
 		{
@@ -182,7 +182,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x98
+			:None => 0x98
 		},
 		:ADC => 
 		{
@@ -197,7 +197,7 @@ module Opcode
 			:IndirectX => 0x61,
 			:IndirectY => 0x71,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:AND => 
 		{
@@ -212,7 +212,7 @@ module Opcode
 			:IndirectX => 0x21,
 			:IndirectY => 0x31,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:ASL => 
 		{
@@ -227,7 +227,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x0A
+			:None => 0x0A
 		},
 		:BIT => 
 		{
@@ -242,7 +242,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:CMP => 
 		{
@@ -257,7 +257,7 @@ module Opcode
 			:IndirectX => 0xC1,
 			:IndirectY => 0xD1,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:CPX => 
 		{
@@ -272,7 +272,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:CPY => 
 		{
@@ -287,7 +287,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:DEC => 
 		{
@@ -302,7 +302,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:DEX => 
 		{
@@ -317,7 +317,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0xCA
+			:None => 0xCA
 		},
 		:DEY => 
 		{
@@ -332,7 +332,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x88
+			:None => 0x88
 		},
 		:EOR => 
 		{
@@ -347,7 +347,7 @@ module Opcode
 			:IndirectX => 0x41,
 			:IndirectY => 0x51,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:INC => 
 		{
@@ -362,7 +362,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:INX => 
 		{
@@ -377,7 +377,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0xE8
+			:None => 0xE8
 		},
 		:INY => 
 		{
@@ -392,7 +392,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0xC8
+			:None => 0xC8
 		},
 		:LSR => 
 		{
@@ -407,7 +407,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x4A
+			:None => 0x4A
 		},
 		:ORA => 
 		{
@@ -422,7 +422,7 @@ module Opcode
 			:IndirectX => 0x01,
 			:IndirectY => 0x11,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:ROL => 
 		{
@@ -437,7 +437,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x2A
+			:None => 0x2A
 		},
 		:ROR => 
 		{
@@ -452,7 +452,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x6A
+			:None => 0x6A
 		},
 		:SBC => 
 		{
@@ -467,7 +467,7 @@ module Opcode
 			:IndirectX => 0xE1,
 			:IndirectY => 0xF1,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:PHA => 
 		{
@@ -482,7 +482,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x48
+			:None => 0x48
 		},
 		:PHP => 
 		{
@@ -497,7 +497,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x08
+			:None => 0x08
 		},
 		:PLA => 
 		{
@@ -512,7 +512,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x68
+			:None => 0x68
 		},
 		:PLP =>
 		{
@@ -527,7 +527,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x28
+			:None => 0x28
 		},
 		:CLC =>
 		{
@@ -542,7 +542,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x18
+			:None => 0x18
 		},
 		:CLD =>
 		{
@@ -557,7 +557,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0xD8
+			:None => 0xD8
 		},
 		:CLI =>
 		{
@@ -572,7 +572,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x58
+			:None => 0x58
 		},
 		:CLV =>
 		{
@@ -587,7 +587,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0xB8
+			:None => 0xB8
 		},
 		:SEC =>
 		{
@@ -602,7 +602,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x38
+			:None => 0x38
 		},
 		:SED =>
 		{
@@ -617,7 +617,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0xF8
+			:None => 0xF8
 		},
 		:SEI =>
 		{
@@ -632,7 +632,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x78
+			:None => 0x78
 		},
 		:BRK =>
 		{
@@ -647,7 +647,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x0
+			:None => 0x0
 		},
 		:NOP =>
 		{
@@ -662,7 +662,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0xEA
+			:None => 0xEA
 		},
 		# ジャンプアドレス計算の必要のない方たち
 		:RTS => 
@@ -678,7 +678,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x60
+			:None => 0x60
 		},
 		:RTI => 
 		{
@@ -693,7 +693,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => 0x40
+			:None => 0x40
 		},
 		:JMP => 
 		{
@@ -708,7 +708,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:JSR => 
 		{
@@ -723,7 +723,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => nil,
-			:nil => nil
+			:None => nil
 		},
 		:BCC => 
 		{
@@ -738,7 +738,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => 0x90,
-			:nil => nil
+			:None => nil
 		},
 		:BCS => 
 		{
@@ -753,7 +753,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => 0xB0,
-			:nil => nil
+			:None => nil
 		},
 		:BEQ => 
 		{
@@ -768,7 +768,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => 0xF0,
-			:nil => nil
+			:None => nil
 		},
 		:BMI => 
 		{
@@ -783,7 +783,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => 0x30,
-			:nil => nil
+			:None => nil
 		},
 		:BNE => 
 		{
@@ -798,7 +798,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => 0xD0,
-			:nil => nil
+			:None => nil
 		},
 		:BPL => 
 		{
@@ -813,7 +813,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => 0x10,
-			:nil => nil
+			:None => nil
 		},
 		:BVC => 
 		{
@@ -828,7 +828,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => 0x50,
-			:nil => nil
+			:None => nil
 		},
 		:BVS => 
 		{
@@ -843,7 +843,7 @@ module Opcode
 			:IndirectX => nil,
 			:IndirectY => nil,
 			:Relative => 0x70,
-			:nil => nil
+			:None => nil
 		}
 	};
 =begin
@@ -861,4 +861,275 @@ module Opcode
 		:BVC => :BVS,
 		:BVS => :BVC
 	};
+	OPCODE_TABLE = [
+		[:BRK, :None],
+		[:ORA, :IndirectX],
+		nil,
+		nil,
+		nil,
+		[:ORA, :Zeropage],
+		[:ASL, :Zeropage],
+		nil,
+		[:PHP, :None],
+		[:ORA, :Immediate],
+		[:ASL, :None],
+		nil,
+		nil,
+		[:ORA, :Absolute],
+		[:ASL, :Absolute],
+		nil,
+		[:BPL, :Relative],
+		[:ORA, :IndirectY],
+		nil,
+		nil,
+		nil,
+		[:ORA, :ZeropageX],
+		[:ASL, :ZeropageX],
+		nil,
+		[:CLC, :None],
+		[:ORA, :AbsoluteY],
+		nil,
+		nil,
+		nil,
+		[:ORA, :AbsoluteX],
+		[:ASL, :AbsoluteX],
+		nil,
+		[:JSR, :Absolute],
+		[:AND, :IndirectX],
+		nil,
+		nil,
+		[:BIT, :Zeropage],
+		[:AND, :Zeropage],
+		[:ROL, :Zeropage],
+		nil,
+		[:PLP, :None],
+		[:AND, :Immediate],
+		[:ROL, :None],
+		nil,
+		[:BIT, :Absolute],
+		[:AND, :Absolute],
+		[:ROL, :Absolute],
+		nil,
+		[:BMI, :Relative],
+		[:AND, :IndirectY],
+		nil,
+		nil,
+		nil,
+		[:AND, :ZeropageX],
+		[:ROL, :ZeropageX],
+		nil,
+		[:SEC, :None],
+		[:AND, :AbsoluteY],
+		nil,
+		nil,
+		nil,
+		[:AND, :AbsoluteX],
+		[:ROL, :AbsoluteX],
+		nil,
+		[:RTI, :None],
+		[:EOR, :IndirectX],
+		nil,
+		nil,
+		nil,
+		[:EOR, :Zeropage],
+		[:LSR, :Zeropage],
+		nil,
+		[:PHA, :None],
+		[:EOR, :Immediate],
+		[:LSR, :None],
+		nil,
+		[:JMP, :Absolute],
+		[:EOR, :Absolute],
+		[:LSR, :Absolute],
+		nil,
+		[:BVC, :Relative],
+		[:EOR, :IndirectY],
+		nil,
+		nil,
+		nil,
+		[:EOR, :ZeropageX],
+		[:LSR, :ZeropageX],
+		nil,
+		[:CLI, :None],
+		[:EOR, :AbsoluteY],
+		nil,
+		nil,
+		nil,
+		[:EOR, :AbsoluteX],
+		[:LSR, :AbsoluteX],
+		nil,
+		[:RTS, :None],
+		[:ADC, :IndirectX],
+		nil,
+		nil,
+		nil,
+		[:ADC, :Zeropage],
+		[:ROR, :Zeropage],
+		nil,
+		[:PLA, :None],
+		[:ADC, :Immediate],
+		[:ROR, :None],
+		nil,
+		[:JMP, :Indirect],
+		[:ADC, :Absolute],
+		[:ROR, :Absolute],
+		nil,
+		[:BVS, :Relative],
+		[:ADC, :IndirectY],
+		nil,
+		nil,
+		nil,
+		[:ADC, :ZeropageX],
+		[:ROR, :ZeropageX],
+		nil,
+		[:SEI, :None],
+		[:ADC, :AbsoluteY],
+		nil,
+		nil,
+		nil,
+		[:ADC, :AbsoluteX],
+		[:ROR, :AbsoluteX],
+		nil,
+		nil,
+		[:STA, :IndirectX],
+		nil,
+		nil,
+		[:STY, :Zeropage],
+		[:STA, :Zeropage],
+		[:STX, :Zeropage],
+		nil,
+		[:DEY, :None],
+		nil,
+		[:TXA, :None],
+		nil,
+		[:STY, :Absolute],
+		[:STA, :Absolute],
+		[:STX, :Absolute],
+		nil,
+		[:BCC, :Relative],
+		[:STA, :IndirectY],
+		nil,
+		nil,
+		[:STY, :ZeropageX],
+		[:STA, :ZeropageX],
+		[:STX, :ZeropageY],
+		nil,
+		[:TYA, :None],
+		[:STA, :AbsoluteY],
+		[:TXS, :None],
+		nil,
+		nil,
+		[:STA, :AbsoluteX],
+		nil,
+		nil,
+		[:LDY, :Immediate],
+		[:LDA, :IndirectX],
+		[:LDX, :Immediate],
+		nil,
+		[:LDY, :Zeropage],
+		[:LDA, :Zeropage],
+		[:LDX, :Zeropage],
+		nil,
+		[:TAY, :None],
+		[:LDA, :Immediate],
+		[:TAX, :None],
+		nil,
+		[:LDY, :Absolute],
+		[:LDA, :Absolute],
+		[:LDX, :Absolute],
+		nil,
+		[:BCS, :Relative],
+		[:LDA, :IndirectY],
+		nil,
+		nil,
+		[:LDY, :ZeropageX],
+		[:LDA, :ZeropageX],
+		[:LDX, :ZeropageY],
+		nil,
+		[:CLV, :None],
+		[:LDA, :AbsoluteY],
+		[:TSX, :None],
+		nil,
+		[:LDY, :AbsoluteX],
+		[:LDA, :AbsoluteX],
+		[:LDX, :AbsoluteY],
+		nil,
+		[:CPY, :Immediate],
+		[:CMP, :IndirectX],
+		nil,
+		nil,
+		[:CPY, :Zeropage],
+		[:CMP, :Zeropage],
+		[:DEC, :Zeropage],
+		nil,
+		[:INY, :None],
+		[:CMP, :Immediate],
+		[:DEX, :None],
+		nil,
+		[:CPY, :Absolute],
+		[:CMP, :Absolute],
+		[:DEC, :Absolute],
+		nil,
+		[:BNE, :Relative],
+		[:CMP, :IndirectY],
+		nil,
+		nil,
+		nil,
+		[:CMP, :ZeropageX],
+		[:DEC, :ZeropageX],
+		nil,
+		[:CLD, :None],
+		[:CMP, :AbsoluteY],
+		nil,
+		nil,
+		nil,
+		[:CMP, :AbsoluteX],
+		[:DEC, :AbsoluteX],
+		nil,
+		[:CPX, :Immediate],
+		[:SBC, :IndirectX],
+		nil,
+		nil,
+		[:CPX, :Zeropage],
+		[:SBC, :Zeropage],
+		[:INC, :Zeropage],
+		nil,
+		[:INX, :None],
+		[:SBC, :Immediate],
+		[:NOP, :None],
+		nil,
+		[:CPX, :Absolute],
+		[:SBC, :Absolute],
+		[:INC, :Absolute],
+		nil,
+		[:BEQ, :Relative],
+		[:SBC, :IndirectY],
+		nil,
+		nil,
+		nil,
+		[:SBC, :ZeropageX],
+		[:INC, :ZeropageX],
+		nil,
+		[:SED, :None],
+		[:SBC, :AbsoluteY],
+		nil,
+		nil,
+		nil,
+		[:SBC, :AbsoluteX],
+		[:INC, :AbsoluteX],
+		nil,
+	];
+	def self.each(&clos)
+		b = 0;
+		OPCODE_TABLE.each(){|elm|
+			if elm.nil?
+				clos.call(b, nil, nil);
+			else
+				clos.call(b, elm[0], elm[1]);
+			end
+			b += 1;
+		}
+	end
 end
+
+
