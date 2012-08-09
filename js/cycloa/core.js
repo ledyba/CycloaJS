@@ -199,13 +199,15 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 */
 	__proto__: cycloa.core.Spirit.prototype,
 	onInvalidOpcode: function(){
-		throw new cycloa.err.CoreException("Invalid opcode: "+cycloa.util.formatHex(this.opcode));
+		throw new cycloa.err.CoreException("Invalid opcode: "+cycloa.util.formatHex(this.opcode_));
 	},
 	/**
 	 * @override cycloa.core.Spirit.run
 	 */
 	run: function(){
-		return cycloa.core.DecodeFuncTable[this.opcode = this.pr.read(this.pr.PC++)].call(this);
+		this.opcode_ = this.pr.read(this.pr.PC++);
+		this.pr.consumeClock(cycloa.core.CycleTable[this.opcode_]);
+		return cycloa.core.DecodeFuncTable[this.opcode_].call(this);
 	},
 	/**@private
 	 * @function
@@ -835,13 +837,26 @@ cycloa.core.InterpreterSpirit.prototype = {
  */
 cycloa.core.TraceSpirit = function() {
 	cycloa.core.Spirit.call(this);
-	this.inst = new Uint8Array(cycloa.core.MAX_INST_LENGTH);
-	this.inst_size = 0;
+	/**
+	 * 逆アセンブラ用の命令
+	 * @type {Uint8Array}
+	 * @private
+	 */
+	this.code_ = new Uint8Array(cycloa.core.MAX_INST_LENGTH);
+	/**
+	 * 命令のコードをどれくらい読んだかを管理するインデックス
+	 * @type {Number}
+	 * @private
+	 */
+	this.code_idx_ = 0;
 	/**
 	 *
-	 * @type {Number}
+	 * @type {*}
+	 * @private
 	 */
-	this.addr = undefined;
+	this.addr_ = undefined;
+	this.addr_repr_ = undefined;
+	this.addr_resolved_repr_ = undefined;
 };
 cycloa.core.TraceSpirit.prototype = {
 	__proto__: cycloa.core.Spirit.prototype,
@@ -849,18 +864,20 @@ cycloa.core.TraceSpirit.prototype = {
 	 * @override cycloa.core.Spirit.run
 	 */
 	run: function(){
-		var inst_repr = cycloa.core.DecodeFuncTable[this.opcode = this.pr.read(this.pr.PC)].call(this);
+		this.code_idx_ = 0;
+		this.readCode_(1);
+		var inst_repr = cycloa.core.DecodeFuncTable[this.opcode_ = this.pr.read(this.pr.PC)].call(this);
 		var inst = "$"+cycloa.util.formatHex(this.pr.PC,16)+":";
 		for(var i= 0,max = cycloa.core.MAX_INST_LENGTH;i<max;++i){
-			inst += i<this.inst_size ? cycloa.util.formatHex(this.inst[i])+" " : "   ";
+			inst += i<this.code_idx_ ? cycloa.util.formatHex(this.code_[i])+" " : "   ";
 		}
-		inst += "  "+inst_repr;
+		inst += " "+inst_repr;
 		var regstr = "";
 		regstr +=  "A: "+cycloa.util.formatHex(this.pr.A, 8);
 		regstr += " X: "+cycloa.util.formatHex(this.pr.X, 8);
 		regstr += " Y: "+cycloa.util.formatHex(this.pr.Y, 8);
 		regstr += " S: "+cycloa.util.formatHex(this.pr.SP, 8);
-		regstr += " P:"
+		regstr += " P:";
 		regstr += (this.pr.P & cycloa.core.FLAG.N) ? 'N' : 'n';
 		regstr += (this.pr.P & cycloa.core.FLAG.V) ? 'V' : 'v';
 		regstr += (this.pr.P & cycloa.core.FLAG.ALWAYS_SET) ? 'U' : 'u';
@@ -869,303 +886,281 @@ cycloa.core.TraceSpirit.prototype = {
 		regstr += (this.pr.P & cycloa.core.FLAG.I) ? 'I' : 'i';
 		regstr += (this.pr.P & cycloa.core.FLAG.Z) ? 'Z' : 'z';
 		regstr += (this.pr.P & cycloa.core.FLAG.C) ? 'C' : 'c';
-		return (inst+"                                             ").slice(0,50)+regstr;
+		return (inst+"                                             ").slice(0,43)+regstr;
 	},
-	readInst: function(size){
-		this.inst_size = size;
-		for(var i=0;i <size; ++i){
-			this.inst[i] = this.pr.read(this.pr.PC+i);
+	readCode_: function(size){
+		for(var i=this.code_idx_, max = this.code_idx_+size;i <max; ++i){
+			this.code_[i] = this.pr.read(this.pr.PC+i);
 		}
+		this.code_idx_ += size;
+	},
+	formatResolvedAddr_: function(){
+		return " = #$"+cycloa.util.formatHex(this.pr.read(this.addr_));
 	},
 	addrImmediate: function() {
-		this.readInst(2);
-		this.addr = this.pr.PC+1;
-		return "#$"+cycloa.util.formatHex(this.pr.read(this.pr.PC+1));
+		this.readCode_(2);
+		this.addr_ = this.pr.PC+1;
+		this.addr_repr_ = "#$"+cycloa.util.formatHex(this.pr.read(this.pr.PC+1));
+		this.addr_resolved_repr_ = "";
 	},
 	addrZeropage: function() {
-		this.readInst(2);
-		this.addr = this.pr.read(this.pr.PC+1);
-		return "$"+cycloa.util.formatHex(this.addr);
+		this.readCode_(2);
+		this.addr_ = this.pr.read(this.pr.PC+1);
+		this.addr_repr_ = "$"+cycloa.util.formatHex(this.addr_);
+		this.addr_resolved_repr_ = this.formatResolvedAddr_();
 	},
 	addrZeropageX: function() {
-		this.readInst(2);
+		this.readCode_(2);
 		var base = this.pr.read(this.pr.PC+1);
-		this.addr = (base + this.pr.X) & 0xff;
-		return	"$"+cycloa.util.formatHex(base)+",X = " + "$"+cycloa.util.formatHex(this.addr);
+		this.addr_ = (base + this.pr.X) & 0xff;
+		this.addr_repr_ =	"$"+cycloa.util.formatHex(base)+",X @ $"+cycloa.util.formatHex(this.addr_);
+		this.addr_resolved_repr_ = this.formatResolvedAddr_();
 	},
 	addrZeropageY: function() {
-		this.readInst(2);
+		this.readCode_(2);
 		var base = this.pr.read(this.pr.PC+1);
-		this.addr = (base + this.pr.Y) & 0xff;
-		return	"$"+cycloa.util.formatHex(base)+",Y = " + "$"+cycloa.util.formatHex(this.addr);
+		this.addr_ = (base + this.pr.Y) & 0xff;
+		this.addr_repr_ =	"$"+cycloa.util.formatHex(base)+",Y @ $"+cycloa.util.formatHex(this.addr_);
+		this.addr_resolved_repr_ = this.formatResolvedAddr_();
 	},
 	addrAbsolute: function() {
-		this.readInst(3);
-		this.addr = this.pr.read(this.pr.PC+1) | (this.pr.read(this.pr.PC+2) << 8);
-		return "$"+cycloa.util.formatHex(this.addr, 16);
+		this.readCode_(3);
+		this.addr_ = this.pr.read(this.pr.PC+1) | (this.pr.read(this.pr.PC+2) << 8);
+		this.addr_repr_ = "$"+cycloa.util.formatHex(this.addr_, 16);
+		this.addr_resolved_repr_ = this.formatResolvedAddr_();
 	},
 	addrAbsoluteX: function() {
-		this.readInst(3);
+		this.readCode_(3);
 		var base = (this.pr.read(this.pr.PC+1) | (this.pr.read(this.pr.PC+2) << 8));
-		this.addr = (base + this.pr.X) & 0xffff;
-		return "$"+cycloa.util.formatHex(base, 16)+",X = $"+cycloa.util.formatHex(this.addr, 16);
+		this.addr_ = (base + this.pr.X) & 0xffff;
+		this.addr_repr_ = "$"+cycloa.util.formatHex(base, 16)+",X @ $"+cycloa.util.formatHex(this.addr_, 16);
+		this.addr_resolved_repr_ = this.formatResolvedAddr_();
 	},
 	addrAbsoluteY: function() {
-		this.readInst(3);
+		this.readCode_(3);
 		var base = (this.pr.read(this.pr.PC+1) | (this.pr.read(this.pr.PC+2) << 8));
-		this.addr = (base + this.pr.Y) & 0xffff;
-		return "$"+cycloa.util.formatHex(base, 16)+",Y = $"+cycloa.util.formatHex(this.addr, 16);
+		this.addr_ = (base + this.pr.Y) & 0xffff;
+		this.addr_repr_ = "$"+cycloa.util.formatHex(base, 16)+",Y @ $"+cycloa.util.formatHex(this.addr_, 16);
+		this.addr_resolved_repr_ = this.formatResolvedAddr_();
 	},
 	addrIndirect: function() { // used only in JMP
-		this.readInst(3);
+		this.readCode_(3);
 		/** @const
 		 *  @type {Number} */
 		var base = this.pr.read(this.pr.PC+1) | (this.pr.read(this.pr.PC+2) << 8);
-		this.addr = this.pr.read(base) | (this.pr.read((base & 0xff00) | ((base+1) & 0x00ff)) << 8); //bug of NES
-		return "($"+cycloa.util.formatHex(base, 16)+") = $"+cycloa.util.formatHex(this.addr, 16);
+		this.addr_ = this.pr.read(base) | (this.pr.read((base & 0xff00) | ((base+1) & 0x00ff)) << 8); //bug of NES
+		this.addr_repr_ = "($"+cycloa.util.formatHex(base, 16)+") @ $"+cycloa.util.formatHex(this.addr_, 16);
+		this.addr_resolved_repr_ = this.formatResolvedAddr_();
 	},
 	addrIndirectX: function() {
-		this.readInst(2);
+		this.readCode_(2);
 		/** @const
 		 *  @type {Number} */
 		var base = (this.pr.read(this.pr.PC+1) + this.pr.X) & 0xff;
-		this.addr = this.pr.read(base) | (this.pr.read((base+1)&0xff) << 8);
-		return "($"+cycloa.util.formatHex(base)+",X) = $"+cycloa.util.formatHex(this.addr, 16);
+		this.addr_ = this.pr.read(base) | (this.pr.read((base+1)&0xff) << 8);
+		this.addr_repr_ = "($"+cycloa.util.formatHex(base)+",X) @ $"+cycloa.util.formatHex(this.addr_, 16);
+		this.addr_resolved_repr_ = this.formatResolvedAddr_();
 	},
 	addrIndirectY: function() {
-		this.readInst(2);
+		this.readCode_(2);
 		/** @const
 		 *  @type {Number} */
 		var base = this.pr.read(this.pr.PC+1);
-		this.addr = ((this.pr.read(base) | (this.pr.read((base+1)&0xff) << 8))+this.pr.Y);
-		return "($"+cycloa.util.formatHex(base)+"),Y = $"+cycloa.util.formatHex(this.addr, 16);
+		this.addr_ = ((this.pr.read(base) | (this.pr.read((base+1)&0xff) << 8))+this.pr.Y);
+		this.addr_repr_ = "($"+cycloa.util.formatHex(base)+"),Y @ $"+cycloa.util.formatHex(this.addr_, 16);
+		this.addr_resolved_repr_ = this.formatResolvedAddr_();
 	},
 	addrRelative: function() {
-		this.readInst(2);
+		this.readCode_(2);
 		/** @const
 		 *  @type {Number} */
 		var offset = this.pr.read(this.pr.PC+1);
-		this.addr = ((offset >= 128 ? (offset-256) : offset) + this.pr.PC+2) & 0xffff;
-		return "$"+cycloa.util.formatHex(this.addr, 16);
+		this.addr_ = ((offset >= 128 ? (offset-256) : offset) + this.pr.PC+2) & 0xffff;
+		this.addr_repr_ = "$"+cycloa.util.formatHex(this.addr_, 16);
+		this.addr_resolved_repr_ = "";
 	},
-	LDA: function(operand_repr){
-		return "LDA "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	LDA: function(){
+		return "LDA "+this.addr_repr_+this.addr_resolved_repr_;
 	},
-	LDY: function(operand_repr) {
-		return "LDY "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	LDY: function() {
+		return "LDY "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	LDX: function(operand_repr) {
-		return "LDX "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	LDX: function() {
+		return "LDX "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	STA: function(operand_repr) {
-		return "STA "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	STA: function() {
+		return "STA "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	STX: function(operand_repr) {
-		return "STX "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	STX: function() {
+		return "STX "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	STY: function(operand_repr) {
-		return "STY "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	STY: function() {
+		return "STY "+this.addr_repr_+this.addr_resolved_repr_
 	},
 	TXA_: function() {
-		this.readInst(1);
 		return "TXA";
 	},
 	TYA_: function() {
-		this.readInst(1);
 		return "TYA";
 	},
 	TXS_: function() {
-		this.readInst(1);
 		return "TXS";
 	},
 	TAY_: function() {
-		this.readInst(1);
 		return "TAY";
 	},
 	TAX_: function() {
-		this.readInst(1);
 		return "TAX";
 	},
 	TSX_: function() {
-		this.readInst(1);
 		return "TSX";
 	},
 	PHP_: function() {
-		this.readInst(1);
 		return "PHP";
 	},
 	PLP_: function() {
-		this.readInst(1);
 		return "PLP";
 	},
 	PHA_: function() {
-		this.readInst(1);
 		return "PHA";
 	},
 	PLA_: function() {
-		this.readInst(1);
 		return "PLA";
 	},
-	ADC: function(operand_repr) {
-		return "ADC "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	ADC: function() {
+		return "ADC "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	SBC: function(operand_repr) {
-		return "SBC "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	SBC: function() {
+		return "SBC "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	CPX: function(operand_repr) {
-		return "CPX "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	CPX: function() {
+		return "CPX "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	CPY: function(operand_repr) {
-		return "CPY "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	CPY: function() {
+		return "CPY "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	CMP: function(operand_repr) {
-		return "CMP "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	CMP: function() {
+		return "CMP "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	AND: function(operand_repr) {
-		return "AND "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	AND: function() {
+		return "AND "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	EOR: function(operand_repr) {
-		return "EOR "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	EOR: function() {
+		return "EOR "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	ORA: function(operand_repr) {
-		return "ORA "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	ORA: function() {
+		return "ORA "+this.addr_repr_+this.addr_resolved_repr_
 	},
-	BIT: function(operand_repr) {
-		return "BIT "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	BIT: function() {
+		return "BIT "+this.addr_repr_+this.addr_resolved_repr_
 	},
 	ASL_: function() {
-		this.readInst(1);
 		return "ASL $registerA";
 	},
-	ASL: function(operand_repr) {
-		return "ASL "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	ASL: function() {
+		return "ASL "+this.addr_repr_+this.addr_resolved_repr_
 	},
 	LSR_: function() {
-		this.readInst(1);
 		return "LSR $registerA";
 	},
-	LSR: function(operand_repr) {
-		return "LSR "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	LSR: function() {
+		return "LSR "+this.addr_repr_+this.addr_resolved_repr_
 	},
 	ROL_: function() {
-		this.readInst(1);
 		return "ROL $registerA";
 	},
-	ROL: function(operand_repr) {
-		return "ROL "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	ROL: function() {
+		return "ROL "+this.addr_repr_+this.addr_resolved_repr_
 	},
 	ROR_: function() {
-		this.readInst(1);
 		return "ROR $registerA";
 	},
-	ROR: function(operand_repr) { //FIXME: オーバーロード
-		return "ROR "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	ROR: function() {
+		return "ROR "+this.addr_repr_+this.addr_resolved_repr_
 	},
 	INX_: function() {
-		this.readInst(1);
 		return "INX";
 	},
 	INY_: function() {
-		this.readInst(1);
 		return "INY";
 	},
-	INC: function(operand_repr) {
-		return "INC "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	INC: function() {
+		return "INC "+this.addr_repr_+this.addr_resolved_repr_
 	},
 	DEX_: function() {
-		this.readInst(1);
 		return "DEX";
 	},
 	DEY_: function() {
-		this.readInst(1);
 		return "DEY";
 	},
-	DEC: function(operand_repr) {
-		return "DEC "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	DEC: function() {
+		return "DEC "+this.addr_repr_+this.addr_resolved_repr_
 	},
 	CLC_: function() {
-		this.readInst(1);
 		return "CLC";
 	},
 	CLI_: function() {
-		this.readInst(1);
 		return "CLI";
 	},
 	CLV_: function() {
-		this.readInst(1);
 		return "CLV";
 	},
 	CLD_: function() {
-		this.readInst(1);
 		return "CLD";
 	},
 	SEC_: function() {
-		this.readInst(1);
 		return "SEC";
 	},
 	SEI_: function() {
-		this.readInst(1);
 		return "SEI";
 	},
 	SED_: function() {
-		this.readInst(1);
 		return "SED";
 	},
 	NOP_: function() {
-		this.readInst(1);
 		return "NOP";
 	},
 	BRK_: function() {
-		this.readInst(1);
 		return "BRK";
 	},
-	BCC: function(operand_repr) {
-		this.readInst(1);
-		return "BCC "+operand_repr;
+	BCC: function() {
+		return "BCC "+this.addr_repr_;
 	},
-	BCS: function(operand_repr) {
-		this.readInst(1);
-		return "BCS "+operand_repr;
+	BCS: function() {
+		return "BCS "+this.addr_repr_;
 	},
-	BEQ: function(operand_repr) {
-		this.readInst(1);
-		return "BEQ "+operand_repr;
+	BEQ: function() {
+		return "BEQ "+this.addr_repr_;
 	},
-	BNE: function(operand_repr) {
-		this.readInst(1);
-		return "BNE "+operand_repr;
+	BNE: function() {
+		return "BNE "+this.addr_repr_;
 	},
-	BVC: function(operand_repr) {
-		this.readInst(1);
-		return "BVC "+operand_repr;
+	BVC: function() {
+		return "BVC "+this.addr_repr_;
 	},
-	BVS: function(operand_repr) {
-		this.readInst(1);
-		return "BVS "+operand_repr;
+	BVS: function() {
+		return "BVS "+this.addr_repr_;
 	},
-	BPL: function(operand_repr) {
-		this.readInst(1);
-		return "BPL "+operand_repr;
+	BPL: function() {
+		return "BPL "+this.addr_repr_;
 	},
-	BMI: function(operand_repr) {
-		this.readInst(1);
-		return "BMI "+operand_repr;
+	BMI: function() {
+		return "BMI "+this.addr_repr_;
 	},
-	JSR: function(operand_repr) {
-		this.readInst(1);
-		return "JSR "+operand_repr;
+	JSR: function() {
+		return "JSR "+this.addr_repr_;
 	},
-	JMP: function(operand_repr) {
-		this.readInst(1);
-		return "JMP "+operand_repr;
+	JMP: function() {
+		return "JMP "+this.addr_repr_;
 	},
 	RTI_: function() {
-		this.readInst(1);
 		return "RTI";
 	},
 	RTS_: function() {
-		this.readInst(1);
 		return "RTS";
+	},
+	onInvalidOpcode: function(){
+		return "UNDEFINED";
 	}
 };
 
