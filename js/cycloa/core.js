@@ -201,30 +201,26 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 * @override cycloa.core.ProcessorSpirit.run
 	 */
 	run: function(){
-		/** @const
-		 * @type {Number} */
-		var opcode = this.pr.read(this.pr.PC++);
 		/**
 		 * @const
 		 * @type {Function}
 		 */
-		var func = cycloa.core.ActionTable[opcode];
-		if(!func){
-			throw new cycloa.err.CoreException("Unknwon opcode: "+opcode);
-		}
-		func.call(this);
+		cycloa.core.DecodeFuncTable[this.opcode = this.pr.read(this.pr.PC++)].call(this);
+	},
+	onInvalidOpcode: function(){
+		throw new cycloa.ecx.CoreException("Invalid opcode: "+cycloa.util.formatHex(this.opcode));
 	},
 	/**@private
 	 * @function
 	 * @param {Number} val */
 	push: function(val) {
-		this.pr.write(0x0100 | ((this.pr.SP--) & 0xff), val);
+		this.pr.write(0x0100 | (this.pr.SP-- & 0xff), val);
 	},
 	/**@private
 	 * @function
 	 * @return {Number} */
 	pop: function() {
-		return this.pr.read(0x0100 | ((++this.pr.SP) & 0xff));
+		return this.pr.read(0x0100 | (++this.pr.SP & 0xff));
 	},
 	/**@private
 	 * @function
@@ -235,31 +231,31 @@ cycloa.core.InterpreterSpirit.prototype = {
 	/**@private
 	 * @function
 	 * @return {Number} */
+	addrZeropage: function() {
+		return this.pr.read(this.pr.PC++);
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrZeropageX: function() {
+		return (this.pr.read(this.pr.PC++) + this.pr.X) & 0xff;
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrZeropageY: function() {
+		return (this.pr.read(this.pr.PC++) + this.pr.Y) & 0xff;
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
 	addrAbsolute: function() {
 		return this.pr.read(this.pr.PC++) | (this.pr.read(this.pr.PC++) << 8);
 	},
 	/**@private
 	 * @function
 	 * @return {Number} */
-	addrZeroPage: function() {
-		return this.pr.read(this.pr.PC++);
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrZeroPageIdxX: function() {
-		return (this.pr.read(this.pr.PC++) + this.pr.X) & 0xff;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrZeroPageIdxY: function() {
-		return (this.pr.read(this.pr.PC++) + this.pr.Y) & 0xff;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrAbsoluteIdxX: function() {
+	addrAbsoluteX: function() {
 		/** @const
 		 *  @type {Number} */
 		var orig = this.pr.read(this.pr.PC++) | (this.pr.read(this.pr.PC++) << 8);
@@ -274,7 +270,25 @@ cycloa.core.InterpreterSpirit.prototype = {
 	/**@private
 	 * @function
 	 * @return {Number} */
-	addrAbsoluteIdxY: function() {
+	addrIndirect: function() { // used only in JMP
+		/** @const
+		 *  @type {Number} */
+		var srcAddr = this.pr.read(this.pr.PC++) | (this.pr.read(this.pr.PC++) << 8);
+		return this.pr.read(srcAddr) | (this.pr.read((srcAddr & 0xff00) | ((srcAddr+1) & 0x00ff)) << 8); //bug of NES
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrIndirectX: function() {
+		/** @const
+		 *  @type {Number} */
+		var idx = (this.pr.read(this.pr.PC++) + this.pr.X) & 0xff;
+		return this.pr.read(idx) | (this.pr.read((idx+1)&0xff) << 8);
+	},
+	/**@private
+	 * @function
+	 * @return {Number} */
+	addrAbsoluteY: function() {
 		/** @const
 		 *  @type {Number} */
 		var orig = this.pr.read(this.pr.PC++) | (this.pr.read(this.pr.PC++) << 8);
@@ -285,24 +299,6 @@ cycloa.core.InterpreterSpirit.prototype = {
 			this.pr.consumeClock(1);
 		}
 		return addr;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrRelative: function() {
-		/** @const
-		 *  @type {Number} */
-		var offset = this.pr.read(this.pr.PC++);
-		return (offset >= 128 ? (offset-256) : offset) + this.pr.PC;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrIndirectX: function() {
-		/** @const
-		 *  @type {Number} */
-		var idx = (this.pr.read(this.pr.PC++) + this.pr.X) & 0xff;
-		return this.pr.read(idx) | (this.pr.read((idx+1)&0xff) << 8);
 	},
 	/**@private
 	 * @function
@@ -325,11 +321,11 @@ cycloa.core.InterpreterSpirit.prototype = {
 	/**@private
 	 * @function
 	 * @return {Number} */
-	addrAbsoluteIndirect: function() { // used only in JMP
+	addrRelative: function() {
 		/** @const
 		 *  @type {Number} */
-		var srcAddr = this.pr.read(this.pr.PC++) | (this.pr.read(this.pr.PC++) << 8);
-		return this.pr.read(srcAddr) | (this.pr.read((srcAddr & 0xff00) | ((srcAddr+1) & 0x00ff)) << 8); //bug of NES
+		var offset = this.pr.read(this.pr.PC++);
+		return (offset >= 128 ? (offset-256) : offset) + this.pr.PC;
 	},
 	updateFlagZN: function(val){
 		this.pr.P = (this.pr.P & 0x7D) | cycloa.core.ZNFlagCache[val&0xff];
@@ -372,42 +368,42 @@ cycloa.core.InterpreterSpirit.prototype = {
 	},
 	/**@private
 	 * @function */
-	TXA: function() {
+	TXA_: function() {
 		this.updateFlagZN(this.pr.A = this.pr.X);
 	},
 	/**@private
 	 * @function */
-	TYA: function() {
+	TYA_: function() {
 		this.updateFlagZN(this.pr.A = this.pr.Y);
 	},
 	/**@private
 	 * @function */
-	TXS: function() {
+	TXS_: function() {
 		this.pr.SP = this.pr.X;
 	},
 	/**@private
 	 * @function */
-	TAY: function() {
+	TAY_: function() {
 		this.updateFlagZN(this.pr.Y = this.pr.A);
 	},
 	/**@private
 	 * @function */
-	TAX: function() {
+	TAX_: function() {
 		this.updateFlagZN(this.pr.X = this.pr.A);
 	},
 	/**@private
 	 * @function */
-	TSX: function() {
+	TSX_: function() {
 		this.updateFlagZN(this.pr.X = this.pr.SP);
 	},
 	/**@private
 	 * @function */
-	PHP: function() {
+	PHP_: function() {
 		this.push(this.pr.P | cycloa.core.FLAG.B); // bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
 	},
 	/**@private
 	 * @function */
-	PLP: function() {
+	PLP_: function() {
 		/**@const
 		 * @type {Number} */
 		var newP = this.pop();
@@ -422,12 +418,12 @@ cycloa.core.InterpreterSpirit.prototype = {
 	},
 	/**@private
 	 * @function */
-	PHA: function() {
+	PHA_: function() {
 		this.push(this.pr.A);
 	},
 	/**@private
 	 * @function */
-	PLA: function() {
+	PLA_: function() {
 		this.updateFlagZN(this.pr.A = this.pop());
 	},
 	/**@private
@@ -600,12 +596,12 @@ cycloa.core.InterpreterSpirit.prototype = {
 	},
 	/**@private
 	 * @function */
-	INX: function() {
+	INX_: function() {
 		this.updateFlagZN(this.pr.X = (this.pr.X+1)&0xff);
 	},
 	/**@private
 	 * @function */
-	INY: function() {
+	INY_: function() {
 		this.updateFlagZN(this.pr.Y = (this.pr.Y+1)&0xff);
 	},
 	/**@private
@@ -620,12 +616,12 @@ cycloa.core.InterpreterSpirit.prototype = {
 	},
 	/**@private
 	 * @function */
-	DEX: function() {
+	DEX_: function() {
 		this.updateFlagZN(this.pr.X = (this.pr.X-1)&0xff);
 	},
 	/**@private
 	 * @function */
-	DEY: function() {
+	DEY_: function() {
 		this.updateFlagZN(this.pr.Y = (this.pr.Y-1)&0xff);
 	},
 	/**@private
@@ -640,12 +636,12 @@ cycloa.core.InterpreterSpirit.prototype = {
 	},
 	/**@private
 	 * @function */
-	CLC: function() {
+	CLC_: function() {
 		this.pr.P &= ~(cycloa.core.FLAG.C);
 	},
 	/**@private
 	 * @function */
-	CLI: function() {
+	CLI_: function() {
 		// http://twitter.com/#!/KiC6280/status/112348378100281344
 		// http://twitter.com/#!/KiC6280/status/112351125084180480
 		//FIXME
@@ -655,37 +651,37 @@ cycloa.core.InterpreterSpirit.prototype = {
 	},
 	/**@private
 	 * @function */
-	CLV: function() {
+	CLV_: function() {
 		this.pr.P &= ~(cycloa.core.FLAG.V);
 	},
 	/**@private
 	 * @function */
-	CLD: function() {
+	CLD_: function() {
 		this.pr.P &= ~(cycloa.core.FLAG.D);
 	},
 	/**@private
 	 * @function */
-	SEC: function() {
+	SEC_: function() {
 		this.pr.P |= cycloa.core.FLAG.C;
 	},
 	/**@private
 	 * @function */
-	SEI: function() {
+	SEI_: function() {
 		this.pr.P |= cycloa.core.FLAG.I;
 	},
 	/**@private
 	 * @function */
-	SED: function() {
+	SED_: function() {
 		this.pr.P |= cycloa.core.FLAG.D;
 	},
 	/**@private
 	 * @function */
-	NOP: function() {
+	NOP_: function() {
 		//NOP。そう、何もしない。
 	},
 	/**@private
 	 * @function */
-	BRK: function() {
+	BRK_: function() {
 		//NES ON FPGAには、
 		//「割り込みが確認された時、Iフラグがセットされていれば割り込みは無視します。」
 		//…と合ったけど、他の資料だと違う。http://nesdev.parodius.com/6502.txt
@@ -823,13 +819,13 @@ cycloa.core.InterpreterSpirit.prototype = {
 	},
 	/**@private
 	 * @function */
-	RTI: function() {
+	RTI_: function() {
 		this.pr.P = this.pop();
 		this.pr.PC = this.pop() | (this.pop() << 8);
 	},
 	/**@private
 	 * @function */
-	RTS: function() {
+	RTS_: function() {
 		this.pr.PC = (this.pop() | (this.pop() << 8)) + 1;
 	}
 };
@@ -843,154 +839,6 @@ cycloa.core.TraceSpirit = function() {
 };
 cycloa.core.TraceSpirit.prototype = {
 	__proto__: cycloa.core.Spirit.prototype,
-	/**
-	 * @nosideeffects
-	 * @param {Number} num
-	 * @param {Number} len
-	 * @return {String}
-	 */
-	formatHex: function(num, len){
-		return ("0000" + num.toString(16)).slice(-(len/4));
-	},
-	formatMachineStatus: function(){
-
-	},
-	/**
-	 * @override cycloa.core.Spirit.run
-	 * @nosideeffects
-	 */
-	run: function(){
-		/** @const
-		 * @type {Number} */
-		var opcode = this.pr.read(this.pr.PC);
-		var str = this.formatHex(this.pr.PC, 16)+"  "+this.formatHex(opcode, 8)+" ";
-		/**
-		 * @const
-		 * @type {Function}
-		 */
-		var func = cycloa.core.ActionTable[opcode];
-		if(!func){
-			return str+"     ???";
-		}
-		return str+func.call(this);
-	},
-	/**@private
-	 * @function
-	 * @param {Number} val */
-	push: function(val) {
-		this.pr.write(0x0100 | ((this.pr.SP--) & 0xff), val);
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	pop: function() {
-		return this.pr.read(0x0100 | ((this.pr.SP++) & 0xff));
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrImmediate: function() {
-		return this.pr.PC++;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrAbsolute: function() {
-		return this.pr.read(this.pr.PC++) | (this.pr.read(this.pr.PC++) << 8);
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrZeroPage: function() {
-		return this.pr.read(this.pr.PC++);
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrZeroPageIdxX: function() {
-		return (this.pr.read(this.pr.PC++) + this.pr.X) & 0xff;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrZeroPageIdxY: function() {
-		return (this.pr.read(this.pr.PC++) + this.pr.Y) & 0xff;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrAbsoluteIdxX: function() {
-		/** @const
-		 *  @type {Number} */
-		var orig = this.pr.read(this.pr.PC++) | (this.pr.read(this.pr.PC++) << 8);
-		/** @const
-		 *  @type {Number} */
-		var addr = orig + this.pr.X;
-		if(((addr ^ orig) & 0x0100) != 0){
-			this.pr.consumeClock(1);
-		}
-		return addr;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrAbsoluteIdxY: function() {
-		/** @const
-		 *  @type {Number} */
-		var orig = this.pr.read(this.pr.PC++) | (this.pr.read(this.pr.PC++) << 8);
-		/** @const
-		 *  @type {Number} */
-		var addr = orig + this.pr.Y;
-		if(((addr ^ orig) & 0x0100) != 0){
-			this.pr.consumeClock(1);
-		}
-		return addr;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrRelative: function() {
-		/** @const
-		 *  @type {Number} */
-		var offset = this.pr.read(this.pr.PC++);
-		return (offset >= 128 ? (offset-256) : offset) + this.pr.PC;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrIndirectX: function() {
-		/** @const
-		 *  @type {Number} */
-		var idx = (this.pr.read(this.pr.PC++) + this.pr.X) & 0xff;
-		return this.pr.read(idx) | (this.pr.read((idx+1)&0xff) << 8);
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrIndirectY: function() {
-		/** @const
-		 *  @type {Number} */
-		var idx = this.pr.read(this.pr.PC++);
-		/** @const
-		 *  @type {Number} */
-		var orig = this.pr.read(idx) | (this.pr.read((idx+1)&0xff) << 8);
-		/** @const
-		 *  @type {Number} */
-		var addr = orig + this.pr.Y;
-		if(((addr ^ orig) & 0x0100) != 0){
-			this.pr.consumeClock(1);
-		}
-		return addr;
-	},
-	/**@private
-	 * @function
-	 * @return {Number} */
-	addrAbsoluteIndirect: function() { // used only in JMP
-		/** @const
-		 *  @type {Number} */
-		var srcAddr = this.pr.read(this.pr.PC++) | (this.pr.read(this.pr.PC++) << 8);
-		return this.pr.read(srcAddr) | (this.pr.read((srcAddr & 0xff00) | ((srcAddr+1) & 0x00ff)) << 8); //bug of NES
-	}
 };
 
 /**
@@ -1063,264 +911,265 @@ cycloa.core.CycleTable = new Uint8Array([
 cycloa.core.RESET_CLOCK = 6;
 
 /**
- * @const
+ *
  * @type {Function[]}
  */
-cycloa.core.ActionTable = [
-	function(){return this.BRK() /* 0x0, BRK, nil */;},
+cycloa.core.DecodeFuncTable = [
+	function(){return this.BRK_() /* 0x0, BRK */;},
 	function(){return this.ORA(this.addrIndirectX()) /* 0x1, ORA, IndirectX */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.ORA(this.addrZeroPage()) /* 0x5, ORA, Zeropage */;},
-	function(){return this.ASL(this.addrZeroPage()) /* 0x6, ASL, Zeropage */;},
-	undefined,
-	function(){return this.PHP() /* 0x8, PHP, nil */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.ORA(this.addrZeropage()) /* 0x5, ORA, Zeropage */;},
+	function(){return this.ASL(this.addrZeropage()) /* 0x6, ASL, Zeropage */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.PHP_() /* 0x8, PHP */;},
 	function(){return this.ORA(this.addrImmediate()) /* 0x9, ORA, Immediate */;},
-	function(){return this.ASL_() /* 0xa, ASL, nil */;},
-	undefined,
-	undefined,
+	function(){return this.ASL_() /* 0xa, ASL */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.ORA(this.addrAbsolute()) /* 0xd, ORA, Absolute */;},
 	function(){return this.ASL(this.addrAbsolute()) /* 0xe, ASL, Absolute */;},
-	undefined,
-	function(){return this.BPL(this.addrRelative()) /* 0x10, BPL, Immediate */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.BPL(this.addrRelative()) /* 0x10, BPL, Relative */;},
 	function(){return this.ORA(this.addrIndirectY()) /* 0x11, ORA, IndirectY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.ORA(this.addrZeroPageIdxX()) /* 0x15, ORA, ZeropageX */;},
-	function(){return this.ASL(this.addrZeroPageIdxX()) /* 0x16, ASL, ZeropageX */;},
-	undefined,
-	function(){return this.CLC() /* 0x18, CLC, nil */;},
-	function(){return this.ORA(this.addrAbsoluteIdxY()) /* 0x19, ORA, AbsoluteY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.ORA(this.addrAbsoluteIdxX()) /* 0x1d, ORA, AbsoluteX */;},
-	function(){return this.ASL(this.addrAbsoluteIdxX()) /* 0x1e, ASL, AbsoluteX */;},
-	undefined,
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.ORA(this.addrZeropageX()) /* 0x15, ORA, ZeropageX */;},
+	function(){return this.ASL(this.addrZeropageX()) /* 0x16, ASL, ZeropageX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.CLC_() /* 0x18, CLC */;},
+	function(){return this.ORA(this.addrAbsoluteY()) /* 0x19, ORA, AbsoluteY */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.ORA(this.addrAbsoluteX()) /* 0x1d, ORA, AbsoluteX */;},
+	function(){return this.ASL(this.addrAbsoluteX()) /* 0x1e, ASL, AbsoluteX */;},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.JSR(this.addrAbsolute()) /* 0x20, JSR, Absolute */;},
 	function(){return this.AND(this.addrIndirectX()) /* 0x21, AND, IndirectX */;},
-	undefined,
-	undefined,
-	function(){return this.BIT(this.addrZeroPage()) /* 0x24, BIT, Zeropage */;},
-	function(){return this.AND(this.addrZeroPage()) /* 0x25, AND, Zeropage */;},
-	function(){return this.ROL(this.addrZeroPage()) /* 0x26, ROL, Zeropage */;},
-	undefined,
-	function(){return this.PLP() /* 0x28, PLP, nil */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.BIT(this.addrZeropage()) /* 0x24, BIT, Zeropage */;},
+	function(){return this.AND(this.addrZeropage()) /* 0x25, AND, Zeropage */;},
+	function(){return this.ROL(this.addrZeropage()) /* 0x26, ROL, Zeropage */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.PLP_() /* 0x28, PLP */;},
 	function(){return this.AND(this.addrImmediate()) /* 0x29, AND, Immediate */;},
-	function(){return this.ROL_() /* 0x2a, ROL, nil */;},
-	undefined,
+	function(){return this.ROL_() /* 0x2a, ROL */;},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.BIT(this.addrAbsolute()) /* 0x2c, BIT, Absolute */;},
 	function(){return this.AND(this.addrAbsolute()) /* 0x2d, AND, Absolute */;},
 	function(){return this.ROL(this.addrAbsolute()) /* 0x2e, ROL, Absolute */;},
-	undefined,
-	function(){return this.BMI(this.addrRelative()) /* 0x30, BMI, Immediate */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.BMI(this.addrRelative()) /* 0x30, BMI, Relative */;},
 	function(){return this.AND(this.addrIndirectY()) /* 0x31, AND, IndirectY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.AND(this.addrZeroPageIdxX()) /* 0x35, AND, ZeropageX */;},
-	function(){return this.ROL(this.addrZeroPageIdxX()) /* 0x36, ROL, ZeropageX */;},
-	undefined,
-	function(){return this.SEC() /* 0x38, SEC, nil */;},
-	function(){return this.AND(this.addrAbsoluteIdxY()) /* 0x39, AND, AbsoluteY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.AND(this.addrAbsoluteIdxX()) /* 0x3d, AND, AbsoluteX */;},
-	function(){return this.ROL(this.addrAbsoluteIdxX()) /* 0x3e, ROL, AbsoluteX */;},
-	undefined,
-	function(){return this.RTI() /* 0x40, RTI, nil */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.AND(this.addrZeropageX()) /* 0x35, AND, ZeropageX */;},
+	function(){return this.ROL(this.addrZeropageX()) /* 0x36, ROL, ZeropageX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.SEC_() /* 0x38, SEC */;},
+	function(){return this.AND(this.addrAbsoluteY()) /* 0x39, AND, AbsoluteY */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.AND(this.addrAbsoluteX()) /* 0x3d, AND, AbsoluteX */;},
+	function(){return this.ROL(this.addrAbsoluteX()) /* 0x3e, ROL, AbsoluteX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.RTI_() /* 0x40, RTI */;},
 	function(){return this.EOR(this.addrIndirectX()) /* 0x41, EOR, IndirectX */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.EOR(this.addrZeroPage()) /* 0x45, EOR, Zeropage */;},
-	function(){return this.LSR(this.addrZeroPage()) /* 0x46, LSR, Zeropage */;},
-	undefined,
-	function(){return this.PHA() /* 0x48, PHA, nil */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.EOR(this.addrZeropage()) /* 0x45, EOR, Zeropage */;},
+	function(){return this.LSR(this.addrZeropage()) /* 0x46, LSR, Zeropage */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.PHA_() /* 0x48, PHA */;},
 	function(){return this.EOR(this.addrImmediate()) /* 0x49, EOR, Immediate */;},
-	function(){return this.LSR_() /* 0x4a, LSR, nil */;},
-	undefined,
+	function(){return this.LSR_() /* 0x4a, LSR */;},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.JMP(this.addrAbsolute()) /* 0x4c, JMP, Absolute */;},
 	function(){return this.EOR(this.addrAbsolute()) /* 0x4d, EOR, Absolute */;},
 	function(){return this.LSR(this.addrAbsolute()) /* 0x4e, LSR, Absolute */;},
-	undefined,
-	function(){return this.BVC(this.addrRelative()) /* 0x50, BVC, Immediate */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.BVC(this.addrRelative()) /* 0x50, BVC, Relative */;},
 	function(){return this.EOR(this.addrIndirectY()) /* 0x51, EOR, IndirectY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.EOR(this.addrZeroPageIdxX()) /* 0x55, EOR, ZeropageX */;},
-	function(){return this.LSR(this.addrZeroPageIdxX()) /* 0x56, LSR, ZeropageX */;},
-	undefined,
-	function(){return this.CLI() /* 0x58, CLI, nil */;},
-	function(){return this.EOR(this.addrAbsoluteIdxY()) /* 0x59, EOR, AbsoluteY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.EOR(this.addrAbsoluteIdxX()) /* 0x5d, EOR, AbsoluteX */;},
-	function(){return this.LSR(this.addrAbsoluteIdxX()) /* 0x5e, LSR, AbsoluteX */;},
-	undefined,
-	function(){return this.RTS() /* 0x60, RTS, nil */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.EOR(this.addrZeropageX()) /* 0x55, EOR, ZeropageX */;},
+	function(){return this.LSR(this.addrZeropageX()) /* 0x56, LSR, ZeropageX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.CLI_() /* 0x58, CLI */;},
+	function(){return this.EOR(this.addrAbsoluteY()) /* 0x59, EOR, AbsoluteY */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.EOR(this.addrAbsoluteX()) /* 0x5d, EOR, AbsoluteX */;},
+	function(){return this.LSR(this.addrAbsoluteX()) /* 0x5e, LSR, AbsoluteX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.RTS_() /* 0x60, RTS */;},
 	function(){return this.ADC(this.addrIndirectX()) /* 0x61, ADC, IndirectX */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.ADC(this.addrZeroPage()) /* 0x65, ADC, Zeropage */;},
-	function(){return this.ROR(this.addrZeroPage()) /* 0x66, ROR, Zeropage */;},
-	undefined,
-	function(){return this.PLA() /* 0x68, PLA, nil */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.ADC(this.addrZeropage()) /* 0x65, ADC, Zeropage */;},
+	function(){return this.ROR(this.addrZeropage()) /* 0x66, ROR, Zeropage */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.PLA_() /* 0x68, PLA */;},
 	function(){return this.ADC(this.addrImmediate()) /* 0x69, ADC, Immediate */;},
-	function(){return this.ROR_() /* 0x6a, ROR, nil */;},
-	undefined,
-	function(){return this.JMP(this.addrAbsoluteIndirect()) /* 0x6c, JMP, Indirect */;},
+	function(){return this.ROR_() /* 0x6a, ROR */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.JMP(this.addrIndirect()) /* 0x6c, JMP, Indirect */;},
 	function(){return this.ADC(this.addrAbsolute()) /* 0x6d, ADC, Absolute */;},
 	function(){return this.ROR(this.addrAbsolute()) /* 0x6e, ROR, Absolute */;},
-	undefined,
-	function(){return this.BVS(this.addrRelative()) /* 0x70, BVS, Immediate */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.BVS(this.addrRelative()) /* 0x70, BVS, Relative */;},
 	function(){return this.ADC(this.addrIndirectY()) /* 0x71, ADC, IndirectY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.ADC(this.addrZeroPageIdxX()) /* 0x75, ADC, ZeropageX */;},
-	function(){return this.ROR(this.addrZeroPageIdxX()) /* 0x76, ROR, ZeropageX */;},
-	undefined,
-	function(){return this.SEI() /* 0x78, SEI, nil */;},
-	function(){return this.ADC(this.addrAbsoluteIdxY()) /* 0x79, ADC, AbsoluteY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.ADC(this.addrAbsoluteIdxX()) /* 0x7d, ADC, AbsoluteX */;},
-	function(){return this.ROR(this.addrAbsoluteIdxX()) /* 0x7e, ROR, AbsoluteX */;},
-	undefined,
-	undefined,
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.ADC(this.addrZeropageX()) /* 0x75, ADC, ZeropageX */;},
+	function(){return this.ROR(this.addrZeropageX()) /* 0x76, ROR, ZeropageX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.SEI_() /* 0x78, SEI */;},
+	function(){return this.ADC(this.addrAbsoluteY()) /* 0x79, ADC, AbsoluteY */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.ADC(this.addrAbsoluteX()) /* 0x7d, ADC, AbsoluteX */;},
+	function(){return this.ROR(this.addrAbsoluteX()) /* 0x7e, ROR, AbsoluteX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.STA(this.addrIndirectX()) /* 0x81, STA, IndirectX */;},
-	undefined,
-	undefined,
-	function(){return this.STY(this.addrZeroPage()) /* 0x84, STY, Zeropage */;},
-	function(){return this.STA(this.addrZeroPage()) /* 0x85, STA, Zeropage */;},
-	function(){return this.STX(this.addrZeroPage()) /* 0x86, STX, Zeropage */;},
-	undefined,
-	function(){return this.DEY() /* 0x88, DEY, nil */;},
-	undefined,
-	function(){return this.TXA() /* 0x8a, TXA, nil */;},
-	undefined,
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.STY(this.addrZeropage()) /* 0x84, STY, Zeropage */;},
+	function(){return this.STA(this.addrZeropage()) /* 0x85, STA, Zeropage */;},
+	function(){return this.STX(this.addrZeropage()) /* 0x86, STX, Zeropage */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.DEY_() /* 0x88, DEY */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.TXA_() /* 0x8a, TXA */;},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.STY(this.addrAbsolute()) /* 0x8c, STY, Absolute */;},
 	function(){return this.STA(this.addrAbsolute()) /* 0x8d, STA, Absolute */;},
 	function(){return this.STX(this.addrAbsolute()) /* 0x8e, STX, Absolute */;},
-	undefined,
-	function(){return this.BCC(this.addrRelative()) /* 0x90, BCC, Immediate */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.BCC(this.addrRelative()) /* 0x90, BCC, Relative */;},
 	function(){return this.STA(this.addrIndirectY()) /* 0x91, STA, IndirectY */;},
-	undefined,
-	undefined,
-	function(){return this.STY(this.addrZeroPageIdxX()) /* 0x94, STY, ZeropageX */;},
-	function(){return this.STA(this.addrZeroPageIdxX()) /* 0x95, STA, ZeropageX */;},
-	function(){return this.STX(this.addrZeroPageIdxY()) /* 0x96, STX, ZeropageY */;},
-	undefined,
-	function(){return this.TYA() /* 0x98, TYA, nil */;},
-	function(){return this.STA(this.addrAbsoluteIdxY()) /* 0x99, STA, AbsoluteY */;},
-	function(){return this.TXS() /* 0x9a, TXS, nil */;},
-	undefined,
-	undefined,
-	function(){return this.STA(this.addrAbsoluteIdxX()) /* 0x9d, STA, AbsoluteX */;},
-	undefined,
-	undefined,
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.STY(this.addrZeropageX()) /* 0x94, STY, ZeropageX */;},
+	function(){return this.STA(this.addrZeropageX()) /* 0x95, STA, ZeropageX */;},
+	function(){return this.STX(this.addrZeropageY()) /* 0x96, STX, ZeropageY */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.TYA_() /* 0x98, TYA */;},
+	function(){return this.STA(this.addrAbsoluteY()) /* 0x99, STA, AbsoluteY */;},
+	function(){return this.TXS_() /* 0x9a, TXS */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.STA(this.addrAbsoluteX()) /* 0x9d, STA, AbsoluteX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.LDY(this.addrImmediate()) /* 0xa0, LDY, Immediate */;},
 	function(){return this.LDA(this.addrIndirectX()) /* 0xa1, LDA, IndirectX */;},
 	function(){return this.LDX(this.addrImmediate()) /* 0xa2, LDX, Immediate */;},
-	undefined,
-	function(){return this.LDY(this.addrZeroPage()) /* 0xa4, LDY, Zeropage */;},
-	function(){return this.LDA(this.addrZeroPage()) /* 0xa5, LDA, Zeropage */;},
-	function(){return this.LDX(this.addrZeroPage()) /* 0xa6, LDX, Zeropage */;},
-	undefined,
-	function(){return this.TAY() /* 0xa8, TAY, nil */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.LDY(this.addrZeropage()) /* 0xa4, LDY, Zeropage */;},
+	function(){return this.LDA(this.addrZeropage()) /* 0xa5, LDA, Zeropage */;},
+	function(){return this.LDX(this.addrZeropage()) /* 0xa6, LDX, Zeropage */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.TAY_() /* 0xa8, TAY */;},
 	function(){return this.LDA(this.addrImmediate()) /* 0xa9, LDA, Immediate */;},
-	function(){return this.TAX() /* 0xaa, TAX, nil */;},
-	undefined,
+	function(){return this.TAX_() /* 0xaa, TAX */;},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.LDY(this.addrAbsolute()) /* 0xac, LDY, Absolute */;},
 	function(){return this.LDA(this.addrAbsolute()) /* 0xad, LDA, Absolute */;},
 	function(){return this.LDX(this.addrAbsolute()) /* 0xae, LDX, Absolute */;},
-	undefined,
-	function(){return this.BCS(this.addrRelative()) /* 0xb0, BCS, Immediate */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.BCS(this.addrRelative()) /* 0xb0, BCS, Relative */;},
 	function(){return this.LDA(this.addrIndirectY()) /* 0xb1, LDA, IndirectY */;},
-	undefined,
-	undefined,
-	function(){return this.LDY(this.addrZeroPageIdxX()) /* 0xb4, LDY, ZeropageX */;},
-	function(){return this.LDA(this.addrZeroPageIdxX()) /* 0xb5, LDA, ZeropageX */;},
-	function(){return this.LDX(this.addrZeroPageIdxY()) /* 0xb6, LDX, ZeropageY */;},
-	undefined,
-	function(){return this.CLV() /* 0xb8, CLV, nil */;},
-	function(){return this.LDA(this.addrAbsoluteIdxY()) /* 0xb9, LDA, AbsoluteY */;},
-	function(){return this.TSX() /* 0xba, TSX, nil */;},
-	undefined,
-	function(){return this.LDY(this.addrAbsoluteIdxX()) /* 0xbc, LDY, AbsoluteX */;},
-	function(){return this.LDA(this.addrAbsoluteIdxX()) /* 0xbd, LDA, AbsoluteX */;},
-	function(){return this.LDX(this.addrAbsoluteIdxY()) /* 0xbe, LDX, AbsoluteY */;},
-	undefined,
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.LDY(this.addrZeropageX()) /* 0xb4, LDY, ZeropageX */;},
+	function(){return this.LDA(this.addrZeropageX()) /* 0xb5, LDA, ZeropageX */;},
+	function(){return this.LDX(this.addrZeropageY()) /* 0xb6, LDX, ZeropageY */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.CLV_() /* 0xb8, CLV */;},
+	function(){return this.LDA(this.addrAbsoluteY()) /* 0xb9, LDA, AbsoluteY */;},
+	function(){return this.TSX_() /* 0xba, TSX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.LDY(this.addrAbsoluteX()) /* 0xbc, LDY, AbsoluteX */;},
+	function(){return this.LDA(this.addrAbsoluteX()) /* 0xbd, LDA, AbsoluteX */;},
+	function(){return this.LDX(this.addrAbsoluteY()) /* 0xbe, LDX, AbsoluteY */;},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.CPY(this.addrImmediate()) /* 0xc0, CPY, Immediate */;},
 	function(){return this.CMP(this.addrIndirectX()) /* 0xc1, CMP, IndirectX */;},
-	undefined,
-	undefined,
-	function(){return this.CPY(this.addrZeroPage()) /* 0xc4, CPY, Zeropage */;},
-	function(){return this.CMP(this.addrZeroPage()) /* 0xc5, CMP, Zeropage */;},
-	function(){return this.DEC(this.addrZeroPage()) /* 0xc6, DEC, Zeropage */;},
-	undefined,
-	function(){return this.INY() /* 0xc8, INY, nil */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.CPY(this.addrZeropage()) /* 0xc4, CPY, Zeropage */;},
+	function(){return this.CMP(this.addrZeropage()) /* 0xc5, CMP, Zeropage */;},
+	function(){return this.DEC(this.addrZeropage()) /* 0xc6, DEC, Zeropage */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.INY_() /* 0xc8, INY */;},
 	function(){return this.CMP(this.addrImmediate()) /* 0xc9, CMP, Immediate */;},
-	function(){return this.DEX() /* 0xca, DEX, nil */;},
-	undefined,
+	function(){return this.DEX_() /* 0xca, DEX */;},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.CPY(this.addrAbsolute()) /* 0xcc, CPY, Absolute */;},
 	function(){return this.CMP(this.addrAbsolute()) /* 0xcd, CMP, Absolute */;},
 	function(){return this.DEC(this.addrAbsolute()) /* 0xce, DEC, Absolute */;},
-	undefined,
-	function(){return this.BNE(this.addrRelative()) /* 0xd0, BNE, Immediate */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.BNE(this.addrRelative()) /* 0xd0, BNE, Relative */;},
 	function(){return this.CMP(this.addrIndirectY()) /* 0xd1, CMP, IndirectY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.CMP(this.addrZeroPageIdxX()) /* 0xd5, CMP, ZeropageX */;},
-	function(){return this.DEC(this.addrZeroPageIdxX()) /* 0xd6, DEC, ZeropageX */;},
-	undefined,
-	function(){return this.CLD() /* 0xd8, CLD, nil */;},
-	function(){return this.CMP(this.addrAbsoluteIdxY()) /* 0xd9, CMP, AbsoluteY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.CMP(this.addrAbsoluteIdxX()) /* 0xdd, CMP, AbsoluteX */;},
-	function(){return this.DEC(this.addrAbsoluteIdxX()) /* 0xde, DEC, AbsoluteX */;},
-	undefined,
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.CMP(this.addrZeropageX()) /* 0xd5, CMP, ZeropageX */;},
+	function(){return this.DEC(this.addrZeropageX()) /* 0xd6, DEC, ZeropageX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.CLD_() /* 0xd8, CLD */;},
+	function(){return this.CMP(this.addrAbsoluteY()) /* 0xd9, CMP, AbsoluteY */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.CMP(this.addrAbsoluteX()) /* 0xdd, CMP, AbsoluteX */;},
+	function(){return this.DEC(this.addrAbsoluteX()) /* 0xde, DEC, AbsoluteX */;},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.CPX(this.addrImmediate()) /* 0xe0, CPX, Immediate */;},
 	function(){return this.SBC(this.addrIndirectX()) /* 0xe1, SBC, IndirectX */;},
-	undefined,
-	undefined,
-	function(){return this.CPX(this.addrZeroPage()) /* 0xe4, CPX, Zeropage */;},
-	function(){return this.SBC(this.addrZeroPage()) /* 0xe5, SBC, Zeropage */;},
-	function(){return this.INC(this.addrZeroPage()) /* 0xe6, INC, Zeropage */;},
-	undefined,
-	function(){return this.INX() /* 0xe8, INX, nil */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.CPX(this.addrZeropage()) /* 0xe4, CPX, Zeropage */;},
+	function(){return this.SBC(this.addrZeropage()) /* 0xe5, SBC, Zeropage */;},
+	function(){return this.INC(this.addrZeropage()) /* 0xe6, INC, Zeropage */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.INX_() /* 0xe8, INX */;},
 	function(){return this.SBC(this.addrImmediate()) /* 0xe9, SBC, Immediate */;},
-	function(){return this.NOP() /* 0xea, NOP, nil */;},
-	undefined,
+	function(){return this.NOP_() /* 0xea, NOP */;},
+	function(){return this.onInvalidOpcode();},
 	function(){return this.CPX(this.addrAbsolute()) /* 0xec, CPX, Absolute */;},
 	function(){return this.SBC(this.addrAbsolute()) /* 0xed, SBC, Absolute */;},
 	function(){return this.INC(this.addrAbsolute()) /* 0xee, INC, Absolute */;},
-	undefined,
-	function(){return this.BEQ(this.addrRelative()) /* 0xf0, BEQ, Immediate */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.BEQ(this.addrRelative()) /* 0xf0, BEQ, Relative */;},
 	function(){return this.SBC(this.addrIndirectY()) /* 0xf1, SBC, IndirectY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.SBC(this.addrZeroPageIdxX()) /* 0xf5, SBC, ZeropageX */;},
-	function(){return this.INC(this.addrZeroPageIdxX()) /* 0xf6, INC, ZeropageX */;},
-	undefined,
-	function(){return this.SED() /* 0xf8, SED, nil */;},
-	function(){return this.SBC(this.addrAbsoluteIdxY()) /* 0xf9, SBC, AbsoluteY */;},
-	undefined,
-	undefined,
-	undefined,
-	function(){return this.SBC(this.addrAbsoluteIdxX()) /* 0xfd, SBC, AbsoluteX */;},
-	function(){return this.INC(this.addrAbsoluteIdxX()) /* 0xfe, INC, AbsoluteX */;},
-	undefined
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.SBC(this.addrZeropageX()) /* 0xf5, SBC, ZeropageX */;},
+	function(){return this.INC(this.addrZeropageX()) /* 0xf6, INC, ZeropageX */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.SED_() /* 0xf8, SED */;},
+	function(){return this.SBC(this.addrAbsoluteY()) /* 0xf9, SBC, AbsoluteY */;},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.onInvalidOpcode();},
+	function(){return this.SBC(this.addrAbsoluteX()) /* 0xfd, SBC, AbsoluteX */;},
+	function(){return this.INC(this.addrAbsoluteX()) /* 0xfe, INC, AbsoluteX */;},
+	function(){return this.onInvalidOpcode();}
 ];
+
