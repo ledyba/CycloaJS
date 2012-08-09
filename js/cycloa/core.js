@@ -177,7 +177,9 @@ cycloa.core.Spirit.prototype = {
 	/**
 	 * 命令を実行する。実装してください。
 	 */
-	run: function(){ throw new cycloa.err.NotImplementedException("Please implement ProcessorSpirit#run"); },
+	run: function(){
+		throw cycloa.err.CoreException("Please implement");
+	}
 };
 
 /**
@@ -196,19 +198,14 @@ cycloa.core.InterpreterSpirit.prototype = {
 	 * @private
 	 */
 	__proto__: cycloa.core.Spirit.prototype,
+	onInvalidOpcode: function(){
+		throw new cycloa.err.CoreException("Invalid opcode: "+cycloa.util.formatHex(this.opcode));
+	},
 	/**
-	 *
-	 * @override cycloa.core.ProcessorSpirit.run
+	 * @override cycloa.core.Spirit.run
 	 */
 	run: function(){
-		/**
-		 * @const
-		 * @type {Function}
-		 */
-		cycloa.core.DecodeFuncTable[this.opcode = this.pr.read(this.pr.PC++)].call(this);
-	},
-	onInvalidOpcode: function(){
-		throw new cycloa.ecx.CoreException("Invalid opcode: "+cycloa.util.formatHex(this.opcode));
+		return cycloa.core.DecodeFuncTable[this.opcode = this.pr.read(this.pr.PC++)].call(this);
 	},
 	/**@private
 	 * @function
@@ -578,13 +575,15 @@ cycloa.core.InterpreterSpirit.prototype = {
 	/**@private
 	 * @function */
 	ROR_: function() {
-		this.pr.P = (this.pr.P & 0xFE) | (this.pr.A & 0x01);
-		this.updateFlagZN( this.pr.A = ((this.pr.A >> 1) & 0xff) | ((this.pr.P & 0x01) << 7) );
+		var carry = this.pr.A & 0x01;
+		this.pr.A = ( ((this.pr.A >> 1) & 0x7f) | ((this.pr.P & 0x1) << 7) );
+		this.pr.P = (this.pr.P & 0xFE) | carry;
+		this.updateFlagZN( this.pr.A );
 	},
 	/**@private
 	 * @function
 	 * @param {Number} addr */
-	ROR: function(addr) { //FIXME: オーバーロード
+	ROR: function(addr) {
 		var val = this.pr.read(addr);
 		/**@const
 		 * @type {Number} */
@@ -836,9 +835,338 @@ cycloa.core.InterpreterSpirit.prototype = {
  */
 cycloa.core.TraceSpirit = function() {
 	cycloa.core.Spirit.call(this);
+	this.inst = new Uint8Array(cycloa.core.MAX_INST_LENGTH);
+	this.inst_size = 0;
+	/**
+	 *
+	 * @type {Number}
+	 */
+	this.addr = undefined;
 };
 cycloa.core.TraceSpirit.prototype = {
 	__proto__: cycloa.core.Spirit.prototype,
+	/**
+	 * @override cycloa.core.Spirit.run
+	 */
+	run: function(){
+		var inst_repr = cycloa.core.DecodeFuncTable[this.opcode = this.pr.read(this.pr.PC)].call(this);
+		var inst = "$"+cycloa.util.formatHex(this.pr.PC,16)+":";
+		for(var i= 0,max = cycloa.core.MAX_INST_LENGTH;i<max;++i){
+			inst += i<this.inst_size ? cycloa.util.formatHex(this.inst[i])+" " : "   ";
+		}
+		inst += "  "+inst_repr;
+		var regstr = "";
+		regstr +=  "A: "+cycloa.util.formatHex(this.pr.A, 8);
+		regstr += " X: "+cycloa.util.formatHex(this.pr.X, 8);
+		regstr += " Y: "+cycloa.util.formatHex(this.pr.Y, 8);
+		regstr += " S: "+cycloa.util.formatHex(this.pr.SP, 8);
+		regstr += " P:"
+		regstr += (this.pr.P & cycloa.core.FLAG.N) ? 'N' : 'n';
+		regstr += (this.pr.P & cycloa.core.FLAG.V) ? 'V' : 'v';
+		regstr += (this.pr.P & cycloa.core.FLAG.ALWAYS_SET) ? 'U' : 'u';
+		regstr += (this.pr.P & cycloa.core.FLAG.B) ? 'B' : 'b';
+		regstr += (this.pr.P & cycloa.core.FLAG.D) ? 'D' : 'd';
+		regstr += (this.pr.P & cycloa.core.FLAG.I) ? 'I' : 'i';
+		regstr += (this.pr.P & cycloa.core.FLAG.Z) ? 'Z' : 'z';
+		regstr += (this.pr.P & cycloa.core.FLAG.C) ? 'C' : 'c';
+		return (inst+"                                             ").slice(0,50)+regstr;
+	},
+	readInst: function(size){
+		this.inst_size = size;
+		for(var i=0;i <size; ++i){
+			this.inst[i] = this.pr.read(this.pr.PC+i);
+		}
+	},
+	addrImmediate: function() {
+		this.readInst(2);
+		this.addr = this.pr.PC+1;
+		return "#$"+cycloa.util.formatHex(this.pr.read(this.pr.PC+1));
+	},
+	addrZeropage: function() {
+		this.readInst(2);
+		this.addr = this.pr.read(this.pr.PC+1);
+		return "$"+cycloa.util.formatHex(this.addr);
+	},
+	addrZeropageX: function() {
+		this.readInst(2);
+		var base = this.pr.read(this.pr.PC+1);
+		this.addr = (base + this.pr.X) & 0xff;
+		return	"$"+cycloa.util.formatHex(base)+",X = " + "$"+cycloa.util.formatHex(this.addr);
+	},
+	addrZeropageY: function() {
+		this.readInst(2);
+		var base = this.pr.read(this.pr.PC+1);
+		this.addr = (base + this.pr.Y) & 0xff;
+		return	"$"+cycloa.util.formatHex(base)+",Y = " + "$"+cycloa.util.formatHex(this.addr);
+	},
+	addrAbsolute: function() {
+		this.readInst(3);
+		this.addr = this.pr.read(this.pr.PC+1) | (this.pr.read(this.pr.PC+2) << 8);
+		return "$"+cycloa.util.formatHex(this.addr, 16);
+	},
+	addrAbsoluteX: function() {
+		this.readInst(3);
+		var base = (this.pr.read(this.pr.PC+1) | (this.pr.read(this.pr.PC+2) << 8));
+		this.addr = (base + this.pr.X) & 0xffff;
+		return "$"+cycloa.util.formatHex(base, 16)+",X = $"+cycloa.util.formatHex(this.addr, 16);
+	},
+	addrAbsoluteY: function() {
+		this.readInst(3);
+		var base = (this.pr.read(this.pr.PC+1) | (this.pr.read(this.pr.PC+2) << 8));
+		this.addr = (base + this.pr.Y) & 0xffff;
+		return "$"+cycloa.util.formatHex(base, 16)+",Y = $"+cycloa.util.formatHex(this.addr, 16);
+	},
+	addrIndirect: function() { // used only in JMP
+		this.readInst(3);
+		/** @const
+		 *  @type {Number} */
+		var base = this.pr.read(this.pr.PC+1) | (this.pr.read(this.pr.PC+2) << 8);
+		this.addr = this.pr.read(base) | (this.pr.read((base & 0xff00) | ((base+1) & 0x00ff)) << 8); //bug of NES
+		return "($"+cycloa.util.formatHex(base, 16)+") = $"+cycloa.util.formatHex(this.addr, 16);
+	},
+	addrIndirectX: function() {
+		this.readInst(2);
+		/** @const
+		 *  @type {Number} */
+		var base = (this.pr.read(this.pr.PC+1) + this.pr.X) & 0xff;
+		this.addr = this.pr.read(base) | (this.pr.read((base+1)&0xff) << 8);
+		return "($"+cycloa.util.formatHex(base)+",X) = $"+cycloa.util.formatHex(this.addr, 16);
+	},
+	addrIndirectY: function() {
+		this.readInst(2);
+		/** @const
+		 *  @type {Number} */
+		var base = this.pr.read(this.pr.PC+1);
+		this.addr = ((this.pr.read(base) | (this.pr.read((base+1)&0xff) << 8))+this.pr.Y);
+		return "($"+cycloa.util.formatHex(base)+"),Y = $"+cycloa.util.formatHex(this.addr, 16);
+	},
+	addrRelative: function() {
+		this.readInst(2);
+		/** @const
+		 *  @type {Number} */
+		var offset = this.pr.read(this.pr.PC+1);
+		this.addr = ((offset >= 128 ? (offset-256) : offset) + this.pr.PC+2) & 0xffff;
+		return "$"+cycloa.util.formatHex(this.addr, 16);
+	},
+	LDA: function(operand_repr){
+		return "LDA "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	LDY: function(operand_repr) {
+		return "LDY "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	LDX: function(operand_repr) {
+		return "LDX "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	STA: function(operand_repr) {
+		return "STA "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	STX: function(operand_repr) {
+		return "STX "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	STY: function(operand_repr) {
+		return "STY "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	TXA_: function() {
+		this.readInst(1);
+		return "TXA";
+	},
+	TYA_: function() {
+		this.readInst(1);
+		return "TYA";
+	},
+	TXS_: function() {
+		this.readInst(1);
+		return "TXS";
+	},
+	TAY_: function() {
+		this.readInst(1);
+		return "TAY";
+	},
+	TAX_: function() {
+		this.readInst(1);
+		return "TAX";
+	},
+	TSX_: function() {
+		this.readInst(1);
+		return "TSX";
+	},
+	PHP_: function() {
+		this.readInst(1);
+		return "PHP";
+	},
+	PLP_: function() {
+		this.readInst(1);
+		return "PLP";
+	},
+	PHA_: function() {
+		this.readInst(1);
+		return "PHA";
+	},
+	PLA_: function() {
+		this.readInst(1);
+		return "PLA";
+	},
+	ADC: function(operand_repr) {
+		return "ADC "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	SBC: function(operand_repr) {
+		return "SBC "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	CPX: function(operand_repr) {
+		return "CPX "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	CPY: function(operand_repr) {
+		return "CPY "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	CMP: function(operand_repr) {
+		return "CMP "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	AND: function(operand_repr) {
+		return "AND "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	EOR: function(operand_repr) {
+		return "EOR "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	ORA: function(operand_repr) {
+		return "ORA "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	BIT: function(operand_repr) {
+		return "BIT "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	ASL_: function() {
+		this.readInst(1);
+		return "ASL $registerA";
+	},
+	ASL: function(operand_repr) {
+		return "ASL "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	LSR_: function() {
+		this.readInst(1);
+		return "LSR $registerA";
+	},
+	LSR: function(operand_repr) {
+		return "LSR "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	ROL_: function() {
+		this.readInst(1);
+		return "ROL $registerA";
+	},
+	ROL: function(operand_repr) {
+		return "ROL "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	ROR_: function() {
+		this.readInst(1);
+		return "ROR $registerA";
+	},
+	ROR: function(operand_repr) { //FIXME: オーバーロード
+		return "ROR "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	INX_: function() {
+		this.readInst(1);
+		return "INX";
+	},
+	INY_: function() {
+		this.readInst(1);
+		return "INY";
+	},
+	INC: function(operand_repr) {
+		return "INC "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	DEX_: function() {
+		this.readInst(1);
+		return "DEX";
+	},
+	DEY_: function() {
+		this.readInst(1);
+		return "DEY";
+	},
+	DEC: function(operand_repr) {
+		return "DEC "+operand_repr+" = "+cycloa.util.formatHex(this.pr.read(this.addr));
+	},
+	CLC_: function() {
+		this.readInst(1);
+		return "CLC";
+	},
+	CLI_: function() {
+		this.readInst(1);
+		return "CLI";
+	},
+	CLV_: function() {
+		this.readInst(1);
+		return "CLV";
+	},
+	CLD_: function() {
+		this.readInst(1);
+		return "CLD";
+	},
+	SEC_: function() {
+		this.readInst(1);
+		return "SEC";
+	},
+	SEI_: function() {
+		this.readInst(1);
+		return "SEI";
+	},
+	SED_: function() {
+		this.readInst(1);
+		return "SED";
+	},
+	NOP_: function() {
+		this.readInst(1);
+		return "NOP";
+	},
+	BRK_: function() {
+		this.readInst(1);
+		return "BRK";
+	},
+	BCC: function(operand_repr) {
+		this.readInst(1);
+		return "BCC "+operand_repr;
+	},
+	BCS: function(operand_repr) {
+		this.readInst(1);
+		return "BCS "+operand_repr;
+	},
+	BEQ: function(operand_repr) {
+		this.readInst(1);
+		return "BEQ "+operand_repr;
+	},
+	BNE: function(operand_repr) {
+		this.readInst(1);
+		return "BNE "+operand_repr;
+	},
+	BVC: function(operand_repr) {
+		this.readInst(1);
+		return "BVC "+operand_repr;
+	},
+	BVS: function(operand_repr) {
+		this.readInst(1);
+		return "BVS "+operand_repr;
+	},
+	BPL: function(operand_repr) {
+		this.readInst(1);
+		return "BPL "+operand_repr;
+	},
+	BMI: function(operand_repr) {
+		this.readInst(1);
+		return "BMI "+operand_repr;
+	},
+	JSR: function(operand_repr) {
+		this.readInst(1);
+		return "JSR "+operand_repr;
+	},
+	JMP: function(operand_repr) {
+		this.readInst(1);
+		return "JMP "+operand_repr;
+	},
+	RTI_: function() {
+		this.readInst(1);
+		return "RTI";
+	},
+	RTS_: function() {
+		this.readInst(1);
+		return "RTS";
+	}
 };
 
 /**
@@ -909,6 +1237,8 @@ cycloa.core.CycleTable = new Uint8Array([
  * @type {Number}
  */
 cycloa.core.RESET_CLOCK = 6;
+
+cycloa.core.MAX_INST_LENGTH=3;
 
 /**
  *
