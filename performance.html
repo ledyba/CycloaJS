@@ -10,10 +10,6 @@
 	<script type="text/javascript" src="js/cycloa/trace.js"></script>
 	<script type="text/javascript" src="test/processor_debug_board.js"></script>
 	<script>
-		function log(msg){
-			console.log(msg);
-		}
-
 		function runMany(){
 			for(var i=0;i<1;++i){
 				measurePerformance();
@@ -26,22 +22,23 @@
 			var tracer = new cycloa.Tracer(machine);
 			var start = new Date();
 
-			for(var i = 0; i < 3000; ++i){
+			for(var i = 0; i < 5000; ++i){
 				machine.onHardReset();
 				machine.PC = 0xC000;
-				for(var t = 0; t < 5000; ++t){
-					//console.log(tracer.run());
+				for(var t = 0; t < 1; ++t){
+					//console.log(tracer.decode());
 					machine.run();
 				}
 			}
 			var end = new Date();
 			var time = (end-start);
-			console.log("nclocks: "+board.clock+" /time: "+time+"ms / "+(board.clock/time/1000)+"MHz");
+			document.getElementById('console').innerHTML = "nclocks: "+board.clock+" /time: "+time+"ms / "+(board.clock/time/1000)+"MHz";
 		}
 	</script>
 	<title>unit test</title>
 </head>
 <body>
 	<input id="start" onclick="runMany()" type="button" value="start" />
+	<div id="console"></div>
 </body>
 </html>
