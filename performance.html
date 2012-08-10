@@ -6,38 +6,42 @@
 	<script type="text/javascript" src="js/cycloa/cycloa.js"></script>
 	<script type="text/javascript" src="js/cycloa/err.js"></script>
 	<script type="text/javascript" src="js/cycloa/util.js"></script>
-	<script type="text/javascript" src="js/cycloa/core.js"></script>
+	<script type="text/javascript" src="js/cycloa/fast.js"></script>
+	<script type="text/javascript" src="js/cycloa/trace.js"></script>
 	<script type="text/javascript" src="test/processor_debug_board.js"></script>
-	<script type="text/javascript" src="test/interpreter_test.js"></script>
 	<script>
 		function log(msg){
 			console.log(msg);
 		}
-		function run(){
+
+		function runMany(){
+			for(var i=0;i<1;++i){
+				measurePerformance();
+			}
+		}
+
+		function measurePerformance(){
 			var board = new ProcessorDebugBoard();
-			var processor = new cycloa.core.Processor();
-			var spirit = new cycloa.core.PrecompileSpirit(processor);
-			processor.attachSpirit(spirit);
-			board.attachProcessor(processor);
-			var v = function(){
-				processor.run();
-			};
+			var machine = new cycloa.FastMachine(board);
+			var tracer = new cycloa.Tracer(machine);
 			var start = new Date();
-			for(var t = 0; t < 300; ++t){
-				processor.onHardReset();
-				processor.PC = 0xC000;
-				for(var i=0;i<5000;++i){
-					board.run();
+
+			for(var i = 0; i < 3000; ++i){
+				machine.onHardReset();
+				machine.PC = 0xC000;
+				for(var t = 0; t < 5000; ++t){
+					//console.log(tracer.run());
+					machine.run();
 				}
 			}
 			var end = new Date();
-			var time = end-start;
-			console.log("nclocks: "+board.clock+" /time: "+time+"ms / "+(board.clock/time)+"Hz");
+			var time = (end-start);
+			console.log("nclocks: "+board.clock+" /time: "+time+"ms / "+(board.clock/time/1000)+"MHz");
 		}
 	</script>
 	<title>unit test</title>
 </head>
 <body>
-	<input id="start" onclick="run();" type="button" value="start" />
+	<input id="start" onclick="runMany()" type="button" value="start" />
 </body>
 </html>

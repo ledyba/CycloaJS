@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 require File.dirname(__FILE__)+"/opcode_info.rb";
 
-Target="pr"
-
-
+Target="this"
 
 module Generator
 	FLAG = {
@@ -79,7 +77,7 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
-			var addr = ((#{Target}.read(pc) + #{Target}.X) & 0xff);
+			var addr = ((#{Target}.read(pc+1) + #{Target}.X) & 0xff);
 			#{excelPC 2}
 """
 		end
@@ -89,7 +87,7 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
-			var addr = ((#{Target}.read(pc) + #{Target}.Y) & 0xff);
+			var addr = ((#{Target}.read(pc+1) + #{Target}.Y) & 0xff);
 			#{excelPC 2}
 """
 		end
@@ -191,7 +189,7 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
-			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + #{Target}.PC;
+			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
 			#{excelPC 2}
 """
 		end
@@ -209,7 +207,7 @@ module Generator
 			"/* Pop */ (#{Target}.read(0x0100 | (++#{Target}.SP & 0xff)))";
 		end
 		def self.UpdateFlag(val)
-			"/* UpdateFlag */ #{Target}.P = (#{Target}.P & 0x7D) | ZNFlagCache[#{val}];"
+			"/* UpdateFlag */ #{Target}.P = (#{Target}.P & 0x7D) | this.ZNFlagCache[#{val}];"
 		end
 		def self.LDA()
 			UpdateFlag("#{Target}.A = #{Target}.read(addr)");
@@ -373,7 +371,7 @@ module Generator
 			var val = #{Target}.read(addr);
 			#{Target}.P = (#{Target}.P & 0x#{(0xff & ~(FLAG[:V] | FLAG[:N] | FLAG[:Z])).to_s(16)})
 				| (val & 0x#{(FLAG[:V] | FLAG[:N]).to_s(16)})
-				| (ZNFlagCache[#{Target}.A & val] & 0x#{FLAG[:Z].to_s(16)});
+				| (this.ZNFlagCache[#{Target}.A & val] & 0x#{FLAG[:Z].to_s(16)});
 """
 		end
 		def self.ASL_
@@ -480,12 +478,12 @@ module Generator
 			 * @type {Number}
 			 */
 			var carry = val & 0x01;
-			#{Target}.P = (#{Target}.P & 0xFE) | carry;
 			/**
 			 * @const
 			 * @type {Number}
 			 */
 			var shifted = (val >> 1) | ((#{Target}.P & 0x01) << 7);
+			#{Target}.P = (#{Target}.P & 0xFE) | carry;
 			#{UpdateFlag("shifted")}
 			#{Target}.write(addr, shifted);
 """
@@ -679,42 +677,9 @@ module Generator
 		end
 	end
 end
-puts "var ZNFlagCache = cycloa.core.ZNFlagCache;"
 
-def genFunctionTable
-	Opcode::each{ |b, opcode, addr|
-		bsym = "0x#{b.to_s(16)}";
-		puts "this[#{bsym}] = function() { /* #{bsym}, #{opcode ? opcode : 'UNDEFINED'} #{addr ? addr : 'NONE'} */"
-		if opcode.nil?
-			puts "throw new cycloa.err.CoreException(\"Invalid opcode: 0x#{b.to_s(16)}\");"
-		else
-			puts "#{Target}.consumeClock(#{Generator::CYCLE[b]});";
-			puts Generator::AddrMode::Init()
-			puts Generator::AddrMode::method(addr).call
-			opsym = ((opcode.to_s)+(addr == :None ? "_" : "")).to_sym
-			puts Generator::Inst::method(opsym).call
-		end
-		puts "};"
-	}
-end
 
-genFunctionTable
-
-=begin
-puts "switch( pr.read(pr.PC++) ) {"
-
-Opcode::each{ |b, opcode, addr|
-	bsym = "0x#{b.to_s(16)}";
-	puts "case #{bsym}: /* #{bsym}, #{opcode ? opcode : 'UNDEFINED'} #{addr ? addr : 'NONE'} */"
-	if opcode.nil?
-		puts "throw new cycloa.err.CoreException(\"Invalid opcode: 0x#{b.to_s(16)}\");"
-	else
-		puts "#{Target}.consumeClock(#{Generator::CYCLE[b]});";
-		puts Generator::AddrMode::method(addr).call
-		opsym = ((opcode.to_s)+(addr == :None ? "_" : "")).to_sym
-		puts Generator::Inst::method(opsym).call
-	end
-	puts "break;"
-}
-=end
-
+require 'erb'
+erb = ERB.new(File.read(ARGV[0], :encoding => "UTF-8"));
+erb.filename = ARGV[0]
+erb.run
