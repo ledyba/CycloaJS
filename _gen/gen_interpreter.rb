@@ -280,19 +280,29 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
+			var p = #{Target}.P;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var a = #{Target}.A;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var val = #{Target}.read(addr);
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var result = (#{Target}.A + val + (#{Target}.P & 0x#{FLAG[:C].to_s(16)})) & 0xffff;
+			var result = (a + val + (p & 0x#{FLAG[:C].to_s(16)})) & 0xffff;
 			/**
 			 * @const
 			 * @type {Number}
 			 */
 			var newA = result & 0xff;
-			#{Target}.P = (#{Target}.P & 0x#{((~(FLAG[:V] | FLAG[:C])) & 0xff).to_s(16)})
-				| ((((#{Target}.A ^ val) & 0x80) ^ 0x80) & ((#{Target}.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
+			#{Target}.P = (p & 0x#{((~(FLAG[:V] | FLAG[:C])) & 0xff).to_s(16)})
+				| ((((a ^ val) & 0x80) ^ 0x80) & ((a ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
 				| ((result >> 8) & 0x#{FLAG[:C].to_s(16)}); //set C flag
 			#{UpdateFlag "#{Target}.A = newA"}
 """
@@ -303,19 +313,29 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
+			var p = #{Target}.P;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var a = #{Target}.A;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var val = #{Target}.read(addr);
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var result = (#{Target}.A - val - ((#{Target}.P & 0x#{FLAG[:C].to_s(16)}) ^ 0x#{FLAG[:C].to_s(16)})) & 0xffff;
+			var result = (a - val - ((p & 0x#{FLAG[:C].to_s(16)}) ^ 0x#{FLAG[:C].to_s(16)})) & 0xffff;
 			/**
 			 * @const
 			 * @type {Number}
 			 */
 			var newA = result & 0xff;
-			#{Target}.P = (#{Target}.P & 0x#{((~(FLAG[:V]|FLAG[:C])) & 0xff).to_s(16)})
-				| ((#{Target}.A ^ val) & (#{Target}.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
+			#{Target}.P = (p & 0x#{((~(FLAG[:V]|FLAG[:C])) & 0xff).to_s(16)})
+				| ((a ^ val) & (a ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
 				| (((result >> 8) & 0x#{FLAG[:C].to_s(16)}) ^ 0x#{FLAG[:C].to_s(16)});
 			#{UpdateFlag "#{Target}.A = newA"}
 """
@@ -376,8 +396,13 @@ module Generator
 		end
 		def self.ASL_
 """
-			#{Target}.P = (#{Target}.P & 0xFE) | (#{Target}.A & 0xff) >> 7;
-			#{UpdateFlag("#{Target}.A = (#{Target}.A << 1) & 0xff")}
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var a = #{Target}.A;
+			#{Target}.P = (#{Target}.P & 0xFE) | (a & 0xff) >> 7;
+			#{UpdateFlag("#{Target}.A = (a << 1) & 0xff")}
 """
 		end
 		def self.ASL
@@ -426,10 +451,14 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
-			var carry = (#{Target}.A & 0xff) >> 7;
-			#{Target}.A = (#{Target}.A << 1) | (#{Target}.P & 0x01);
-			#{Target}.P = (#{Target}.P & 0xFE) | carry;
-			#{UpdateFlag("#{Target}.A")}
+			var a = #{Target}.A;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var p = #{Target}.P;
+			#{Target}.P = (p & 0xFE) | ((a & 0xff) >> 7);
+			#{UpdateFlag("#{Target}.A = (a << 1) | (p & 0x01)")}
 """
 		end
 		def self.ROL
@@ -443,13 +472,13 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
-			var carry = val >> 7;
+			var p = #{Target}.P;
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var shifted = ((val << 1) & 0xff) | (#{Target}.P & 0x01);
-			#{Target}.P = (#{Target}.P & 0xFE) | carry;
+			var shifted = ((val << 1) & 0xff) | (p & 0x01);
+			#{Target}.P = (p & 0xFE) | (val >> 7);
 			#{UpdateFlag("shifted")}
 			#{Target}.write(addr, shifted);
 """
@@ -460,10 +489,18 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
-			var carry = #{Target}.A & 0x01;
-			#{Target}.A = ( ((#{Target}.A >> 1) & 0x7f) | ((#{Target}.P & 0x1) << 7) );
-			#{Target}.P = (#{Target}.P & 0xFE) | carry;
-			#{UpdateFlag(" #{Target}.A ")}
+			var p = #{Target}.P;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var a = #{Target}.A;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			#{Target}.P = (p & 0xFE) | (a & 0x01);
+			#{UpdateFlag("#{Target}.A = ((a >> 1) & 0x7f) | ((p & 0x1) << 7)")}
 """
 		end
 		def self.ROR
@@ -477,13 +514,13 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
-			var carry = val & 0x01;
+			var p = #{Target}.P;
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var shifted = (val >> 1) | ((#{Target}.P & 0x01) << 7);
-			#{Target}.P = (#{Target}.P & 0xFE) | carry;
+			var shifted = (val >> 1) | ((p & 0x01) << 7);
+			#{Target}.P = (p & 0xFE) | (val & 0x01);
 			#{UpdateFlag("shifted")}
 			#{Target}.write(addr, shifted);
 """
@@ -653,9 +690,13 @@ module Generator
 		end
 		def self.JSR
 """
-			#{Target}.PC--;
-			#{Push "((#{Target}.PC >> 8) & 0xFF)"}
-			#{Push "(#{Target}.PC & 0xFF)"}
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var stored_pc = #{Target}.PC-1;
+			#{Push "((stored_pc >> 8) & 0xFF)"}
+			#{Push "(stored_pc & 0xFF)"}
 			#{Target}.PC = addr;
 """
 		end
