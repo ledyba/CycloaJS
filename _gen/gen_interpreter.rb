@@ -3,68 +3,202 @@ require File.dirname(__FILE__)+"/opcode_info.rb";
 
 Target="pr"
 
+
+
 module Generator
+	FLAG = {
+		:C=> 1,
+		:Z=> 2,
+		:I=> 4,
+		:D=> 8,
+		:B=> 16, # not used in NES
+		:ALWAYS_SET=> 32,
+		:V=> 64,
+		:N=> 128
+	};
+	CYCLE = [
+		7, 6, 2, 8, 3, 3, 5, 5,3, 2, 2, 2, 4, 4, 6, 6,
+		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
+		6, 6, 2, 8, 3, 3, 5, 5,4, 2, 2, 2, 4, 4, 6, 6,
+		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
+		6, 6, 2, 8, 3, 3, 5, 5,3, 2, 2, 2, 3, 4, 6, 6,
+		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
+		6, 6, 2, 8, 3, 3, 5, 5,4, 2, 2, 2, 5, 4, 6, 6,
+		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
+		2, 6, 2, 6, 3, 3, 3, 3,2, 2, 2, 2, 4, 4, 4, 4,
+		2, 5, 2, 6, 4, 4, 4, 4,2, 4, 2, 5, 5, 4, 5, 5,
+		2, 6, 2, 6, 3, 3, 3, 3,2, 2, 2, 2, 4, 4, 4, 4,
+		2, 5, 2, 5, 4, 4, 4, 4,2, 4, 2, 4, 4, 4, 4, 4,
+		2, 6, 2, 8, 3, 3, 5, 5,2, 2, 2, 2, 4, 4, 6, 6,
+		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
+		2, 6, 3, 8, 3, 3, 5, 5,2, 2, 2, 2, 4, 4, 6, 6,
+		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7
+	];
 	module AddrMode
 		def self.CrossCheck()
-			"if(((addr ^ base) & 0x0100) != 0) #{Target}.consumeClock(1);"
+			"if(((addr ^ addr_base) & 0x0100) != 0) #{Target}.consumeClock(1);"
+		end
+		def self.Init()
+"""
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var pc = #{Target}.PC;
+"""
+		end
+		def self.excelPC(size)
+"""
+			#{Target}.PC = pc + #{size};
+"""
 		end
 		def self.Immediate()
-			"addr = (#{Target}.PC++);"
+"""
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = (pc+1);
+			#{excelPC 2}
+"""
 		end
 
 		def self.Zeropage()
-			"addr = (#{Target}.read(#{Target}.PC++));"
+"""
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = (#{Target}.read(pc+1));
+			#{excelPC 2}
+"""
 		end
 		def self.ZeropageX()
-			"addr = ((#{Target}.read(#{Target}.PC++) + #{Target}.X) & 0xff);";
+"""
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = ((#{Target}.read(pc) + #{Target}.X) & 0xff);
+			#{excelPC 2}
+"""
 		end
 		def self.ZeropageY()
-			"addr = ((#{Target}.read(#{Target}.PC++) + #{Target}.Y) & 0xff);";
+"""
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = ((#{Target}.read(pc) + #{Target}.Y) & 0xff);
+			#{excelPC 2}
+"""
 		end
 		def self.Absolute()
-			"addr = (#{Target}.read(#{Target}.PC++) | (#{Target}.read(#{Target}.PC++) << 8));";
+"""
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = (#{Target}.read(pc+1) | (#{Target}.read(pc+2) << 8));
+			#{excelPC 3}
+"""
 		end
 		def self.AbsoluteX()
 """
-			base = #{Target}.read(#{Target}.PC++) | (#{Target}.read(#{Target}.PC++) << 8);
-			addr = base + #{Target}.X;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr_base = #{Target}.read(pc+1) | (#{Target}.read(pc+2) << 8);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = addr_base + #{Target}.X;
 			#{CrossCheck()}
+			#{excelPC 3}
 """
 		end
 		def self.AbsoluteY()
 """
-			base = #{Target}.read(#{Target}.PC++) | (#{Target}.read(#{Target}.PC++) << 8);
-			addr = base + #{Target}.Y;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr_base = #{Target}.read(pc+1) | (#{Target}.read(pc+2) << 8);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = addr_base + #{Target}.Y;
 			#{CrossCheck()}
+			#{excelPC 3}
 """
 		end
 		def self.Indirect()
 """
-			base = #{Target}.read(#{Target}.PC++) | (#{Target}.read(#{Target}.PC++) << 8);
-			addr = #{Target}.read(base) | (#{Target}.read((base & 0xff00) | ((base+1) & 0x00ff)) << 8); //bug of NES
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr_base = #{Target}.read(pc+1) | (#{Target}.read(pc+2) << 8);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = #{Target}.read(addr_base) | (#{Target}.read((addr_base & 0xff00) | ((addr_base+1) & 0x00ff)) << 8); //bug of NES
+			#{excelPC 3}
 """
 		end
 		def self.IndirectX()
 """
-			base = (#{Target}.read(#{Target}.PC++) + #{Target}.X) & 0xff;
-			addr = #{Target}.read(base) | (#{Target}.read((base+1)&0xff) << 8);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr_base = (#{Target}.read(pc+1) + #{Target}.X) & 0xff;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = #{Target}.read(addr_base) | (#{Target}.read((addr_base+1)&0xff) << 8);
+			#{excelPC 2}
 """
 		end
 		def self.IndirectY()
 """
-			base = #{Target}.read(#{Target}.PC++);
-			base = #{Target}.read(base) | (#{Target}.read((base+1)&0xff) << 8);
-			addr = base + #{Target}.Y;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr_base = #{Target}.read(pc+1);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = ( #{Target}.read(addr_base) | (#{Target}.read((addr_base+1)&0xff) << 8) ) + #{Target}.Y;
+			#{excelPC 2}
 """
 		end
 		def self.Relative()
 """
-			base = #{Target}.read(#{Target}.PC++);
-			addr = (base >= 128 ? (base-256) : base) + #{Target}.PC;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr_base = #{Target}.read(pc+1);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + #{Target}.PC;
+			#{excelPC 2}
 """
 		end
 		def self.None()
-			"";
+"""
+			#{excelPC 1}
+"""
 		end
 	end
 	module Inst
@@ -72,10 +206,10 @@ module Generator
 			" /* Push */ #{Target}.write(0x0100 | (#{Target}.SP-- & 0xff), #{val});";
 		end
 		def self.Pop()
-			"(#{Target}.read(0x0100 | (++#{Target}.SP & 0xff))) /* Pop */";
+			"/* Pop */ (#{Target}.read(0x0100 | (++#{Target}.SP & 0xff)))";
 		end
 		def self.UpdateFlag(val)
-			"(#{Target}.P = (#{Target}.P & 0x7D) | ZNFlagCache[#{val}&0xff]); /* UpdateFlag */";
+			"/* UpdateFlag */ #{Target}.P = (#{Target}.P & 0x7D) | ZNFlagCache[#{val}];"
 		end
 		def self.LDA()
 			UpdateFlag("#{Target}.A = #{Target}.read(addr)");
@@ -116,13 +250,17 @@ module Generator
 		def self.PHP_()
 """
 			// bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-			#{Push("#{Target}.P | cycloa.core.FLAG.B")}
+			#{Push("#{Target}.P | 0x#{FLAG[:B].to_s(16)}")}
 """
 		end
 		def self.PLP_()
 """
-			val = #{Pop()};
-			if((#{Target}.P & cycloa.core.FLAG.I) == cycloa.core.FLAG.I && (val & cycloa.core.FLAG.I) == 0){
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = #{Pop()};
+			if((#{Target}.P & 0x#{FLAG[:I].to_s(16)}) == 0x#{FLAG[:I].to_s(16)} && (val & 0x#{FLAG[:I].to_s(16)}) == 0){
 				// FIXME: ここどうする？？
 				//#{Target}.needStatusRewrite = true;
 				//#{Target}.newStatus =val;
@@ -140,43 +278,79 @@ module Generator
 		end
 		def self.ADC()
 """
-			val = #{Target}.read(addr);
-			var result = (#{Target}.A + val + (#{Target}.P & cycloa.core.FLAG.C)) & 0xffff;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = #{Target}.read(addr);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var result = (#{Target}.A + val + (#{Target}.P & 0x#{FLAG[:C].to_s(16)})) & 0xffff;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var newA = result & 0xff;
-			#{Target}.P = (#{Target}.P & ~(cycloa.core.FLAG.V | cycloa.core.FLAG.C))
+			#{Target}.P = (#{Target}.P & 0x#{((~(FLAG[:V] | FLAG[:C])) & 0xff).to_s(16)})
 				| ((((#{Target}.A ^ val) & 0x80) ^ 0x80) & ((#{Target}.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & cycloa.core.FLAG.C); //set C flag
+				| ((result >> 8) & 0x#{FLAG[:C].to_s(16)}); //set C flag
 			#{UpdateFlag "#{Target}.A = newA"}
 """
 		end
 		def self.SBC()
 """
-			val = #{Target}.read(addr);
-			var result = (#{Target}.A - val - ((#{Target}.P & cycloa.core.FLAG.C) ^ cycloa.core.FLAG.C)) & 0xffff;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = #{Target}.read(addr);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var result = (#{Target}.A - val - ((#{Target}.P & 0x#{FLAG[:C].to_s(16)}) ^ 0x#{FLAG[:C].to_s(16)})) & 0xffff;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var newA = result & 0xff;
-			#{Target}.P = (#{Target}.P & ~(cycloa.core.FLAG.V | cycloa.core.FLAG.C))
+			#{Target}.P = (#{Target}.P & 0x#{((~(FLAG[:V]|FLAG[:C])) & 0xff).to_s(16)})
 				| ((#{Target}.A ^ val) & (#{Target}.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & cycloa.core.FLAG.C) ^ cycloa.core.FLAG.C);
+				| (((result >> 8) & 0x#{FLAG[:C].to_s(16)}) ^ 0x#{FLAG[:C].to_s(16)});
 			#{UpdateFlag "#{Target}.A = newA"}
 """
 		end
 		def self.CPX()
 """
-			val = (#{Target}.X - #{Target}.read(addr)) & 0xffff;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = (#{Target}.X - #{Target}.read(addr)) & 0xffff;
 			#{UpdateFlag "val & 0xff"}
 			#{Target}.P = (#{Target}.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
 """
 		end
 		def self.CPY()
 """
-			val = (#{Target}.Y - #{Target}.read(addr)) & 0xffff;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = (#{Target}.Y - #{Target}.read(addr)) & 0xffff;
 			#{UpdateFlag "val & 0xff"}
 			#{Target}.P = (#{Target}.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
 """
 		end
 		def self.CMP()
 """
-			val = (#{Target}.A - #{Target}.read(addr)) & 0xffff;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = (#{Target}.A - #{Target}.read(addr)) & 0xffff;
 			#{UpdateFlag "val & 0xff"}
 			#{Target}.P = (#{Target}.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
 """
@@ -192,10 +366,14 @@ module Generator
 		end
 		def self.BIT
 """
-			val = #{Target}.read(addr);
-			#{Target}.P = (#{Target}.P & (0xff & ~(cycloa.core.FLAG.V | cycloa.core.FLAG.N | cycloa.core.FLAG.Z)))
-				| (val & (cycloa.core.FLAG.V | cycloa.core.FLAG.N))
-				| (ZNFlagCache[#{Target}.A & val] & cycloa.core.FLAG.Z);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = #{Target}.read(addr);
+			#{Target}.P = (#{Target}.P & 0x#{(0xff & ~(FLAG[:V] | FLAG[:N] | FLAG[:Z])).to_s(16)})
+				| (val & 0x#{(FLAG[:V] | FLAG[:N]).to_s(16)})
+				| (ZNFlagCache[#{Target}.A & val] & 0x#{FLAG[:Z].to_s(16)});
 """
 		end
 		def self.ASL_
@@ -206,31 +384,50 @@ module Generator
 		end
 		def self.ASL
 """
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var val = #{Target}.read(addr);
 			#{Target}.P = (#{Target}.P & 0xFE) | val >> 7;
-			val <<= 1;
-			#{Target}.write(addr, val);
-			#{UpdateFlag("val")}
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var shifted = val << 1;
+			#{Target}.write(addr, shifted);
+			#{UpdateFlag("shifted & 0xff")}
 """
 		end
 		def self.LSR_
 """
 			#{Target}.P = (#{Target}.P & 0xFE) | (#{Target}.A & 0x01);
-			#{Target}.A >>= 1;
-			#{UpdateFlag("#{Target}.A")}
+			#{UpdateFlag("#{Target}.A >>= 1")}
 """
 		end
 		def self.LSR
 """
-			val = #{Target}.read(addr);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = #{Target}.read(addr);
 			#{Target}.P = (#{Target}.P & 0xFE) | (val & 0x01);
-			val >>= 1;
-			#{Target}.write(addr, val);
-			#{UpdateFlag("val")}
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var shifted = val >> 1;
+			#{Target}.write(addr, shifted);
+			#{UpdateFlag("shifted")}
 """
 		end
 		def self.ROL_
 """
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var carry = (#{Target}.A & 0xff) >> 7;
 			#{Target}.A = (#{Target}.A << 1) | (#{Target}.P & 0x01);
 			#{Target}.P = (#{Target}.P & 0xFE) | carry;
@@ -239,16 +436,32 @@ module Generator
 		end
 		def self.ROL
 """
-			val = #{Target}.read(addr);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = #{Target}.read(addr);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var carry = val >> 7;
-			val = ((val << 1) & 0xff) | (#{Target}.P & 0x01);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var shifted = ((val << 1) & 0xff) | (#{Target}.P & 0x01);
 			#{Target}.P = (#{Target}.P & 0xFE) | carry;
-			#{UpdateFlag("val")}
-			#{Target}.write(addr, val);
+			#{UpdateFlag("shifted")}
+			#{Target}.write(addr, shifted);
 """
 		end
 		def self.ROR_
 """
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var carry = #{Target}.A & 0x01;
 			#{Target}.A = ( ((#{Target}.A >> 1) & 0x7f) | ((#{Target}.P & 0x1) << 7) );
 			#{Target}.P = (#{Target}.P & 0xFE) | carry;
@@ -257,14 +470,24 @@ module Generator
 		end
 		def self.ROR
 """
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var val = #{Target}.read(addr);
-			/**@const
-			 * @type {Number} */
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var carry = val & 0x01;
-			val = (val >> 1) | ((#{Target}.P & 0x01) << 7);
 			#{Target}.P = (#{Target}.P & 0xFE) | carry;
-			#{UpdateFlag("val")}
-			#{Target}.write(addr, val);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var shifted = (val >> 1) | ((#{Target}.P & 0x01) << 7);
+			#{UpdateFlag("shifted")}
+			#{Target}.write(addr, shifted);
 """
 		end
 		def self.INX_
@@ -275,6 +498,10 @@ module Generator
 		end
 		def self.INC
 """
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var val = (#{Target}.read(addr)+1) & 0xff;
 			#{UpdateFlag("val")}
 			#{Target}.write(addr, val);
@@ -288,6 +515,10 @@ module Generator
 		end
 		def self.DEC
 """
+			/**
+			 * @const
+			 * @type {Number}
+			 */
 			var val = (#{Target}.read(addr)-1) & 0xff;
 			#{UpdateFlag("val")}
 			#{Target}.write(addr, val);
@@ -295,7 +526,7 @@ module Generator
 		end
 		def self.CLC_
 """
-			#{Target}.P &= ~(cycloa.core.FLAG.C);
+			#{Target}.P &= (0x#{(~(FLAG[:C])&0xff).to_s(16)});
 """
 		end
 		def self.CLI_
@@ -304,33 +535,33 @@ module Generator
 			// http://twitter.com/#!/KiC6280/status/112351125084180480
 			//FIXME
 			//#{Target}.needStatusRewrite = true;
-			//#{Target}.newStatus = #{Target}.P & ~(cycloa.core.FLAG.I);
-			this.p.P &= ~(cycloa.core.FLAG.I);
+			//#{Target}.newStatus = #{Target}.P & (0x#{(~(FLAG[:I])&0xff).to_s(16)});
+			#{Target}.P &= 0x#{(~(FLAG[:I])&0xff).to_s(16)};
 """
 		end
 		def self.CLV_
 """
-			#{Target}.P &= ~(cycloa.core.FLAG.V);
+			#{Target}.P &= (0x#{(~(FLAG[:V])&0xff).to_s(16)});
 """
 		end
 		def self.CLD_
 """
-			#{Target}.P &= ~(cycloa.core.FLAG.D);
+			#{Target}.P &= (0x#{(~(FLAG[:D])&0xff).to_s(16)});
 """
 		end
 		def self.SEC_
 """
-			#{Target}.P |= cycloa.core.FLAG.C;
+			#{Target}.P |= 0x#{FLAG[:C].to_s(16)};
 """
 		end
 		def self.SEI_
 """
-			#{Target}.P |= cycloa.core.FLAG.I;
+			#{Target}.P |= 0x#{FLAG[:I].to_s(16)};
 """
 		end
 		def self.SED_
 """
-			#{Target}.P |= cycloa.core.FLAG.D;
+			#{Target}.P |= 0x#{FLAG[:D].to_s(16)};
 """
 		end
 		def self.NOP_
@@ -343,15 +574,15 @@ module Generator
 			//…と合ったけど、他の資料だと違う。http://nesdev.parodius.com/6502.txt
 			//DQ4はこうしないと、動かない。
 			/*
-			if((#{Target}.P & cycloa.core.FLAG.I) == cycloa.core.FLAG.I){
+			if((#{Target}.P & 0x#{FLAG[:I].to_s(16)}) == 0x#{FLAG[:I].to_s(16)}){
 				return;
 			}*/
 			#{Target}.PC++;
 			#{Push "((#{Target}.PC >> 8) & 0xFF)"}
 			#{Push "(#{Target}.PC & 0xFF)"}
-			#{Target}.P |= cycloa.core.FLAG.B;
+			#{Target}.P |= 0x#{FLAG[:B].to_s(16)};
 			#{Push "(#{Target}.P)"}
-			#{Target}.P |= cycloa.core.FLAG.I;
+			#{Target}.P |= 0x#{FLAG[:I].to_s(16)};
 			#{Target}.PC = (#{Target}.read(0xFFFE) | (#{Target}.read(0xFFFF) << 8));
 """
 		end
@@ -360,7 +591,7 @@ module Generator
 		end
 		def self.BCC
 """
-			if((#{Target}.P & cycloa.core.FLAG.C) == 0){
+			if(!(#{Target}.P & 0x#{FLAG[:C].to_s(16)})){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -368,7 +599,7 @@ module Generator
 		end
 		def self.BCS
 """
-			if((#{Target}.P & cycloa.core.FLAG.C) == cycloa.core.FLAG.C){
+			if(#{Target}.P & 0x#{FLAG[:C].to_s(16)}){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -376,7 +607,7 @@ module Generator
 		end
 		def self.BEQ
 """
-			if((#{Target}.P & cycloa.core.FLAG.Z) == cycloa.core.FLAG.Z){
+			if(#{Target}.P & 0x#{FLAG[:Z].to_s(16)}){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -384,7 +615,7 @@ module Generator
 		end
 		def self.BNE
 """
-			if((#{Target}.P & cycloa.core.FLAG.Z) == 0){
+			if(!(#{Target}.P & 0x#{FLAG[:Z].to_s(16)})){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -392,7 +623,7 @@ module Generator
 		end
 		def self.BVC
 """
-			if((#{Target}.P & cycloa.core.FLAG.V) == 0){
+			if(!(#{Target}.P & 0x#{FLAG[:V].to_s(16)})){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -400,7 +631,7 @@ module Generator
 		end
 		def self.BVS
 """
-			if((#{Target}.P & cycloa.core.FLAG.V) == cycloa.core.FLAG.V){
+			if(#{Target}.P & 0x#{FLAG[:V].to_s(16)}){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -408,7 +639,7 @@ module Generator
 		end
 		def self.BPL
 """
-			if((#{Target}.P & cycloa.core.FLAG.N) == 0){
+			if(!(#{Target}.P & 0x#{FLAG[:N].to_s(16)})){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -416,7 +647,7 @@ module Generator
 		end
 		def self.BMI
 """
-			if((#{Target}.P & cycloa.core.FLAG.N) == cycloa.core.FLAG.N){
+			if(#{Target}.P & 0x#{FLAG[:N].to_s(16)}){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -448,21 +679,42 @@ module Generator
 		end
 	end
 end
-
-puts "var addr, base, val;"
 puts "var ZNFlagCache = cycloa.core.ZNFlagCache;"
+
+def genFunctionTable
+	Opcode::each{ |b, opcode, addr|
+		bsym = "0x#{b.to_s(16)}";
+		puts "this[#{bsym}] = function() { /* #{bsym}, #{opcode ? opcode : 'UNDEFINED'} #{addr ? addr : 'NONE'} */"
+		if opcode.nil?
+			puts "throw new cycloa.err.CoreException(\"Invalid opcode: 0x#{b.to_s(16)}\");"
+		else
+			puts "#{Target}.consumeClock(#{Generator::CYCLE[b]});";
+			puts Generator::AddrMode::Init()
+			puts Generator::AddrMode::method(addr).call
+			opsym = ((opcode.to_s)+(addr == :None ? "_" : "")).to_sym
+			puts Generator::Inst::method(opsym).call
+		end
+		puts "};"
+	}
+end
+
+genFunctionTable
+
+=begin
+puts "switch( pr.read(pr.PC++) ) {"
 
 Opcode::each{ |b, opcode, addr|
 	bsym = "0x#{b.to_s(16)}";
-	puts "this[#{bsym}] = function() { /* #{bsym}, #{opcode ? opcode : 'UNDEFINED'} #{addr ? addr : 'NONE'} */"
+	puts "case #{bsym}: /* #{bsym}, #{opcode ? opcode : 'UNDEFINED'} #{addr ? addr : 'NONE'} */"
 	if opcode.nil?
 		puts "throw new cycloa.err.CoreException(\"Invalid opcode: 0x#{b.to_s(16)}\");"
 	else
+		puts "#{Target}.consumeClock(#{Generator::CYCLE[b]});";
 		puts Generator::AddrMode::method(addr).call
 		opsym = ((opcode.to_s)+(addr == :None ? "_" : "")).to_sym
 		puts Generator::Inst::method(opsym).call
 	end
-	puts "};"
+	puts "break;"
 }
-
+=end
 
