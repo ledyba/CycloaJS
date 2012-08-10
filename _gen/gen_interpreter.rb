@@ -258,7 +258,7 @@ module Generator
 			 * @type {Number}
 			 */
 			var val = #{Pop()};
-			if((#{Target}.P & 0x#{FLAG[:I].to_s(16)}) == 0x#{FLAG[:I].to_s(16)} && (val & 0x#{FLAG[:I].to_s(16)}) == 0){
+			if((#{Target}.P & 0x#{FLAG[:I].to_s(16)}) && !(val & 0x#{FLAG[:I].to_s(16)})){
 				// FIXME: ここどうする？？
 				//#{Target}.needStatusRewrite = true;
 				//#{Target}.newStatus =val;
