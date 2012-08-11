@@ -1125,7 +1125,7 @@ module Opcode
 			if elm.nil?
 				clos.call(b, nil, nil);
 			else
-				clos.call(b, elm[0], elm[1]);
+				clos.call(b, ((elm[0].to_s)+(elm[1] == :None ? "_" : "")).to_sym, elm[1]);
 			end
 			b += 1;
 		}

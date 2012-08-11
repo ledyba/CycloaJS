@@ -98,8 +98,7 @@ cycloa.FastMachine = function(board){
 			<%= Target %>.consumeClock(<%= Generator::CYCLE[b] %>);
 			<%= Generator::AddrMode::Init() %>
 			<%= Generator::AddrMode::method(addr).call %>
-			<% opsym = ((opcode.to_s)+(addr == :None ? "_" : "")).to_sym %>
-			<%= Generator::Inst::method(opsym).call %>
+			<%= Generator::Inst::method(opcode).call %>
 		<% end %>
 		};
 	<% end %>

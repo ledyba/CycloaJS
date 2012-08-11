@@ -14,7 +14,7 @@ module Generator
 		:V=> 64,
 		:N=> 128
 	};
-	CYCLE = [
+	Cycle = [
 		7, 6, 2, 8, 3, 3, 5, 5,3, 2, 2, 2, 4, 4, 6, 6,
 		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
 		6, 6, 2, 8, 3, 3, 5, 5,4, 2, 2, 2, 4, 4, 6, 6,
@@ -32,6 +32,93 @@ module Generator
 		2, 6, 3, 8, 3, 3, 5, 5,2, 2, 2, 2, 4, 4, 6, 6,
 		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7
 	];
+	module Middle
+	    TransTable = [0xff]*0x100;
+		AddrMode = {
+			:Immediate => 0,
+			:Zeropage => 1,
+			:ZeropageX => 2,
+			:ZeropageY => 3,
+			:Absolute => 4,
+			:AbsoluteX => 5,
+			:AbsoluteY => 6,
+			:Indirect => 7,
+			:IndirectX => 8,
+			:IndirectY => 9,
+			:Relative => 10,
+			:None => 11
+		};
+		AddrModeMask = 0xf;
+		InstMode = {
+            :LDA => 0,
+            :LDX => 16,
+            :LDY => 32,
+            :STA => 48,
+            :STX => 64,
+            :STY => 80,
+            :TAX_ => 96,
+            :TAY_ => 112,
+            :TSX_ => 128,
+            :TXA_ => 144,
+            :TXS_ => 160,
+            :TYA_ => 176,
+            :ADC => 192,
+            :AND => 208,
+            :ASL => 224,
+            :ASL_ => 240,
+            :BIT => 256,
+            :CMP => 272,
+            :CPX => 288,
+            :CPY => 304,
+            :DEC => 320,
+            :DEX_ => 336,
+            :DEY_ => 352,
+            :EOR => 368,
+            :INC => 384,
+            :INX_ => 400,
+            :INY_ => 416,
+            :LSR => 432,
+            :LSR_ => 448,
+            :ORA => 464,
+            :ROL => 480,
+            :ROL_ => 496,
+            :ROR => 512,
+            :ROR_ => 528,
+            :SBC => 544,
+            :PHA_ => 560,
+            :PHP_ => 576,
+            :PLA_ => 592,
+            :PLP_ => 608,
+            :CLC_ => 624,
+            :CLD_ => 640,
+            :CLI_ => 656,
+            :CLV_ => 672,
+            :SEC_ => 688,
+            :SED_ => 704,
+            :SEI_ => 720,
+            :BRK_ => 736,
+            :NOP_ => 752,
+            :RTS_ => 768,
+            :RTI_ => 784,
+            :JMP => 800,
+            :JSR => 816,
+            :BCC => 832,
+            :BCS => 848,
+            :BEQ => 864,
+            :BMI => 880,
+            :BNE => 896,
+            :BPL => 912,
+            :BVC => 928,
+            :BVS => 944,
+		};
+		InstModeMask = 0xfff0;
+		ClockShift = 16;
+        Opcode::each do |b, opsym, addr|
+            next if addr.nil? or opsym.nil?
+            TransTable[b] = Generator::Middle::AddrMode[addr] | Generator::Middle::InstMode[opsym] | ((Generator::Cycle[b])<< Generator::Middle::ClockShift);
+        end
+	end
+
 	module AddrMode
 		def self.CrossCheck()
 			"if(((addr ^ addr_base) & 0x0100) != 0) #{Target}.consumeClock(1);"
@@ -719,8 +806,23 @@ module Generator
 	end
 end
 
+op = [nil]*0x100
+i = 0;
+=begin
+Opcode::INST_TABLE.each do |opcode, tbl|
+	if tbl.count{|t| t[1] != nil} > 1 or tbl[:None] == nil
+		puts ":#{opcode} => 0x#{i<<4},"
+		i+=1
+	end
+	if tbl[:None] != nil
+		puts ":#{((opcode.to_s)+"_").to_sym} => 0x#{i<<4},"
+		i+=1
+	end
+end
+=end
 
 require 'erb'
 erb = ERB.new(File.read(ARGV[0], :encoding => "UTF-8"));
 erb.filename = ARGV[0]
 erb.run
+
