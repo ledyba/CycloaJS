@@ -39,7 +39,7 @@ cycloa.FastMachine = function(board){
 		 * @type {Number}
 		 */
 		var inst = this.TransTable[this.read(this.PC)];
-%		Generator::AddrMode::Init()
+		<%= Generator::AddrMode::Init() %>
 		// http://www.llx.com/~nparker/a2/opcodes.html
 		switch( inst & <%= Generator::Middle::AddrModeMask %> ){
 %			Generator::Middle::AddrMode.each do |addr, code|

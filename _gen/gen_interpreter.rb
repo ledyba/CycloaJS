@@ -4,34 +4,6 @@ require File.dirname(__FILE__)+"/opcode_info.rb";
 Target="this"
 
 module Generator
-	FLAG = {
-		:C=> 1,
-		:Z=> 2,
-		:I=> 4,
-		:D=> 8,
-		:B=> 16, # not used in NES
-		:ALWAYS_SET=> 32,
-		:V=> 64,
-		:N=> 128
-	};
-	Cycle = [
-		7, 6, 2, 8, 3, 3, 5, 5,3, 2, 2, 2, 4, 4, 6, 6,
-		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
-		6, 6, 2, 8, 3, 3, 5, 5,4, 2, 2, 2, 4, 4, 6, 6,
-		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
-		6, 6, 2, 8, 3, 3, 5, 5,3, 2, 2, 2, 3, 4, 6, 6,
-		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
-		6, 6, 2, 8, 3, 3, 5, 5,4, 2, 2, 2, 5, 4, 6, 6,
-		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
-		2, 6, 2, 6, 3, 3, 3, 3,2, 2, 2, 2, 4, 4, 4, 4,
-		2, 5, 2, 6, 4, 4, 4, 4,2, 4, 2, 5, 5, 4, 5, 5,
-		2, 6, 2, 6, 3, 3, 3, 3,2, 2, 2, 2, 4, 4, 4, 4,
-		2, 5, 2, 5, 4, 4, 4, 4,2, 4, 2, 4, 4, 4, 4, 4,
-		2, 6, 2, 8, 3, 3, 5, 5,2, 2, 2, 2, 4, 4, 6, 6,
-		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7,
-		2, 6, 3, 8, 3, 3, 5, 5,2, 2, 2, 2, 4, 4, 6, 6,
-		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7
-	];
 	module Middle
 	    TransTable = [0xff]*0x100;
 		AddrMode = {
@@ -113,9 +85,9 @@ module Generator
 		};
 		InstModeMask = 0xfff0;
 		ClockShift = 16;
-        Opcode::each do |b, opsym, addr|
+        Opcode::eachInst do |b, opsym, addr|
             next if addr.nil? or opsym.nil?
-            TransTable[b] = Generator::Middle::AddrMode[addr] | Generator::Middle::InstMode[opsym] | ((Generator::Cycle[b])<< Generator::Middle::ClockShift);
+            TransTable[b] = Generator::Middle::AddrMode[addr] | Generator::Middle::InstMode[opsym] | ((Opcode::Cycle[b])<< Generator::Middle::ClockShift);
         end
 	end
 
@@ -335,7 +307,7 @@ module Generator
 		def self.PHP()
 """
 			// bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-			#{Push("#{Target}.P | 0x#{FLAG[:B].to_s(16)}")}
+			#{Push("#{Target}.P | 0x#{Opcode::Flag[:B].to_s(16)}")}
 """
 		end
 		def self.PLP()
@@ -345,7 +317,7 @@ module Generator
 			 * @type {Number}
 			 */
 			var val = #{Pop()};
-			if((#{Target}.P & 0x#{FLAG[:I].to_s(16)}) && !(val & 0x#{FLAG[:I].to_s(16)})){
+			if((#{Target}.P & 0x#{Opcode::Flag[:I].to_s(16)}) && !(val & 0x#{Opcode::Flag[:I].to_s(16)})){
 				// FIXME: ここどうする？？
 				//#{Target}.needStatusRewrite = true;
 				//#{Target}.newStatus =val;
@@ -382,15 +354,15 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
-			var result = (a + val + (p & 0x#{FLAG[:C].to_s(16)})) & 0xffff;
+			var result = (a + val + (p & 0x#{Opcode::Flag[:C].to_s(16)})) & 0xffff;
 			/**
 			 * @const
 			 * @type {Number}
 			 */
 			var newA = result & 0xff;
-			#{Target}.P = (p & 0x#{((~(FLAG[:V] | FLAG[:C])) & 0xff).to_s(16)})
+			#{Target}.P = (p & 0x#{((~(Opcode::Flag[:V] | Opcode::Flag[:C])) & 0xff).to_s(16)})
 				| ((((a ^ val) & 0x80) ^ 0x80) & ((a ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & 0x#{FLAG[:C].to_s(16)}); //set C flag
+				| ((result >> 8) & 0x#{Opcode::Flag[:C].to_s(16)}); //set C flag
 			#{UpdateFlag "#{Target}.A = newA"}
 """
 		end
@@ -415,15 +387,15 @@ module Generator
 			 * @const
 			 * @type {Number}
 			 */
-			var result = (a - val - ((p & 0x#{FLAG[:C].to_s(16)}) ^ 0x#{FLAG[:C].to_s(16)})) & 0xffff;
+			var result = (a - val - ((p & 0x#{Opcode::Flag[:C].to_s(16)}) ^ 0x#{Opcode::Flag[:C].to_s(16)})) & 0xffff;
 			/**
 			 * @const
 			 * @type {Number}
 			 */
 			var newA = result & 0xff;
-			#{Target}.P = (p & 0x#{((~(FLAG[:V]|FLAG[:C])) & 0xff).to_s(16)})
+			#{Target}.P = (p & 0x#{((~(Opcode::Flag[:V]|Opcode::Flag[:C])) & 0xff).to_s(16)})
 				| ((a ^ val) & (a ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & 0x#{FLAG[:C].to_s(16)}) ^ 0x#{FLAG[:C].to_s(16)});
+				| (((result >> 8) & 0x#{Opcode::Flag[:C].to_s(16)}) ^ 0x#{Opcode::Flag[:C].to_s(16)});
 			#{UpdateFlag "#{Target}.A = newA"}
 """
 		end
@@ -476,9 +448,9 @@ module Generator
 			 * @type {Number}
 			 */
 			var val = #{Target}.read(addr);
-			#{Target}.P = (#{Target}.P & 0x#{(0xff & ~(FLAG[:V] | FLAG[:N] | FLAG[:Z])).to_s(16)})
-				| (val & 0x#{(FLAG[:V] | FLAG[:N]).to_s(16)})
-				| (this.ZNFlagCache[#{Target}.A & val] & 0x#{FLAG[:Z].to_s(16)});
+			#{Target}.P = (#{Target}.P & 0x#{(0xff & ~(Opcode::Flag[:V] | Opcode::Flag[:N] | Opcode::Flag[:Z])).to_s(16)})
+				| (val & 0x#{(Opcode::Flag[:V] | Opcode::Flag[:N]).to_s(16)})
+				| (this.ZNFlagCache[#{Target}.A & val] & 0x#{Opcode::Flag[:Z].to_s(16)});
 """
 		end
 		def self.ASL_
@@ -648,7 +620,7 @@ module Generator
 		end
 		def self.CLC
 """
-			#{Target}.P &= (0x#{(~(FLAG[:C])&0xff).to_s(16)});
+			#{Target}.P &= (0x#{(~(Opcode::Flag[:C])&0xff).to_s(16)});
 """
 		end
 		def self.CLI
@@ -657,33 +629,33 @@ module Generator
 			// http://twitter.com/#!/KiC6280/status/112351125084180480
 			//FIXME
 			//#{Target}.needStatusRewrite = true;
-			//#{Target}.newStatus = #{Target}.P & (0x#{(~(FLAG[:I])&0xff).to_s(16)});
-			#{Target}.P &= 0x#{(~(FLAG[:I])&0xff).to_s(16)};
+			//#{Target}.newStatus = #{Target}.P & (0x#{(~(Opcode::Flag[:I])&0xff).to_s(16)});
+			#{Target}.P &= 0x#{(~(Opcode::Flag[:I])&0xff).to_s(16)};
 """
 		end
 		def self.CLV
 """
-			#{Target}.P &= (0x#{(~(FLAG[:V])&0xff).to_s(16)});
+			#{Target}.P &= (0x#{(~(Opcode::Flag[:V])&0xff).to_s(16)});
 """
 		end
 		def self.CLD
 """
-			#{Target}.P &= (0x#{(~(FLAG[:D])&0xff).to_s(16)});
+			#{Target}.P &= (0x#{(~(Opcode::Flag[:D])&0xff).to_s(16)});
 """
 		end
 		def self.SEC
 """
-			#{Target}.P |= 0x#{FLAG[:C].to_s(16)};
+			#{Target}.P |= 0x#{Opcode::Flag[:C].to_s(16)};
 """
 		end
 		def self.SEI
 """
-			#{Target}.P |= 0x#{FLAG[:I].to_s(16)};
+			#{Target}.P |= 0x#{Opcode::Flag[:I].to_s(16)};
 """
 		end
 		def self.SED
 """
-			#{Target}.P |= 0x#{FLAG[:D].to_s(16)};
+			#{Target}.P |= 0x#{Opcode::Flag[:D].to_s(16)};
 """
 		end
 		def self.NOP
@@ -696,15 +668,15 @@ module Generator
 			//…と合ったけど、他の資料だと違う。http://nesdev.parodius.com/6502.txt
 			//DQ4はこうしないと、動かない。
 			/*
-			if((#{Target}.P & 0x#{FLAG[:I].to_s(16)}) == 0x#{FLAG[:I].to_s(16)}){
+			if((#{Target}.P & 0x#{Opcode::Flag[:I].to_s(16)}) == 0x#{Opcode::Flag[:I].to_s(16)}){
 				return;
 			}*/
 			#{Target}.PC++;
 			#{Push "((#{Target}.PC >> 8) & 0xFF)"}
 			#{Push "(#{Target}.PC & 0xFF)"}
-			#{Target}.P |= 0x#{FLAG[:B].to_s(16)};
+			#{Target}.P |= 0x#{Opcode::Flag[:B].to_s(16)};
 			#{Push "(#{Target}.P)"}
-			#{Target}.P |= 0x#{FLAG[:I].to_s(16)};
+			#{Target}.P |= 0x#{Opcode::Flag[:I].to_s(16)};
 			#{Target}.PC = (#{Target}.read(0xFFFE) | (#{Target}.read(0xFFFF) << 8));
 """
 		end
@@ -713,7 +685,7 @@ module Generator
 		end
 		def self.BCC
 """
-			if(!(#{Target}.P & 0x#{FLAG[:C].to_s(16)})){
+			if(!(#{Target}.P & 0x#{Opcode::Flag[:C].to_s(16)})){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -721,7 +693,7 @@ module Generator
 		end
 		def self.BCS
 """
-			if(#{Target}.P & 0x#{FLAG[:C].to_s(16)}){
+			if(#{Target}.P & 0x#{Opcode::Flag[:C].to_s(16)}){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -729,7 +701,7 @@ module Generator
 		end
 		def self.BEQ
 """
-			if(#{Target}.P & 0x#{FLAG[:Z].to_s(16)}){
+			if(#{Target}.P & 0x#{Opcode::Flag[:Z].to_s(16)}){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -737,7 +709,7 @@ module Generator
 		end
 		def self.BNE
 """
-			if(!(#{Target}.P & 0x#{FLAG[:Z].to_s(16)})){
+			if(!(#{Target}.P & 0x#{Opcode::Flag[:Z].to_s(16)})){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -745,7 +717,7 @@ module Generator
 		end
 		def self.BVC
 """
-			if(!(#{Target}.P & 0x#{FLAG[:V].to_s(16)})){
+			if(!(#{Target}.P & 0x#{Opcode::Flag[:V].to_s(16)})){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -753,7 +725,7 @@ module Generator
 		end
 		def self.BVS
 """
-			if(#{Target}.P & 0x#{FLAG[:V].to_s(16)}){
+			if(#{Target}.P & 0x#{Opcode::Flag[:V].to_s(16)}){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -761,7 +733,7 @@ module Generator
 		end
 		def self.BPL
 """
-			if(!(#{Target}.P & 0x#{FLAG[:N].to_s(16)})){
+			if(!(#{Target}.P & 0x#{Opcode::Flag[:N].to_s(16)})){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -769,7 +741,7 @@ module Generator
 		end
 		def self.BMI
 """
-			if(#{Target}.P & 0x#{FLAG[:N].to_s(16)}){
+			if(#{Target}.P & 0x#{Opcode::Flag[:N].to_s(16)}){
 				#{CrossCheck()}
 				#{Target}.PC = addr;
 			}
@@ -806,24 +778,4 @@ module Generator
 	end
 end
 
-op = [nil]*0x100
-i = 0;
-=begin
-Opcode::INST_TABLE.each do |opcode, tbl|
-	if tbl.count{|t| t[1] != nil} > 1 or tbl[:None] == nil
-		puts ":#{opcode} => 0x#{i<<4},"
-		i+=1
-	end
-	if tbl[:None] != nil
-		puts ":#{((opcode.to_s)+"_").to_sym} => 0x#{i<<4},"
-		i+=1
-	end
-end
-
-require 'erb'
-erb = ERB.new(File.read(ARGV[0], :encoding => "UTF-8"), nil, '%>');
-erb.filename = ARGV[0]
-erb.run
-
-=end
 
