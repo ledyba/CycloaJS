@@ -56,12 +56,12 @@ module Generator
             :STA => 48,
             :STX => 64,
             :STY => 80,
-            :TAX_ => 96,
-            :TAY_ => 112,
-            :TSX_ => 128,
-            :TXA_ => 144,
-            :TXS_ => 160,
-            :TYA_ => 176,
+            :TAX => 96,
+            :TAY => 112,
+            :TSX => 128,
+            :TXA => 144,
+            :TXS => 160,
+            :TYA => 176,
             :ADC => 192,
             :AND => 208,
             :ASL => 224,
@@ -71,12 +71,12 @@ module Generator
             :CPX => 288,
             :CPY => 304,
             :DEC => 320,
-            :DEX_ => 336,
-            :DEY_ => 352,
+            :DEX => 336,
+            :DEY => 352,
             :EOR => 368,
             :INC => 384,
-            :INX_ => 400,
-            :INY_ => 416,
+            :INX => 400,
+            :INY => 416,
             :LSR => 432,
             :LSR_ => 448,
             :ORA => 464,
@@ -85,21 +85,21 @@ module Generator
             :ROR => 512,
             :ROR_ => 528,
             :SBC => 544,
-            :PHA_ => 560,
-            :PHP_ => 576,
-            :PLA_ => 592,
-            :PLP_ => 608,
-            :CLC_ => 624,
-            :CLD_ => 640,
-            :CLI_ => 656,
-            :CLV_ => 672,
-            :SEC_ => 688,
-            :SED_ => 704,
-            :SEI_ => 720,
-            :BRK_ => 736,
-            :NOP_ => 752,
-            :RTS_ => 768,
-            :RTI_ => 784,
+            :PHA => 560,
+            :PHP => 576,
+            :PLA => 592,
+            :PLP => 608,
+            :CLC => 624,
+            :CLD => 640,
+            :CLI => 656,
+            :CLV => 672,
+            :SEC => 688,
+            :SED => 704,
+            :SEI => 720,
+            :BRK => 736,
+            :NOP => 752,
+            :RTS => 768,
+            :RTI => 784,
             :JMP => 800,
             :JSR => 816,
             :BCC => 832,
@@ -314,31 +314,31 @@ module Generator
 		def self.STY()
 			"#{Target}.write(addr, #{Target}.Y);"
 		end
-		def self.TXA_()
+		def self.TXA()
 			UpdateFlag("#{Target}.A = #{Target}.X");
 		end
-		def self.TYA_()
+		def self.TYA()
 			UpdateFlag("#{Target}.A = #{Target}.Y");
 		end
-		def self.TXS_()
+		def self.TXS()
 			"#{Target}.SP = #{Target}.X;";
 		end
-		def self.TAY_()
+		def self.TAY()
 			UpdateFlag("#{Target}.Y = #{Target}.A");
 		end
-		def self.TAX_()
+		def self.TAX()
 			UpdateFlag("#{Target}.X = #{Target}.A");
 		end
-		def self.TSX_()
+		def self.TSX()
 			UpdateFlag("#{Target}.X = #{Target}.SP");
 		end
-		def self.PHP_()
+		def self.PHP()
 """
 			// bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
 			#{Push("#{Target}.P | 0x#{FLAG[:B].to_s(16)}")}
 """
 		end
-		def self.PLP_()
+		def self.PLP()
 """
 			/**
 			 * @const
@@ -355,10 +355,10 @@ module Generator
 			}
 """
 		end
-		def self.PHA_()
+		def self.PHA()
 			Push("#{Target}.A");
 		end
-		def self.PLA_()
+		def self.PLA()
 			UpdateFlag("#{Target}.A = #{Pop()}");
 		end
 		def self.ADC()
@@ -612,10 +612,10 @@ module Generator
 			#{Target}.write(addr, shifted);
 """
 		end
-		def self.INX_
+		def self.INX
 			UpdateFlag("#{Target}.X = (#{Target}.X+1)&0xff")
 		end
-		def self.INY_
+		def self.INY
 			UpdateFlag("#{Target}.Y = (#{Target}.Y+1)&0xff")
 		end
 		def self.INC
@@ -629,10 +629,10 @@ module Generator
 			#{Target}.write(addr, val);
 """
 		end
-		def self.DEX_
+		def self.DEX
 			UpdateFlag("#{Target}.X = (#{Target}.X-1)&0xff")
 		end
-		def self.DEY_
+		def self.DEY
 			UpdateFlag("#{Target}.Y = (#{Target}.Y-1)&0xff")
 		end
 		def self.DEC
@@ -646,12 +646,12 @@ module Generator
 			#{Target}.write(addr, val);
 """
 		end
-		def self.CLC_
+		def self.CLC
 """
 			#{Target}.P &= (0x#{(~(FLAG[:C])&0xff).to_s(16)});
 """
 		end
-		def self.CLI_
+		def self.CLI
 """
 			// http://twitter.com/#!/KiC6280/status/112348378100281344
 			// http://twitter.com/#!/KiC6280/status/112351125084180480
@@ -661,35 +661,35 @@ module Generator
 			#{Target}.P &= 0x#{(~(FLAG[:I])&0xff).to_s(16)};
 """
 		end
-		def self.CLV_
+		def self.CLV
 """
 			#{Target}.P &= (0x#{(~(FLAG[:V])&0xff).to_s(16)});
 """
 		end
-		def self.CLD_
+		def self.CLD
 """
 			#{Target}.P &= (0x#{(~(FLAG[:D])&0xff).to_s(16)});
 """
 		end
-		def self.SEC_
+		def self.SEC
 """
 			#{Target}.P |= 0x#{FLAG[:C].to_s(16)};
 """
 		end
-		def self.SEI_
+		def self.SEI
 """
 			#{Target}.P |= 0x#{FLAG[:I].to_s(16)};
 """
 		end
-		def self.SED_
+		def self.SED
 """
 			#{Target}.P |= 0x#{FLAG[:D].to_s(16)};
 """
 		end
-		def self.NOP_
+		def self.NOP
 			""
 		end
-		def self.BRK_()
+		def self.BRK
 """
 			//NES ON FPGAには、
 			//「割り込みが確認された時、Iフラグがセットされていれば割り込みは無視します。」
@@ -708,7 +708,7 @@ module Generator
 			#{Target}.PC = (#{Target}.read(0xFFFE) | (#{Target}.read(0xFFFF) << 8));
 """
 		end
-		def self.CrossCheck()
+		def self.CrossCheck
 			"#{Target}.consumeClock( (((#{Target}.PC ^ addr) & 0x0100) != 0) ? 2 : 1 );"
 		end
 		def self.BCC
@@ -792,13 +792,13 @@ module Generator
 			#{Target}.PC = addr;
 """
 		end
-			def self.RTI_
+			def self.RTI
 """
 			#{Target}.P = #{Pop()};
 			#{Target}.PC = #{Pop()} | (#{Pop()} << 8);
 """
 		end
-		def self.RTS_
+		def self.RTS
 """
 			#{Target}.PC = (#{Pop()} | (#{Pop()} << 8)) + 1;
 """
@@ -819,10 +819,11 @@ Opcode::INST_TABLE.each do |opcode, tbl|
 		i+=1
 	end
 end
-=end
 
 require 'erb'
-erb = ERB.new(File.read(ARGV[0], :encoding => "UTF-8"));
+erb = ERB.new(File.read(ARGV[0], :encoding => "UTF-8"), nil, '%>');
 erb.filename = ARGV[0]
 erb.run
+
+=end
 
