@@ -1,3 +1,6 @@
+%# -*- encoding: utf-8 -*-
+%require File.dirname(__FILE__)+"/gen_interpreter.rb";
+
 /**
  * @constructor
  */
@@ -19,13 +22,42 @@ cycloa.FastMachine = function(board){
 	/** @type {Boolean} */
 	this.IRQ = false;
 	/**
+	 * @const
+	 * @type {Uint8Array}
+	*/
+	this.ram = new Uint8Array(new ArrayBuffer(0x2000));
+	/**
 	 * カセット
 	 * @type {cycloa.Board}
 	 */
 	this.board = board;
+
 	this.run = function () {
 		this.P |= 32; //必ずセットしてあるらしい。プログラム側から無理にいじっちゃった時用
-		this[this.read(this.PC)]();
+		/**
+		 * @const
+		 * @type {Number}
+		 */
+		var inst = this.TransTable[this.read(this.PC)];
+%		Generator::AddrMode::Init()
+		// http://www.llx.com/~nparker/a2/opcodes.html
+		switch( inst & <%= Generator::Middle::AddrModeMask %> ){
+%			Generator::Middle::AddrMode.each do |addr, code|
+				case <%= code %>: { /* <%= addr %> */
+					<%= Generator::AddrMode::method(addr).call %>
+				break;
+				}
+%			end
+			default: { break; /*throw new cycloa.err.CoreException("Invalid opcode."); */ }
+		}
+		switch( (inst & <%= Generator::Middle::InstModeMask %>) >> 4 ){
+%			Generator::Middle::InstMode.each do |opsym, code|
+				case <%= code>>4 %>: {  /* <%= opsym %> */
+					<%= Generator::Inst::method(opsym).call %>
+				break;}
+%			end
+		}
+		<%= Target %>.consumeClock(inst >> <%= Generator::Middle::ClockShift %>);
 	};
 	this.reserveNMI = function () {
 		this.NMI = true;
@@ -46,6 +78,24 @@ cycloa.FastMachine = function(board){
 	 * @return {Number} data
 	 */
 	this.read = function (addr) {
+		switch((addr & 0xE000) >> 14){
+			case 0:{
+				return this.ram[addr & 0x1fff];
+				break;
+			}
+			case 1:{
+				return 0;
+				break;
+			}
+			case 2:{
+				return this.board.rom[addr & 0x3fff];
+				break;
+			}
+			case 3:{
+				return this.board.rom[addr & 0x3fff];
+				break;
+			}
+		}
 		return this.board.readCPU(addr);
 	},
 	/**
@@ -55,7 +105,21 @@ cycloa.FastMachine = function(board){
 	 * @param {Number} val
 	 */
 	this.write = function (addr, val) {
-		this.board.writeCPU(addr, val);
+		switch((addr & 0xE000) >> 14){
+			case 0:{
+				this.ram[addr & 0x1fff] = val;
+				break;
+			}
+			case 1:{
+				break;
+			}
+			case 2:{
+				break;
+			}
+			case 3:{
+				break;
+			}
+		}
 	};
 	this.consumeClock = function (clk) {
 		this.board.consumeClock(clk);
@@ -82,27 +146,15 @@ cycloa.FastMachine = function(board){
 		//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
 		this.consumeClock(cycloa.core.RESET_CLOCK);
 		this.SP -= 0x03;
-		this.P |= this.FLAG.I;
+		this.P |= this.Flag.I;
 		this.write(0x4015, 0x0);
 		this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
 
 		this.NMI = false;
 		this.IRQ = false;
 	};
-	<% Opcode::each do |b, opcode, addr| %>
-		<% bsym = "0x#{b.to_s(16)}"; %>
-		this[<%= b %>] = function() { /* <%= bsym %>,<%= opcode ? opcode : 'UNDEFINED' %> <%= addr ? addr : 'NONE' %> */
-		<% if opcode.nil? %>
-			throw new cycloa.err.CoreException("Invalid opcode: <%= bsym %>");
-		<% else %>
-			<%= Target %>.consumeClock(<%= Generator::CYCLE[b] %>);
-			<%= Generator::AddrMode::Init() %>
-			<%= Generator::AddrMode::method(addr).call %>
-			<%= Generator::Inst::method(opcode).call %>
-		<% end %>
-		};
-	<% end %>
 	this.ZNFlagCache = cycloa.FastMachine.ZNFlagCache;
+	this.TransTable = cycloa.FastMachine.TransTable;
 	this.RESET_CLOCK = 6;
 	this.MAX_INST_LENGTH = 3;
 };
@@ -125,4 +177,6 @@ cycloa.FastMachine.ZNFlagCache = new Uint8Array([
 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
 ]);
+
+cycloa.FastMachine.TransTable = new Uint32Array(<%= Generator::Middle::TransTable %>);
 	
