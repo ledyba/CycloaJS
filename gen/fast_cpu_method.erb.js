@@ -19,25 +19,33 @@ this.releaseIRQ = function () {
  * @return {Number} data
  */
 this.read = function (addr) {
-	switch((addr & 0xE000) >> 14){
-		case 0:{
+	switch((addr & 0xE000) >> 13){
+		case 0:{ /* 0x0000 -> 0x2000 */
 			return this.ram[addr & 0x7ff];
+		}
+		case 1:{ /* 0x2000 -> 0x4000 */
+			return this.readVideoReg(addr);
+		}
+		case 2:{ /* 0x4000 -> 0x6000 */
 			break;
 		}
-		case 1:{
-			return 0;
+		case 3:{ /* 0x6000 -> 0x8000 */
 			break;
 		}
-		case 2:{
-			return this.board.rom[addr & 0x3fff];
-			break;
+		case 4:{ /* 0x8000 -> 0xA000 */
+			return this.rom[(addr>>10) & 31][addr & 0x3ff];
 		}
-		case 3:{
-			return this.board.rom[addr & 0x3fff];
-			break;
+		case 5:{ /* 0xA000 -> 0xC000 */
+			return this.rom[(addr>>10) & 31][addr & 0x3ff];
+		}
+		case 6:{ /* 0xC000 -> 0xE000 */
+			return this.rom[(addr>>10) & 31][addr & 0x3ff];
+		}
+		case 7:{ /* 0xE000 -> 0xffff */
+			return this.rom[(addr>>10) & 31][addr & 0x3ff];
 		}
 	}
-	return this.board.readCPU(addr);
+	return 0;
 },
 /**
  * 書き込む
@@ -46,18 +54,35 @@ this.read = function (addr) {
  * @param {Number} val
  */
 this.write = function (addr, val) {
-	switch((addr & 0xE000) >> 14){
-		case 0:{
+	switch((addr & 0xE000) >> 13){
+		case 0:{ /* 0x0000 -> 0x2000 */
 			this.ram[addr & 0x1fff] = val;
 			break;
 		}
-		case 1:{
+		case 1:{ /* 0x2000 -> 0x4000 */
+			this.writeVideoReg(addr, val);
 			break;
 		}
-		case 2:{
+		case 2:{ /* 0x4000 -> 0x6000 */
 			break;
 		}
-		case 3:{
+		case 3:{ /* 0x6000 -> 0x8000 */
+			break;
+		}
+		case 4:{ /* 0x8000 -> 0xA000 */
+			this.writeMapperCPU(addr, val);
+			break;
+		}
+		case 5:{ /* 0xA000 -> 0xC000 */
+			this.writeMapperCPU(addr, val);
+			break;
+		}
+		case 6:{ /* 0xC000 -> 0xE000 */
+			this.writeMapperCPU(addr, val);
+			break;
+		}
+		case 7:{ /* 0xE000 -> 0xffff */
+			this.writeMapperCPU(addr, val);
 			break;
 		}
 	}

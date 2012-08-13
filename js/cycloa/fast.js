@@ -2,7 +2,7 @@
 /**
  * @constructor
  */
-cycloa.FastMachine = function(board){
+cycloa.FastMachine = function(rom) {
 
 /** @type {Number} */
 this.A = 0;
@@ -25,6 +25,7 @@ this.IRQ = false;
  * @type {Uint8Array}
 */
 this.ram = new Uint8Array(new ArrayBuffer(0x800));
+this.rom = new Array(32);
 
 this.ZNFlagCache = cycloa.FastMachine.ZNFlagCache;
 this.TransTable = cycloa.FastMachine.TransTable;
@@ -68,14 +69,10 @@ this.spriteTable = new Array(8);
 for(var i=0; i< 8; ++i){
 	this.spriteTable[i] = new Object;
 }
-	
-	/* Video init */
-	
-	/**
-	 * カセット
-	 * @type {cycloa.Board}
-	 */
-	this.board = board;
+
+this.pattern = new Array(0x10);
+
+
 
 	this.run = function () {
 
@@ -753,7 +750,7 @@ while(this.nowX >= 341){
 		}
 	}else if(nowY === 241){
 		//241: The PPU just idles during this scanline. Despite this, this scanline still occurs before the VBlank flag is set.
-		this.videoFairy.dispatchRendering(screenBuffer, this.paletteMask);
+		// FIXME: this.videoFairy.dispatchRendering(this.screenBuffer, this.paletteMask);
 		this.nowOnVBnank = true;
 		this.spriteAddr = 0;//and typically contains 00h at the begin of the VBlank periods
 	}else if(nowY === 242){
@@ -766,6 +763,7 @@ while(this.nowX >= 341){
 		if(this.executeNMIonVBlank){
 			this.reserveNMI();
 		}
+		console.log("hi");
 		this.onVBlank();
 	}else if(nowY <= 261){
 		//nowVBlank.
@@ -812,25 +810,33 @@ this.releaseIRQ = function () {
  * @return {Number} data
  */
 this.read = function (addr) {
-	switch((addr & 0xE000) >> 14){
-		case 0:{
+	switch((addr & 0xE000) >> 13){
+		case 0:{ /* 0x0000 -> 0x2000 */
 			return this.ram[addr & 0x7ff];
+		}
+		case 1:{ /* 0x2000 -> 0x4000 */
+			return this.readVideoReg(addr);
+		}
+		case 2:{ /* 0x4000 -> 0x6000 */
 			break;
 		}
-		case 1:{
-			return 0;
+		case 3:{ /* 0x6000 -> 0x8000 */
 			break;
 		}
-		case 2:{
-			return this.board.rom[addr & 0x3fff];
-			break;
+		case 4:{ /* 0x8000 -> 0xA000 */
+			return this.rom[(addr>>10) & 31][addr & 0x3ff];
 		}
-		case 3:{
-			return this.board.rom[addr & 0x3fff];
-			break;
+		case 5:{ /* 0xA000 -> 0xC000 */
+			return this.rom[(addr>>10) & 31][addr & 0x3ff];
+		}
+		case 6:{ /* 0xC000 -> 0xE000 */
+			return this.rom[(addr>>10) & 31][addr & 0x3ff];
+		}
+		case 7:{ /* 0xE000 -> 0xffff */
+			return this.rom[(addr>>10) & 31][addr & 0x3ff];
 		}
 	}
-	return this.board.readCPU(addr);
+	return 0;
 },
 /**
  * 書き込む
@@ -839,18 +845,35 @@ this.read = function (addr) {
  * @param {Number} val
  */
 this.write = function (addr, val) {
-	switch((addr & 0xE000) >> 14){
-		case 0:{
+	switch((addr & 0xE000) >> 13){
+		case 0:{ /* 0x0000 -> 0x2000 */
 			this.ram[addr & 0x1fff] = val;
 			break;
 		}
-		case 1:{
+		case 1:{ /* 0x2000 -> 0x4000 */
+			this.writeVideoReg(addr, val);
 			break;
 		}
-		case 2:{
+		case 2:{ /* 0x4000 -> 0x6000 */
 			break;
 		}
-		case 3:{
+		case 3:{ /* 0x6000 -> 0x8000 */
+			break;
+		}
+		case 4:{ /* 0x8000 -> 0xA000 */
+			this.writeMapperCPU(addr, val);
+			break;
+		}
+		case 5:{ /* 0xA000 -> 0xC000 */
+			this.writeMapperCPU(addr, val);
+			break;
+		}
+		case 6:{ /* 0xC000 -> 0xE000 */
+			this.writeMapperCPU(addr, val);
+			break;
+		}
+		case 7:{ /* 0xE000 -> 0xffff */
+			this.writeMapperCPU(addr, val);
 			break;
 		}
 	}
@@ -1284,10 +1307,204 @@ this.buildSpriteLine = function(){
 	}
 };
 
+this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
+	switch(addr & 0x07)
+	{
+		/* PPU Control and Status Registers */
+		case 0x00: //2000h - PPU Control Register 1 (W)
+			this.analyzePPUControlRegister1(value);
+			break;
+		case 0x01: //2001h - PPU Control Register 2 (W)
+			this.analyzePPUControlRegister2(value);
+			break;
+		//case 0x02: //2002h - PPU Status Register (R)
+		/* PPU SPR-RAM Access Registers */
+		case 0x03: //2003h - SPR-RAM Address Register (W)
+			this.analyzeSpriteAddrRegister(value);
+			break;
+		case 0x04: //2004h - SPR-RAM Data Register (Read/Write)
+			this.writeSpriteDataRegister(value);
+			break;
+		/* PPU VRAM Access Registers */
+		case 0x05: //PPU Background Scrolling Offset (W2)
+			this.analyzePPUBackgroundScrollingOffset(value);
+			break;
+		case 0x06: //VRAM Address Register (W2)
+			this.analyzeVramAddrRegister(value);
+			break;
+		case 0x07: //VRAM Read/Write Data Register (RW)
+			this.writeVramDataRegister(value);
+			break;
+		default:
+			throw cycloa.err.CoreException("Invalid addr: 0x"+addr.toString(16));
+	}
+};
+
+this.readVideoReg = function(/* uint16_t */ addr)
+{
+	switch(addr & 0x07)
+	{
+		/* PPU Control and Status Registers */
+		//case 0x00: //2000h - PPU Control Register 1 (W)
+		//case 0x01: //2001h - PPU Control Register 2 (W)
+		case 0x02: //2002h - PPU Status Register (R)
+			return this.buildPPUStatusRegister();
+		/* PPU SPR-RAM Access Registers */
+		//case 0x03: //2003h - SPR-RAM Address Register (W)
+		case 0x04: //2004h - SPR-RAM Data Register (Read/Write)
+			return this.readSpriteDataRegister();
+		/* PPU VRAM Access Registers */
+		//case 0x05: //PPU Background Scrolling Offset (W2)
+		//case 0x06: //VRAM Address Register (W2)
+		case 0x07: //VRAM Read/Write Data Register (RW)
+			return this.readVramDataRegister();
+		default:
+			return 0;
+//			throw EmulatorException() << "Invalid addr: 0x" << std::hex << addr;
+	}
+};
+
+this.writeVramDataRegister = function(/*uint8_t*/ value)
+{
+	this.writeVram(this.vramAddrRegister, value);
+	this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
+}
+
+this.readSpriteDataRegister = function(){
+	return this.spRam[this.spriteAddr];
+};
+
+this.readVramDataRegister = function()
+{
+	if((this.vramAddrRegister & 0x3f00) === 0x3f00){
+		/**
+		 * @const
+		 * @type {number} uint8_t */
+		var ret = readPalette(vramAddrRegister);
+		this.vramBuffer = this.readVramExternal(this.vramAddrRegister); //ミラーされてるVRAMにも同時にアクセスしなければならない。
+		this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
+		return ret;
+	}else{
+		/**
+		 * @const
+		 * @type {number} uint8_t */
+		var ret = this.vramBuffer;
+		this.vramBuffer = this.readVramExternal(this.vramAddrRegister);
+		this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
+		return ret;
+	}
+};
+
+this.buildPPUStatusRegister = function()
+{
+	//from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
+	this.vramAddrRegisterWritten = false;
+	this.scrollRegisterWritten = false;
+	//Reading resets the 1st/2nd-write flipflop (used by Port 2005h and 2006h).
+	/**
+	 * @const
+	 * @type {number} uint8_t
+	 */
+	var result =
+			((this.nowOnVBnank) ? 128 : 0)
+		|   ((this.sprite0Hit) ? 64 : 0)
+		|   ((this.lostSprites) ? 32 : 0);
+	this.nowOnVBnank = false;
+	return result;
+};
+
+this.analyzePPUControlRegister1 = function(/* uint8_t */ value)
+{
+	this.executeNMIonVBlank = ((value & 0x80) === 0x80) ? true : false;
+	this.spriteHeight = ((value & 0x20) === 0x20) ? 16 : 8;
+	this.patternTableAddressBackground = (value & 0x10) << 8;
+	this.patternTableAddress8x8Sprites = (value & 0x8) << 9;
+	this.vramIncrementSize = ((value & 0x4) === 0x4) ? 32 : 1;
+	this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x73ff) | ((value & 0x3) << 10);
+};
+this.analyzePPUControlRegister2 = function(/* uint8_t */ value)
+{
+	this.colorEmphasis = value >> 5; //FIXME: この扱い、どーする？
+	this.spriteVisibility = ((value & 0x10) === 0x10) ? true : false;
+	this.backgroundVisibility = ((value & 0x08) == 0x08) ? true : false;
+	this.spriteClipping = ((value & 0x04) === 0x04) ? false : true;
+	this.backgroundClipping = ((value & 0x2) === 0x02) ? false : true;
+	this.paletteMask = ((value & 0x1) === 0x01) ? 0x30 : 0x3f;
+};
+this.analyzePPUBackgroundScrollingOffset = function(/* uint8_t */ value)
+{
+	if(this.scrollRegisterWritten){ //Y
+		this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x8C1F) | ((value & 0xf8) << 2) | ((value & 7) << 12);
+	}else{ //X
+		this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0xFFE0) | value >> 3;
+		this.horizontalScrollBits = value & 7;
+	}
+	this.scrollRegisterWritten = !this.scrollRegisterWritten;
+};
+this.analyzeVramAddrRegister = function(/* uint8_t */ value)
+{
+	if(this.vramAddrRegisterWritten){
+		this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x7f00) | value;
+		this.vramAddrRegister = this.vramAddrReloadRegister & 0x3fff;
+	} else {
+		this.vramAddrReloadRegister =(this.vramAddrReloadRegister & 0x00ff) | ((value & 0x7f) << 8);
+	}
+	this.vramAddrRegisterWritten = !this.vramAddrRegisterWritten;
+};
+this.analyzeSpriteAddrRegister = function(/* uint8_t */ value)
+{
+	this.spriteAddr = value;
+};
+
+this.readVramExternal = function(/* uint16_t */ addr)
+{
+	switch((addr & 0x2000) >> 12)
+	{
+		case 0: /* 0x0000 -> 0x1fff */
+			return this.pattern[(addr >> 9) & 0xf][addr & 0x1ff];
+		case 1:
+			return this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff];
+	}
+}
+this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
+{
+	switch((addr & 0x2000) >> 12)
+	{
+		case 0: /* 0x0000 -> 0x1fff */
+			this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value; //FIXME
+			break;
+		case 1:
+			this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
+			break;
+	}
+}
+
+this.readVram = function(/* uint16_t */ addr) {
+	if((addr & 0x3f00) == 0x3f00){ /* readPalette */
+		if((addr & 0x3) == 0){
+			return this.palette[32 + ((addr >> 2) & 3)];
+		}else{
+			return this.palette[(((addr>>2) & 7) << 2) + (addr & 3)];
+		}
+	}else{
+		return this.readVramExternal(addr);
+	}
+};
+this.writeVram = function(/* uint16_t */ addr, /* uint8_t */ value) {
+	if((addr & 0x3f00) == 0x3f00){ /* writePalette */
+		if((addr & 0x3) == 0){
+			this.palette[32 + ((addr >> 2) & 3)] = value & 0x3f;
+		}else{
+			this.palette[(((addr>>2) & 7) << 2) + (addr & 3)] = value & 0x3f;
+		}
+	}else{
+		this.writeVramExternal(addr, value);
+	}
+};
+
+
+
 	
-	this.consumeClock = function (clk) {
-		this.board.consumeClock(clk);
-	},
 	/**
 	 * @function
 	 */
@@ -1300,7 +1517,130 @@ this.buildSpriteLine = function(){
 		this.onResetVideo();
 	};
 	this.onVBlank = function(){
+	};
+	
+	cycloa.FastMachine.Mappter.init(this, rom);
+};
+
+cycloa.FastMachine.Mappter = [
+	/* mapper 0 */
+	function(self){
+		self.writeMapperCPU = function(/* uint8_t */ addr){
+			/*do nothing!*/
+		};
+		var idx = 0;
+		for(var i=0; i<32; ++i){
+			self.rom[i] = self.prgRom.subarray(idx, idx+=1024);
+			if(idx >= self.prgRom.length){
+				idx = 0;
+			}
+		}
+		var cidx = 0;
+		for(var i=0;i<0x10; ++i){
+			self.pattern[i] = self.chrRom.subarray(cidx, cidx += 512);
+		}
 	}
+];
+
+cycloa.FastMachine.Mappter.init = function(self, data) {
+	// カートリッジの解釈
+	cycloa.FastMachine.Mappter.load(self, data);
+	// デフォルト関数のインジェクション
+	cycloa.FastMachine.Mappter.initDefault(self);
+	// マッパー関数のインジェクション
+	cycloa.FastMachine.Mappter[self.mapperNo](self);
+	
+	self.changeMirrorType(self.mirrorType);
+};
+
+cycloa.FastMachine.Mappter.initDefault = function(self){
+	self.vramMirroring = new Array(4);
+	self.internalVram = new Array(4);
+	for(var i=0;i<4;++i){
+		self.internalVram[i] = new Uint8Array(0x400);
+	}
+	self.changeMirrorType = function(/* NesFile::MirrorType */ mirrorType) {
+		this.mirrorType = mirrorType;
+		switch(mirrorType)
+		{
+		case 3: {
+			this.vramMirroring[0] = this.internalVram[0];
+			this.vramMirroring[1] = this.internalVram[0];
+			this.vramMirroring[2] = this.internalVram[0];
+			this.vramMirroring[3] = this.internalVram[0];
+			break;
+		}
+		case 4: {
+			this.vramMirroring[0] = this.internalVram[1];
+			this.vramMirroring[1] = this.internalVram[1];
+			this.vramMirroring[2] = this.internalVram[1];
+			this.vramMirroring[3] = this.internalVram[1];
+			break;
+		}
+		case 0: {
+			this.vramMirroring[0] = this.fourScreenVram[1];
+			this.vramMirroring[1] = this.fourScreenVram[2];
+			this.vramMirroring[2] = this.fourScreenVram[3];
+			this.vramMirroring[3] = this.fourScreenVram[4];
+			break;
+		}
+		case 2: {
+			this.vramMirroring[0] = this.internalVram[0];
+			this.vramMirroring[1] = this.internalVram[0];
+			this.vramMirroring[2] = this.internalVram[1];
+			this.vramMirroring[3] = this.internalVram[1];
+			break;
+		}
+		case 1: {
+			this.vramMirroring[0] = this.internalVram[0];
+			this.vramMirroring[1] = this.internalVram[1];
+			this.vramMirroring[2] = this.internalVram[0];
+			this.vramMirroring[3] = this.internalVram[1];
+			break;
+		}
+		default: {
+			throw new cycloa.err.CoreException("Invalid mirroring type!");
+		}
+		}
+	};
+};
+
+cycloa.FastMachine.Mappter.load = function(self, data){
+	var data8 = new Uint8Array(data);
+	/* check NES data8 */
+	if(!(data8[0] === 0x4e && data8[1]===0x45 && data8[2]===0x53 && data8[3] == 0x1a)){
+		throw new cycloa.err.CoreException("[FIXME] Invalid header!!");
+	}
+	self.prgSize = 16384 * data8[4];
+	self.chrSize = 8192 * data8[5];
+	self.prgPageCnt = data8[4];
+	self.chrPageCnt = data8[5];
+	self.mapperNo = ((data8[6] & 0xf0)>>4) | (data8[7] & 0xf0);
+	self.trainerFlag = (data8[6] & 0x4) === 0x4;
+	self.sramFlag = (data8[6] & 0x2) === 0x2;
+	if((data8[6] & 0x8) == 0x8){
+		self.mirrorType = 0;
+	}else{
+		self.mirrorType = (data8[6] & 0x1) == 0x1 ? 1 : 2;
+	}
+	/**
+	 * @type {number} uint32_t
+	 */
+	var fptr = 0x10;
+	if(self.trainerFlag){
+		if(fptr + 512 > data.byteLength) throw new cycloa.err.CoreException("[FIXME] Invalid file size; too short!");
+		self.trainer = new Uint8Array(data, fptr, 512);
+		fptr += 512;
+	}
+	/* read PRG ROM */
+	if(fptr + self.prgSize > data.byteLength) throw new cycloa.err.CoreException("[FIXME] Invalid file size; too short!");
+	self.prgRom = new Uint8Array(data, fptr, self.prgSize);
+	fptr += self.prgSize;
+
+	if(fptr + self.chrSize > data.byteLength) throw new cycloa.err.CoreException("[FIXME] Invalid file size; too short!");
+	//else if(fptr + self.chrSize < data.byteLength) throw cycloa.err.CoreException("[FIXME] Invalid file size; too long!");
+
+	self.chrRom = new Uint8Array(data, fptr, self.chrSize);
 };
 
 cycloa.FastMachine.ZNFlagCache = new Uint8Array([

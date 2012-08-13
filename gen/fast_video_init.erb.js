@@ -35,3 +35,6 @@ this.spriteTable = new Array(<%= Video::DefaultSpriteCnt %>);
 for(var i=0; i< <%= Video::DefaultSpriteCnt %>; ++i){
 	this.spriteTable[i] = new Object;
 }
+
+this.pattern = new Array(0x10);
+

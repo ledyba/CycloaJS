@@ -2,13 +2,12 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<script src="http://code.jquery.com/jquery-latest.js"></script>
 	<script type="text/javascript" src="js/cycloa/cycloa.js"></script>
 	<script type="text/javascript" src="js/cycloa/err.js"></script>
 	<script type="text/javascript" src="js/cycloa/util.js"></script>
 	<script type="text/javascript" src="js/cycloa/fast.js"></script>
 	<script type="text/javascript" src="js/cycloa/trace.js"></script>
-	<script type="text/javascript" src="test/processor_debug_board.js"></script>
+	<script type="text/javascript" src="test/test_rom.js"></script>
 	<script>
 		function runMany(){
 			for(var i=0;i<1;++i){
@@ -17,16 +16,15 @@
 		}
 
 		function measurePerformance(){
-			var board = new ProcessorDebugBoard();
-			var machine = new cycloa.FastMachine(board);
+			var machine = new cycloa.FastMachine(TestROM.buffer);
 			var tracer = new cycloa.Tracer(machine);
 			var start = new Date();
 			var clock = 0;
 			
-			for(var i = 0; i < 5000; ++i){
+			for(var i = 0; i < 1; ++i){
 				machine.onHardReset();
-				for(var t = 0; t < 5000; ++t){
-//					console.log(tracer.decode());
+				for(var t = 0; t < 500000; ++t){
+					//console.log(tracer.decode());
 					clock += machine.run();
 				}
 			}

@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 require 'erb'
+require File.expand_path( File.dirname(__FILE__)+"/nes.rb" );
 require File.expand_path( File.dirname(__FILE__)+"/cpu.rb" );
 require File.expand_path( File.dirname(__FILE__)+"/video.rb" );
 
