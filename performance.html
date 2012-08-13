@@ -21,18 +21,18 @@
 			var machine = new cycloa.FastMachine(board);
 			var tracer = new cycloa.Tracer(machine);
 			var start = new Date();
+			var clock = 0;
 			
-			for(var i = 0; i < 50000; ++i){
+			for(var i = 0; i < 5000; ++i){
 				machine.onHardReset();
-				machine.PC = 0xC000;
 				for(var t = 0; t < 5000; ++t){
 //					console.log(tracer.decode());
-					machine.run();
+					clock += machine.run();
 				}
 			}
 			var end = new Date();
 			var time = (end-start);
-			document.getElementById('console').innerHTML = "nclocks: "+board.clock+" /time: "+time+"ms / "+(board.clock/time/1000)+"MHz";
+			document.getElementById('console').innerHTML = "nclocks: "+clock+" /time: "+time+"ms / "+(clock/time/1000)+"MHz";
 		}
 	</script>
 	<title>unit test</title>

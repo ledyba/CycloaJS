@@ -1,292 +1,100 @@
+
 /**
  * @constructor
  */
 cycloa.FastMachine = function(board){
-	/** @type {Number} */
-	this.A = 0;
-	/** @type {Number} */
-	this.X = 0;
-	/** @type {Number} */
-	this.Y = 0;
-	/** @type {Number} */
-	this.PC = 0;
-	/** @type {Number} */
-	this.SP = 0;
-	/** @type {Number} */
-	this.P = 0;
-	/** @type {Boolean} */
-	this.NMI = false;
-	/** @type {Boolean} */
-	this.IRQ = false;
+
+/** @type {Number} */
+this.A = 0;
+/** @type {Number} */
+this.X = 0;
+/** @type {Number} */
+this.Y = 0;
+/** @type {Number} */
+this.PC = 0;
+/** @type {Number} */
+this.SP = 0;
+/** @type {Number} */
+this.P = 0;
+/** @type {Boolean} */
+this.NMI = false;
+/** @type {Boolean} */
+this.IRQ = false;
+/**
+ * @const
+ * @type {Uint8Array}
+*/
+this.ram = new Uint8Array(new ArrayBuffer(0x800));
+
+this.ZNFlagCache = cycloa.FastMachine.ZNFlagCache;
+this.TransTable = cycloa.FastMachine.TransTable;
+this.RESET_CLOCK = 6;
+this.MAX_INST_LENGTH = 3;
+
+
+
+this.isEven = false;
+this.nowY = 0;
+this.nowX = 0;
+this.spriteHitCnt = 0;
+this.executeNMIonVBlank = false;
+this.spriteHeight = 8;
+this.patternTableAddressBackground = 0;
+this.patternTableAddress8x8Sprites = 0;
+this.vramIncrementSize = 1;
+this.colorEmphasis = 0;
+this.spriteVisibility = false;
+this.backgroundVisibility = false;
+this.spriteClipping = false;
+this.backgroundClipping = false;
+this.paletteMask = 0;
+this.nowOnVBnank = false;
+this.sprite0Hit = false;
+this.lostSprites = false;
+this.vramBuffer = 0;
+this.spriteAddr = 0;
+this.vramAddrRegister = 0x0;
+this.vramAddrReloadRegister = 0;
+this.horizontalScrollBits = 0;
+this.scrollRegisterWritten = false;
+this.vramAddrRegisterWritten = false;
+this.screenBuffer = new ArrayBuffer(240 * 240);
+this.screenBuffer8 = new Uint8Array(this.screenBuffer);
+this.screenBuffer32 = new Uint32Array(this.screenBuffer);
+this.internalVram = new Uint8Array(0x800);
+this.spRam = new Uint8Array(256);
+this.palette = new Uint8Array(32);
+this.spriteTable = new Array(8);
+for(var i=0; i< 8; ++i){
+	this.spriteTable[i] = new Object;
+}
+	
+	/* Video init */
+	
 	/**
 	 * カセット
 	 * @type {cycloa.Board}
 	 */
 	this.board = board;
+
 	this.run = function () {
-		this.P |= 32; //必ずセットしてあるらしい。プログラム側から無理にいじっちゃった時用
-		this[this.read(this.PC)]();
-	};
-	this.reserveNMI = function () {
-		this.NMI = true;
-	};
-	this.reserveIRQ = function () {
-		this.IRQ = true;
-	};
-	this.releaseNMI = function () {
-		this.NMI = false;
-	};
-	this.releaseIRQ = function () {
-		this.IRQ = false;
-	},
-	/**
-	 * データからアドレスを読み込む
-	 * @function
-	 * @param {Number} addr
-	 * @return {Number} data
-	 */
-	this.read = function (addr) {
-		return this.board.readCPU(addr);
-	},
-	/**
-	 * 書き込む
-	 * @function
-	 * @param {Number} addr
-	 * @param {Number} val
-	 */
-	this.write = function (addr, val) {
-		this.board.writeCPU(addr, val);
-	};
-	this.consumeClock = function (clk) {
-		this.board.consumeClock(clk);
-	},
-	/**
-	 * @function
-	 */
-	this.onHardReset = function () {
-		//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
-		this.P = 0x24;
-		this.A = 0x0;
-		this.X = 0x0;
-		this.Y = 0x0;
-		this.SP = 0xfd;
-		this.write(0x4017, 0x00);
-		this.write(0x4015, 0x00);
-		this.PC = (this.read(0xFFFC) | (this.read(0xFFFD) << 8));
 
-		this.NMI = false;
-		this.IRQ = false;
-	};
-	this.onReset = function () {
-		//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
-		//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-		this.consumeClock(cycloa.core.RESET_CLOCK);
-		this.SP -= 0x03;
-		this.P |= this.FLAG.I;
-		this.write(0x4015, 0x0);
-		this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
+this.P |= 32; //必ずセットしてあるらしい。プログラム側から無理にいじっちゃった時用
+/**
+ * @const
+ * @type {Number}
+ */
+var inst = this.TransTable[this.read(this.PC)];
 
-		this.NMI = false;
-		this.IRQ = false;
-	};
-	
-		
-		this[0] = function() { /* 0x0,BRK None */
-		
-			this.consumeClock(7);
-			
 			/**
 			 * @const
 			 * @type {Number}
 			 */
 			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			//NES ON FPGAには、
-			//「割り込みが確認された時、Iフラグがセットされていれば割り込みは無視します。」
-			//…と合ったけど、他の資料だと違う。http://nesdev.parodius.com/6502.txt
-			//DQ4はこうしないと、動かない。
-			/*
-			if((this.P & 0x4) == 0x4){
-				return;
-			}*/
-			this.PC++;
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), ((this.PC >> 8) & 0xFF));
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.PC & 0xFF));
-			this.P |= 0x10;
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.P));
-			this.P |= 0x4;
-			this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
-
-		
-		};
-	
-		
-		this[1] = function() { /* 0x1,ORA IndirectX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = (this.read(pc+1) + this.X) & 0xff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A |= this.read(addr)];
-		
-		};
-	
-		
-		this[2] = function() { /* 0x2,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x2");
-		
-		};
-	
-		
-		this[3] = function() { /* 0x3,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x3");
-		
-		};
-	
-		
-		this[4] = function() { /* 0x4,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x4");
-		
-		};
-	
-		
-		this[5] = function() { /* 0x5,ORA Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A |= this.read(addr)];
-		
-		};
-	
-		
-		this[6] = function() { /* 0x6,ASL Zeropage */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			this.P = (this.P & 0xFE) | val >> 7;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = val << 1;
-			this.write(addr, shifted);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted & 0xff];
-
-		
-		};
-	
-		
-		this[7] = function() { /* 0x7,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x7");
-		
-		};
-	
-		
-		this[8] = function() { /* 0x8,PHP None */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			// bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), this.P | 0x10);
-
-		
-		};
-	
-		
-		this[9] = function() { /* 0x9,ORA Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
+			var clockDelta = 0;
+// http://www.llx.com/~nparker/a2/opcodes.html
+switch( inst & 15 ){
+		case 0: { /* Immediate */
 			
 			/**
 			 * @const
@@ -296,222 +104,21 @@ cycloa.FastMachine = function(board){
 			
 			this.PC = pc + 2;
 
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A |= this.read(addr)];
-		
-		};
-	
-		
-		this[10] = function() { /* 0xa,ASL None */
-		
-			this.consumeClock(2);
+		break;
+	}
+		case 1: { /* Zeropage */
 			
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			this.P = (this.P & 0xFE) | (this.A & 0xff) >> 7;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = (this.A << 1) & 0xff];
-
-		
-		};
-	
-		
-		this[11] = function() { /* 0xb,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xb");
-		
-		};
-	
-		
-		this[12] = function() { /* 0xc,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xc");
-		
-		};
-	
-		
-		this[13] = function() { /* 0xd,ORA Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A |= this.read(addr)];
-		
-		};
-	
-		
-		this[14] = function() { /* 0xe,ASL Absolute */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			this.P = (this.P & 0xFE) | val >> 7;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = val << 1;
-			this.write(addr, shifted);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted & 0xff];
-
-		
-		};
-	
-		
-		this[15] = function() { /* 0xf,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xf");
-		
-		};
-	
-		
-		this[16] = function() { /* 0x10,BPL Relative */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
+			var addr = (this.read(pc+1));
 			
 			this.PC = pc + 2;
 
-
-			
-			
-			if(!(this.P & 0x80)){
-				this.consumeClock( (((this.PC ^ addr) & 0x0100) != 0) ? 2 : 1 );
-				this.PC = addr;
-			}
-
-		
-		};
-	
-		
-		this[17] = function() { /* 0x11,ORA IndirectY */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ( this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8) ) + this.Y;
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A |= this.read(addr)];
-		
-		};
-	
-		
-		this[18] = function() { /* 0x12,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x12");
-		
-		};
-	
-		
-		this[19] = function() { /* 0x13,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x13");
-		
-		};
-	
-		
-		this[20] = function() { /* 0x14,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x14");
-		
-		};
-	
-		
-		this[21] = function() { /* 0x15,ORA ZeropageX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
+		break;
+	}
+		case 2: { /* ZeropageX */
 			
 			/**
 			 * @const
@@ -521,93 +128,51 @@ cycloa.FastMachine = function(board){
 			
 			this.PC = pc + 2;
 
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A |= this.read(addr)];
-		
-		};
-	
-		
-		this[22] = function() { /* 0x16,ASL ZeropageX */
-		
-			this.consumeClock(6);
+		break;
+	}
+		case 3: { /* ZeropageY */
 			
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
+			var addr = ((this.read(pc+1) + this.Y) & 0xff);
 			
 			this.PC = pc + 2;
 
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			this.P = (this.P & 0xFE) | val >> 7;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = val << 1;
-			this.write(addr, shifted);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted & 0xff];
-
-		
-		};
-	
-		
-		this[23] = function() { /* 0x17,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x17");
-		
-		};
-	
-		
-		this[24] = function() { /* 0x18,CLC None */
-		
-			this.consumeClock(2);
+		break;
+	}
+		case 4: { /* Absolute */
 			
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var pc = this.PC;
-
+			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
 			
-			
-			this.PC = pc + 1;
+			this.PC = pc + 3;
 
-
-			
-			
-			this.P &= (0xfe);
-
-		
-		};
-	
-		
-		this[25] = function() { /* 0x19,ORA AbsoluteY */
-		
-			this.consumeClock(4);
+		break;
+	}
+		case 5: { /* AbsoluteX */
 			
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var pc = this.PC;
+			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var addr = addr_base + this.X;
+			if(((addr ^ addr_base) & 0x0100) !== 0) clockDelta += (1);
+			
+			this.PC = pc + 3;
 
+		break;
+	}
+		case 6: { /* AbsoluteY */
 			
 			/**
 			 * @const
@@ -619,1817 +184,13 @@ cycloa.FastMachine = function(board){
 			 * @type {Number}
 			 */
 			var addr = addr_base + this.Y;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
+			if(((addr ^ addr_base) & 0x0100) !== 0) clockDelta += (1);
 			
 			this.PC = pc + 3;
 
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A |= this.read(addr)];
-		
-		};
-	
-		
-		this[26] = function() { /* 0x1a,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x1a");
-		
-		};
-	
-		
-		this[27] = function() { /* 0x1b,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x1b");
-		
-		};
-	
-		
-		this[28] = function() { /* 0x1c,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x1c");
-		
-		};
-	
-		
-		this[29] = function() { /* 0x1d,ORA AbsoluteX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A |= this.read(addr)];
-		
-		};
-	
-		
-		this[30] = function() { /* 0x1e,ASL AbsoluteX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			this.P = (this.P & 0xFE) | val >> 7;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = val << 1;
-			this.write(addr, shifted);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted & 0xff];
-
-		
-		};
-	
-		
-		this[31] = function() { /* 0x1f,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x1f");
-		
-		};
-	
-		
-		this[32] = function() { /* 0x20,JSR Absolute */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			this.PC--;
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), ((this.PC >> 8) & 0xFF));
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.PC & 0xFF));
-			this.PC = addr;
-
-		
-		};
-	
-		
-		this[33] = function() { /* 0x21,AND IndirectX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = (this.read(pc+1) + this.X) & 0xff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A &= this.read(addr)];
-		
-		};
-	
-		
-		this[34] = function() { /* 0x22,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x22");
-		
-		};
-	
-		
-		this[35] = function() { /* 0x23,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x23");
-		
-		};
-	
-		
-		this[36] = function() { /* 0x24,BIT Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			this.P = (this.P & 0x3d)
-				| (val & 0xc0)
-				| (this.ZNFlagCache[this.A & val] & 0x2);
-
-		
-		};
-	
-		
-		this[37] = function() { /* 0x25,AND Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A &= this.read(addr)];
-		
-		};
-	
-		
-		this[38] = function() { /* 0x26,ROL Zeropage */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var carry = val >> 7;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = ((val << 1) & 0xff) | (this.P & 0x01);
-			this.P = (this.P & 0xFE) | carry;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-			this.write(addr, shifted);
-
-		
-		};
-	
-		
-		this[39] = function() { /* 0x27,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x27");
-		
-		};
-	
-		
-		this[40] = function() { /* 0x28,PLP None */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff)));
-			if((this.P & 0x4) == 0x4 && (val & 0x4) == 0){
-				// FIXME: ここどうする？？
-				//this.needStatusRewrite = true;
-				//this.newStatus =val;
-				this.P = val;
-			}else{
-				this.P = val;
-			}
-
-		
-		};
-	
-		
-		this[41] = function() { /* 0x29,AND Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (pc+1);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A &= this.read(addr)];
-		
-		};
-	
-		
-		this[42] = function() { /* 0x2a,ROL None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var carry = (this.A & 0xff) >> 7;
-			this.A = (this.A << 1) | (this.P & 0x01);
-			this.P = (this.P & 0xFE) | carry;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A];
-
-		
-		};
-	
-		
-		this[43] = function() { /* 0x2b,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x2b");
-		
-		};
-	
-		
-		this[44] = function() { /* 0x2c,BIT Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			this.P = (this.P & 0x3d)
-				| (val & 0xc0)
-				| (this.ZNFlagCache[this.A & val] & 0x2);
-
-		
-		};
-	
-		
-		this[45] = function() { /* 0x2d,AND Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A &= this.read(addr)];
-		
-		};
-	
-		
-		this[46] = function() { /* 0x2e,ROL Absolute */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var carry = val >> 7;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = ((val << 1) & 0xff) | (this.P & 0x01);
-			this.P = (this.P & 0xFE) | carry;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-			this.write(addr, shifted);
-
-		
-		};
-	
-		
-		this[47] = function() { /* 0x2f,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x2f");
-		
-		};
-	
-		
-		this[48] = function() { /* 0x30,BMI Relative */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			if(this.P & 0x80){
-				this.consumeClock( (((this.PC ^ addr) & 0x0100) != 0) ? 2 : 1 );
-				this.PC = addr;
-			}
-
-		
-		};
-	
-		
-		this[49] = function() { /* 0x31,AND IndirectY */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ( this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8) ) + this.Y;
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A &= this.read(addr)];
-		
-		};
-	
-		
-		this[50] = function() { /* 0x32,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x32");
-		
-		};
-	
-		
-		this[51] = function() { /* 0x33,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x33");
-		
-		};
-	
-		
-		this[52] = function() { /* 0x34,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x34");
-		
-		};
-	
-		
-		this[53] = function() { /* 0x35,AND ZeropageX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A &= this.read(addr)];
-		
-		};
-	
-		
-		this[54] = function() { /* 0x36,ROL ZeropageX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var carry = val >> 7;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = ((val << 1) & 0xff) | (this.P & 0x01);
-			this.P = (this.P & 0xFE) | carry;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-			this.write(addr, shifted);
-
-		
-		};
-	
-		
-		this[55] = function() { /* 0x37,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x37");
-		
-		};
-	
-		
-		this[56] = function() { /* 0x38,SEC None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			this.P |= 0x1;
-
-		
-		};
-	
-		
-		this[57] = function() { /* 0x39,AND AbsoluteY */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.Y;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A &= this.read(addr)];
-		
-		};
-	
-		
-		this[58] = function() { /* 0x3a,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x3a");
-		
-		};
-	
-		
-		this[59] = function() { /* 0x3b,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x3b");
-		
-		};
-	
-		
-		this[60] = function() { /* 0x3c,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x3c");
-		
-		};
-	
-		
-		this[61] = function() { /* 0x3d,AND AbsoluteX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A &= this.read(addr)];
-		
-		};
-	
-		
-		this[62] = function() { /* 0x3e,ROL AbsoluteX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var carry = val >> 7;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = ((val << 1) & 0xff) | (this.P & 0x01);
-			this.P = (this.P & 0xFE) | carry;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-			this.write(addr, shifted);
-
-		
-		};
-	
-		
-		this[63] = function() { /* 0x3f,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x3f");
-		
-		};
-	
-		
-		this[64] = function() { /* 0x40,RTI None */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			this.P = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff)));
-			this.PC = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) | (/* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) << 8);
-
-		
-		};
-	
-		
-		this[65] = function() { /* 0x41,EOR IndirectX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = (this.read(pc+1) + this.X) & 0xff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A ^= this.read(addr)];
-		
-		};
-	
-		
-		this[66] = function() { /* 0x42,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x42");
-		
-		};
-	
-		
-		this[67] = function() { /* 0x43,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x43");
-		
-		};
-	
-		
-		this[68] = function() { /* 0x44,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x44");
-		
-		};
-	
-		
-		this[69] = function() { /* 0x45,EOR Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A ^= this.read(addr)];
-		
-		};
-	
-		
-		this[70] = function() { /* 0x46,LSR Zeropage */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			this.P = (this.P & 0xFE) | (val & 0x01);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = val >> 1;
-			this.write(addr, shifted);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-
-		
-		};
-	
-		
-		this[71] = function() { /* 0x47,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x47");
-		
-		};
-	
-		
-		this[72] = function() { /* 0x48,PHA None */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), this.A);
-		
-		};
-	
-		
-		this[73] = function() { /* 0x49,EOR Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (pc+1);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A ^= this.read(addr)];
-		
-		};
-	
-		
-		this[74] = function() { /* 0x4a,LSR None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			this.P = (this.P & 0xFE) | (this.A & 0x01);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A >>= 1];
-
-		
-		};
-	
-		
-		this[75] = function() { /* 0x4b,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x4b");
-		
-		};
-	
-		
-		this[76] = function() { /* 0x4c,JMP Absolute */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			this.PC = addr;
-
-		
-		};
-	
-		
-		this[77] = function() { /* 0x4d,EOR Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A ^= this.read(addr)];
-		
-		};
-	
-		
-		this[78] = function() { /* 0x4e,LSR Absolute */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			this.P = (this.P & 0xFE) | (val & 0x01);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = val >> 1;
-			this.write(addr, shifted);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-
-		
-		};
-	
-		
-		this[79] = function() { /* 0x4f,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x4f");
-		
-		};
-	
-		
-		this[80] = function() { /* 0x50,BVC Relative */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			if(!(this.P & 0x40)){
-				this.consumeClock( (((this.PC ^ addr) & 0x0100) != 0) ? 2 : 1 );
-				this.PC = addr;
-			}
-
-		
-		};
-	
-		
-		this[81] = function() { /* 0x51,EOR IndirectY */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ( this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8) ) + this.Y;
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A ^= this.read(addr)];
-		
-		};
-	
-		
-		this[82] = function() { /* 0x52,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x52");
-		
-		};
-	
-		
-		this[83] = function() { /* 0x53,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x53");
-		
-		};
-	
-		
-		this[84] = function() { /* 0x54,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x54");
-		
-		};
-	
-		
-		this[85] = function() { /* 0x55,EOR ZeropageX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A ^= this.read(addr)];
-		
-		};
-	
-		
-		this[86] = function() { /* 0x56,LSR ZeropageX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			this.P = (this.P & 0xFE) | (val & 0x01);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = val >> 1;
-			this.write(addr, shifted);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-
-		
-		};
-	
-		
-		this[87] = function() { /* 0x57,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x57");
-		
-		};
-	
-		
-		this[88] = function() { /* 0x58,CLI None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			// http://twitter.com/#!/KiC6280/status/112348378100281344
-			// http://twitter.com/#!/KiC6280/status/112351125084180480
-			//FIXME
-			//this.needStatusRewrite = true;
-			//this.newStatus = this.P & (0xfb);
-			this.P &= 0xfb;
-
-		
-		};
-	
-		
-		this[89] = function() { /* 0x59,EOR AbsoluteY */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.Y;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A ^= this.read(addr)];
-		
-		};
-	
-		
-		this[90] = function() { /* 0x5a,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x5a");
-		
-		};
-	
-		
-		this[91] = function() { /* 0x5b,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x5b");
-		
-		};
-	
-		
-		this[92] = function() { /* 0x5c,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x5c");
-		
-		};
-	
-		
-		this[93] = function() { /* 0x5d,EOR AbsoluteX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A ^= this.read(addr)];
-		
-		};
-	
-		
-		this[94] = function() { /* 0x5e,LSR AbsoluteX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			this.P = (this.P & 0xFE) | (val & 0x01);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = val >> 1;
-			this.write(addr, shifted);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-
-		
-		};
-	
-		
-		this[95] = function() { /* 0x5f,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x5f");
-		
-		};
-	
-		
-		this[96] = function() { /* 0x60,RTS None */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			this.PC = (/* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) | (/* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) << 8)) + 1;
-
-		
-		};
-	
-		
-		this[97] = function() { /* 0x61,ADC IndirectX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = (this.read(pc+1) + this.X) & 0xff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A + val + (this.P & 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((((this.A ^ val) & 0x80) ^ 0x80) & ((this.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & 0x1); //set C flag
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[98] = function() { /* 0x62,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x62");
-		
-		};
-	
-		
-		this[99] = function() { /* 0x63,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x63");
-		
-		};
-	
-		
-		this[100] = function() { /* 0x64,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x64");
-		
-		};
-	
-		
-		this[101] = function() { /* 0x65,ADC Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A + val + (this.P & 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((((this.A ^ val) & 0x80) ^ 0x80) & ((this.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & 0x1); //set C flag
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[102] = function() { /* 0x66,ROR Zeropage */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var carry = val & 0x01;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = (val >> 1) | ((this.P & 0x01) << 7);
-			this.P = (this.P & 0xFE) | carry;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-			this.write(addr, shifted);
-
-		
-		};
-	
-		
-		this[103] = function() { /* 0x67,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x67");
-		
-		};
-	
-		
-		this[104] = function() { /* 0x68,PLA None */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff)))];
-		
-		};
-	
-		
-		this[105] = function() { /* 0x69,ADC Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (pc+1);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A + val + (this.P & 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((((this.A ^ val) & 0x80) ^ 0x80) & ((this.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & 0x1); //set C flag
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[106] = function() { /* 0x6a,ROR None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var carry = this.A & 0x01;
-			this.A = ( ((this.A >> 1) & 0x7f) | ((this.P & 0x1) << 7) );
-			this.P = (this.P & 0xFE) | carry;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[ this.A ];
-
-		
-		};
-	
-		
-		this[107] = function() { /* 0x6b,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x6b");
-		
-		};
-	
-		
-		this[108] = function() { /* 0x6c,JMP Indirect */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
+		break;
+	}
+		case 7: { /* Indirect */
 			
 			/**
 			 * @const
@@ -2444,542 +205,9 @@ cycloa.FastMachine = function(board){
 			
 			this.PC = pc + 3;
 
-
-			
-			
-			this.PC = addr;
-
-		
-		};
-	
-		
-		this[109] = function() { /* 0x6d,ADC Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A + val + (this.P & 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((((this.A ^ val) & 0x80) ^ 0x80) & ((this.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & 0x1); //set C flag
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[110] = function() { /* 0x6e,ROR Absolute */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var carry = val & 0x01;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = (val >> 1) | ((this.P & 0x01) << 7);
-			this.P = (this.P & 0xFE) | carry;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-			this.write(addr, shifted);
-
-		
-		};
-	
-		
-		this[111] = function() { /* 0x6f,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x6f");
-		
-		};
-	
-		
-		this[112] = function() { /* 0x70,BVS Relative */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			if(this.P & 0x40){
-				this.consumeClock( (((this.PC ^ addr) & 0x0100) != 0) ? 2 : 1 );
-				this.PC = addr;
-			}
-
-		
-		};
-	
-		
-		this[113] = function() { /* 0x71,ADC IndirectY */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ( this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8) ) + this.Y;
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A + val + (this.P & 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((((this.A ^ val) & 0x80) ^ 0x80) & ((this.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & 0x1); //set C flag
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[114] = function() { /* 0x72,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x72");
-		
-		};
-	
-		
-		this[115] = function() { /* 0x73,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x73");
-		
-		};
-	
-		
-		this[116] = function() { /* 0x74,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x74");
-		
-		};
-	
-		
-		this[117] = function() { /* 0x75,ADC ZeropageX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A + val + (this.P & 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((((this.A ^ val) & 0x80) ^ 0x80) & ((this.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & 0x1); //set C flag
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[118] = function() { /* 0x76,ROR ZeropageX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var carry = val & 0x01;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = (val >> 1) | ((this.P & 0x01) << 7);
-			this.P = (this.P & 0xFE) | carry;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-			this.write(addr, shifted);
-
-		
-		};
-	
-		
-		this[119] = function() { /* 0x77,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x77");
-		
-		};
-	
-		
-		this[120] = function() { /* 0x78,SEI None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			this.P |= 0x4;
-
-		
-		};
-	
-		
-		this[121] = function() { /* 0x79,ADC AbsoluteY */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.Y;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A + val + (this.P & 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((((this.A ^ val) & 0x80) ^ 0x80) & ((this.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & 0x1); //set C flag
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[122] = function() { /* 0x7a,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x7a");
-		
-		};
-	
-		
-		this[123] = function() { /* 0x7b,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x7b");
-		
-		};
-	
-		
-		this[124] = function() { /* 0x7c,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x7c");
-		
-		};
-	
-		
-		this[125] = function() { /* 0x7d,ADC AbsoluteX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A + val + (this.P & 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((((this.A ^ val) & 0x80) ^ 0x80) & ((this.A ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & 0x1); //set C flag
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[126] = function() { /* 0x7e,ROR AbsoluteX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var carry = val & 0x01;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var shifted = (val >> 1) | ((this.P & 0x01) << 7);
-			this.P = (this.P & 0xFE) | carry;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-			this.write(addr, shifted);
-
-		
-		};
-	
-		
-		this[127] = function() { /* 0x7f,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x7f");
-		
-		};
-	
-		
-		this[128] = function() { /* 0x80,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x80");
-		
-		};
-	
-		
-		this[129] = function() { /* 0x81,STA IndirectX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
+		break;
+	}
+		case 8: { /* IndirectX */
 			
 			/**
 			 * @const
@@ -2994,299 +222,9 @@ cycloa.FastMachine = function(board){
 			
 			this.PC = pc + 2;
 
-
-			
-			this.write(addr, this.A);
-		
-		};
-	
-		
-		this[130] = function() { /* 0x82,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x82");
-		
-		};
-	
-		
-		this[131] = function() { /* 0x83,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x83");
-		
-		};
-	
-		
-		this[132] = function() { /* 0x84,STY Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			this.write(addr, this.Y);
-		
-		};
-	
-		
-		this[133] = function() { /* 0x85,STA Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			this.write(addr, this.A);
-		
-		};
-	
-		
-		this[134] = function() { /* 0x86,STX Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			this.write(addr, this.X);
-		
-		};
-	
-		
-		this[135] = function() { /* 0x87,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x87");
-		
-		};
-	
-		
-		this[136] = function() { /* 0x88,DEY None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = (this.Y-1)&0xff];
-		
-		};
-	
-		
-		this[137] = function() { /* 0x89,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x89");
-		
-		};
-	
-		
-		this[138] = function() { /* 0x8a,TXA None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.X];
-		
-		};
-	
-		
-		this[139] = function() { /* 0x8b,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x8b");
-		
-		};
-	
-		
-		this[140] = function() { /* 0x8c,STY Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			this.write(addr, this.Y);
-		
-		};
-	
-		
-		this[141] = function() { /* 0x8d,STA Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			this.write(addr, this.A);
-		
-		};
-	
-		
-		this[142] = function() { /* 0x8e,STX Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			this.write(addr, this.X);
-		
-		};
-	
-		
-		this[143] = function() { /* 0x8f,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x8f");
-		
-		};
-	
-		
-		this[144] = function() { /* 0x90,BCC Relative */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			if(!(this.P & 0x1)){
-				this.consumeClock( (((this.PC ^ addr) & 0x0100) != 0) ? 2 : 1 );
-				this.PC = addr;
-			}
-
-		
-		};
-	
-		
-		this[145] = function() { /* 0x91,STA IndirectY */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
+		break;
+	}
+		case 9: { /* IndirectY */
 			
 			/**
 			 * @const
@@ -3301,591 +239,9 @@ cycloa.FastMachine = function(board){
 			
 			this.PC = pc + 2;
 
-
-			
-			this.write(addr, this.A);
-		
-		};
-	
-		
-		this[146] = function() { /* 0x92,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x92");
-		
-		};
-	
-		
-		this[147] = function() { /* 0x93,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x93");
-		
-		};
-	
-		
-		this[148] = function() { /* 0x94,STY ZeropageX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			this.write(addr, this.Y);
-		
-		};
-	
-		
-		this[149] = function() { /* 0x95,STA ZeropageX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			this.write(addr, this.A);
-		
-		};
-	
-		
-		this[150] = function() { /* 0x96,STX ZeropageY */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.Y) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			this.write(addr, this.X);
-		
-		};
-	
-		
-		this[151] = function() { /* 0x97,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x97");
-		
-		};
-	
-		
-		this[152] = function() { /* 0x98,TYA None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.Y];
-		
-		};
-	
-		
-		this[153] = function() { /* 0x99,STA AbsoluteY */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.Y;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			this.write(addr, this.A);
-		
-		};
-	
-		
-		this[154] = function() { /* 0x9a,TXS None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			this.SP = this.X;
-		
-		};
-	
-		
-		this[155] = function() { /* 0x9b,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x9b");
-		
-		};
-	
-		
-		this[156] = function() { /* 0x9c,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x9c");
-		
-		};
-	
-		
-		this[157] = function() { /* 0x9d,STA AbsoluteX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			this.write(addr, this.A);
-		
-		};
-	
-		
-		this[158] = function() { /* 0x9e,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x9e");
-		
-		};
-	
-		
-		this[159] = function() { /* 0x9f,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0x9f");
-		
-		};
-	
-		
-		this[160] = function() { /* 0xa0,LDY Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (pc+1);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = this.read(addr)];
-		
-		};
-	
-		
-		this[161] = function() { /* 0xa1,LDA IndirectX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = (this.read(pc+1) + this.X) & 0xff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.read(addr)];
-		
-		};
-	
-		
-		this[162] = function() { /* 0xa2,LDX Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (pc+1);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.read(addr)];
-		
-		};
-	
-		
-		this[163] = function() { /* 0xa3,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xa3");
-		
-		};
-	
-		
-		this[164] = function() { /* 0xa4,LDY Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = this.read(addr)];
-		
-		};
-	
-		
-		this[165] = function() { /* 0xa5,LDA Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.read(addr)];
-		
-		};
-	
-		
-		this[166] = function() { /* 0xa6,LDX Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.read(addr)];
-		
-		};
-	
-		
-		this[167] = function() { /* 0xa7,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xa7");
-		
-		};
-	
-		
-		this[168] = function() { /* 0xa8,TAY None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = this.A];
-		
-		};
-	
-		
-		this[169] = function() { /* 0xa9,LDA Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (pc+1);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.read(addr)];
-		
-		};
-	
-		
-		this[170] = function() { /* 0xaa,TAX None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.A];
-		
-		};
-	
-		
-		this[171] = function() { /* 0xab,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xab");
-		
-		};
-	
-		
-		this[172] = function() { /* 0xac,LDY Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = this.read(addr)];
-		
-		};
-	
-		
-		this[173] = function() { /* 0xad,LDA Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.read(addr)];
-		
-		};
-	
-		
-		this[174] = function() { /* 0xae,LDX Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.read(addr)];
-		
-		};
-	
-		
-		this[175] = function() { /* 0xaf,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xaf");
-		
-		};
-	
-		
-		this[176] = function() { /* 0xb0,BCS Relative */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
+		break;
+	}
+		case 10: { /* Relative */
 			
 			/**
 			 * @const
@@ -3900,1892 +256,1051 @@ cycloa.FastMachine = function(board){
 			
 			this.PC = pc + 2;
 
+		break;
+	}
+		case 11: { /* None */
+			
+			
+			this.PC = pc + 1;
 
+		break;
+	}
+	default: { throw new cycloa.err.CoreException("Invalid opcode."); }
+}
+switch( (inst & 65520) >> 4 ){
+		case 0: {  /* LDA */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.read(addr)];		break;}
+		case 1: {  /* LDX */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.read(addr)];		break;}
+		case 2: {  /* LDY */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = this.read(addr)];		break;}
+		case 3: {  /* STA */
+			this.write(addr, this.A);		break;}
+		case 4: {  /* STX */
+			this.write(addr, this.X);		break;}
+		case 5: {  /* STY */
+			this.write(addr, this.Y);		break;}
+		case 6: {  /* TAX */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.A];		break;}
+		case 7: {  /* TAY */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = this.A];		break;}
+		case 8: {  /* TSX */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.SP];		break;}
+		case 9: {  /* TXA */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.X];		break;}
+		case 10: {  /* TXS */
+			this.SP = this.X;		break;}
+		case 11: {  /* TYA */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.Y];		break;}
+		case 12: {  /* ADC */
 			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var p = this.P;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var a = this.A;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = this.read(addr);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var result = (a + val + (p & 0x1)) & 0xffff;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var newA = result & 0xff;
+			this.P = (p & 0xbe)
+				| ((((a ^ val) & 0x80) ^ 0x80) & ((a ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
+				| ((result >> 8) & 0x1); //set C flag
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
+		break;}
+		case 13: {  /* AND */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A &= this.read(addr)];		break;}
+		case 14: {  /* ASL */
 			
-			if(this.P & 0x1){
-				this.consumeClock( (((this.PC ^ addr) & 0x0100) != 0) ? 2 : 1 );
-				this.PC = addr;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = this.read(addr);
+			this.P = (this.P & 0xFE) | val >> 7;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var shifted = val << 1;
+			this.write(addr, shifted);
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted & 0xff];
+		break;}
+		case 15: {  /* ASL_ */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var a = this.A;
+			this.P = (this.P & 0xFE) | (a & 0xff) >> 7;
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = (a << 1) & 0xff];
+		break;}
+		case 16: {  /* BIT */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = this.read(addr);
+			this.P = (this.P & 0x3d)
+				| (val & 0xc0)
+				| (this.ZNFlagCache[this.A & val] & 0x2);
+		break;}
+		case 17: {  /* CMP */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = (this.A - this.read(addr)) & 0xffff;
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
+			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
+		break;}
+		case 18: {  /* CPX */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = (this.X - this.read(addr)) & 0xffff;
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
+			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
+		break;}
+		case 19: {  /* CPY */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = (this.Y - this.read(addr)) & 0xffff;
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
+			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
+		break;}
+		case 20: {  /* DEC */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = (this.read(addr)-1) & 0xff;
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
+			this.write(addr, val);
+		break;}
+		case 21: {  /* DEX */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = (this.X-1)&0xff];		break;}
+		case 22: {  /* DEY */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = (this.Y-1)&0xff];		break;}
+		case 23: {  /* EOR */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A ^= this.read(addr)];		break;}
+		case 24: {  /* INC */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = (this.read(addr)+1) & 0xff;
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
+			this.write(addr, val);
+		break;}
+		case 25: {  /* INX */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = (this.X+1)&0xff];		break;}
+		case 26: {  /* INY */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = (this.Y+1)&0xff];		break;}
+		case 27: {  /* LSR */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = this.read(addr);
+			this.P = (this.P & 0xFE) | (val & 0x01);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var shifted = val >> 1;
+			this.write(addr, shifted);
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
+		break;}
+		case 28: {  /* LSR_ */
+			
+			this.P = (this.P & 0xFE) | (this.A & 0x01);
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A >>= 1];
+		break;}
+		case 29: {  /* ORA */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A |= this.read(addr)];		break;}
+		case 30: {  /* ROL */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = this.read(addr);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var p = this.P;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var shifted = ((val << 1) & 0xff) | (p & 0x01);
+			this.P = (p & 0xFE) | (val >> 7);
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
+			this.write(addr, shifted);
+		break;}
+		case 31: {  /* ROL_ */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var a = this.A;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var p = this.P;
+			this.P = (p & 0xFE) | ((a & 0xff) >> 7);
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = (a << 1) | (p & 0x01)];
+		break;}
+		case 32: {  /* ROR */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = this.read(addr);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var p = this.P;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var shifted = (val >> 1) | ((p & 0x01) << 7);
+			this.P = (p & 0xFE) | (val & 0x01);
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
+			this.write(addr, shifted);
+		break;}
+		case 33: {  /* ROR_ */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var p = this.P;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var a = this.A;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			this.P = (p & 0xFE) | (a & 0x01);
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = ((a >> 1) & 0x7f) | ((p & 0x1) << 7)];
+		break;}
+		case 34: {  /* SBC */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var p = this.P;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var a = this.A;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = this.read(addr);
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var result = (a - val - ((p & 0x1) ^ 0x1)) & 0xffff;
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var newA = result & 0xff;
+			this.P = (p & 0xbe)
+				| ((a ^ val) & (a ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
+				| (((result >> 8) & 0x1) ^ 0x1);
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
+		break;}
+		case 35: {  /* PHA */
+			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), this.A);		break;}
+		case 36: {  /* PHP */
+			
+			// bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
+			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), this.P | 0x10);
+		break;}
+		case 37: {  /* PLA */
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff)))];		break;}
+		case 38: {  /* PLP */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var val = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff)));
+			if((this.P & 0x4) && !(val & 0x4)){
+				// FIXME: ここどうする？？
+				//this.needStatusRewrite = true;
+				//this.newStatus =val;
+				this.P = val;
+			}else{
+				this.P = val;
 			}
-
-		
-		};
-	
-		
-		this[177] = function() { /* 0xb1,LDA IndirectY */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ( this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8) ) + this.Y;
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.read(addr)];
-		
-		};
-	
-		
-		this[178] = function() { /* 0xb2,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xb2");
-		
-		};
-	
-		
-		this[179] = function() { /* 0xb3,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xb3");
-		
-		};
-	
-		
-		this[180] = function() { /* 0xb4,LDY ZeropageX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = this.read(addr)];
-		
-		};
-	
-		
-		this[181] = function() { /* 0xb5,LDA ZeropageX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.read(addr)];
-		
-		};
-	
-		
-		this[182] = function() { /* 0xb6,LDX ZeropageY */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.Y) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.read(addr)];
-		
-		};
-	
-		
-		this[183] = function() { /* 0xb7,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xb7");
-		
-		};
-	
-		
-		this[184] = function() { /* 0xb8,CLV None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-			this.P &= (0xbf);
-
-		
-		};
-	
-		
-		this[185] = function() { /* 0xb9,LDA AbsoluteY */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.Y;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.read(addr)];
-		
-		};
-	
-		
-		this[186] = function() { /* 0xba,TSX None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.SP];
-		
-		};
-	
-		
-		this[187] = function() { /* 0xbb,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xbb");
-		
-		};
-	
-		
-		this[188] = function() { /* 0xbc,LDY AbsoluteX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = this.read(addr)];
-		
-		};
-	
-		
-		this[189] = function() { /* 0xbd,LDA AbsoluteX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = this.read(addr)];
-		
-		};
-	
-		
-		this[190] = function() { /* 0xbe,LDX AbsoluteY */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.Y;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.read(addr)];
-		
-		};
-	
-		
-		this[191] = function() { /* 0xbf,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xbf");
-		
-		};
-	
-		
-		this[192] = function() { /* 0xc0,CPY Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (pc+1);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.Y - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[193] = function() { /* 0xc1,CMP IndirectX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = (this.read(pc+1) + this.X) & 0xff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.A - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[194] = function() { /* 0xc2,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xc2");
-		
-		};
-	
-		
-		this[195] = function() { /* 0xc3,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xc3");
-		
-		};
-	
-		
-		this[196] = function() { /* 0xc4,CPY Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.Y - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[197] = function() { /* 0xc5,CMP Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.A - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[198] = function() { /* 0xc6,DEC Zeropage */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.read(addr)-1) & 0xff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
-			this.write(addr, val);
-
-		
-		};
-	
-		
-		this[199] = function() { /* 0xc7,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xc7");
-		
-		};
-	
-		
-		this[200] = function() { /* 0xc8,INY None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = (this.Y+1)&0xff];
-		
-		};
-	
-		
-		this[201] = function() { /* 0xc9,CMP Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (pc+1);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.A - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[202] = function() { /* 0xca,DEX None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = (this.X-1)&0xff];
-		
-		};
-	
-		
-		this[203] = function() { /* 0xcb,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xcb");
-		
-		};
-	
-		
-		this[204] = function() { /* 0xcc,CPY Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.Y - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[205] = function() { /* 0xcd,CMP Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.A - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[206] = function() { /* 0xce,DEC Absolute */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.read(addr)-1) & 0xff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
-			this.write(addr, val);
-
-		
-		};
-	
-		
-		this[207] = function() { /* 0xcf,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xcf");
-		
-		};
-	
-		
-		this[208] = function() { /* 0xd0,BNE Relative */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			if(!(this.P & 0x2)){
-				this.consumeClock( (((this.PC ^ addr) & 0x0100) != 0) ? 2 : 1 );
-				this.PC = addr;
-			}
-
-		
-		};
-	
-		
-		this[209] = function() { /* 0xd1,CMP IndirectY */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ( this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8) ) + this.Y;
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.A - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[210] = function() { /* 0xd2,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xd2");
-		
-		};
-	
-		
-		this[211] = function() { /* 0xd3,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xd3");
-		
-		};
-	
-		
-		this[212] = function() { /* 0xd4,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xd4");
-		
-		};
-	
-		
-		this[213] = function() { /* 0xd5,CMP ZeropageX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.A - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[214] = function() { /* 0xd6,DEC ZeropageX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.read(addr)-1) & 0xff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
-			this.write(addr, val);
-
-		
-		};
-	
-		
-		this[215] = function() { /* 0xd7,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xd7");
-		
-		};
-	
-		
-		this[216] = function() { /* 0xd8,CLD None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
+		break;}
+		case 39: {  /* CLC */
+			
+			this.P &= (0xfe);
+		break;}
+		case 40: {  /* CLD */
 			
 			this.P &= (0xf7);
-
-		
-		};
-	
-		
-		this[217] = function() { /* 0xd9,CMP AbsoluteY */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.Y;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.A - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[218] = function() { /* 0xda,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xda");
-		
-		};
-	
-		
-		this[219] = function() { /* 0xdb,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xdb");
-		
-		};
-	
-		
-		this[220] = function() { /* 0xdc,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xdc");
-		
-		};
-	
-		
-		this[221] = function() { /* 0xdd,CMP AbsoluteX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.A - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[222] = function() { /* 0xde,DEC AbsoluteX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.read(addr)-1) & 0xff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
-			this.write(addr, val);
-
-		
-		};
-	
-		
-		this[223] = function() { /* 0xdf,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xdf");
-		
-		};
-	
-		
-		this[224] = function() { /* 0xe0,CPX Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (pc+1);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.X - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[225] = function() { /* 0xe1,SBC IndirectX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = (this.read(pc+1) + this.X) & 0xff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A - val - ((this.P & 0x1) ^ 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((this.A ^ val) & (this.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & 0x1) ^ 0x1);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[226] = function() { /* 0xe2,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xe2");
-		
-		};
-	
-		
-		this[227] = function() { /* 0xe3,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xe3");
-		
-		};
-	
-		
-		this[228] = function() { /* 0xe4,CPX Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.X - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[229] = function() { /* 0xe5,SBC Zeropage */
-		
-			this.consumeClock(3);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A - val - ((this.P & 0x1) ^ 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((this.A ^ val) & (this.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & 0x1) ^ 0x1);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[230] = function() { /* 0xe6,INC Zeropage */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1));
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.read(addr)+1) & 0xff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
-			this.write(addr, val);
-
-		
-		};
-	
-		
-		this[231] = function() { /* 0xe7,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xe7");
-		
-		};
-	
-		
-		this[232] = function() { /* 0xe8,INX None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = (this.X+1)&0xff];
-		
-		};
-	
-		
-		this[233] = function() { /* 0xe9,SBC Immediate */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (pc+1);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A - val - ((this.P & 0x1) ^ 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((this.A ^ val) & (this.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & 0x1) ^ 0x1);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[234] = function() { /* 0xea,NOP None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
-			
-		
-		};
-	
-		
-		this[235] = function() { /* 0xeb,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xeb");
-		
-		};
-	
-		
-		this[236] = function() { /* 0xec,CPX Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.X - this.read(addr)) & 0xffff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val & 0xff];
-			this.P = (this.P & 0xfe) | (((val >> 8) & 0x1) ^ 0x1);
-
-		
-		};
-	
-		
-		this[237] = function() { /* 0xed,SBC Absolute */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A - val - ((this.P & 0x1) ^ 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((this.A ^ val) & (this.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & 0x1) ^ 0x1);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[238] = function() { /* 0xee,INC Absolute */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (this.read(pc+1) | (this.read(pc+2) << 8));
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.read(addr)+1) & 0xff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
-			this.write(addr, val);
-
-		
-		};
-	
-		
-		this[239] = function() { /* 0xef,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xef");
-		
-		};
-	
-		
-		this[240] = function() { /* 0xf0,BEQ Relative */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			if(this.P & 0x2){
-				this.consumeClock( (((this.PC ^ addr) & 0x0100) != 0) ? 2 : 1 );
-				this.PC = addr;
-			}
-
-		
-		};
-	
-		
-		this[241] = function() { /* 0xf1,SBC IndirectY */
-		
-			this.consumeClock(5);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ( this.read(addr_base) | (this.read((addr_base+1)&0xff) << 8) ) + this.Y;
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A - val - ((this.P & 0x1) ^ 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((this.A ^ val) & (this.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & 0x1) ^ 0x1);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[242] = function() { /* 0xf2,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xf2");
-		
-		};
-	
-		
-		this[243] = function() { /* 0xf3,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xf3");
-		
-		};
-	
-		
-		this[244] = function() { /* 0xf4,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xf4");
-		
-		};
-	
-		
-		this[245] = function() { /* 0xf5,SBC ZeropageX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A - val - ((this.P & 0x1) ^ 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((this.A ^ val) & (this.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & 0x1) ^ 0x1);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[246] = function() { /* 0xf6,INC ZeropageX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = ((this.read(pc+1) + this.X) & 0xff);
-			
-			this.PC = pc + 2;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.read(addr)+1) & 0xff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
-			this.write(addr, val);
-
-		
-		};
-	
-		
-		this[247] = function() { /* 0xf7,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xf7");
-		
-		};
-	
-		
-		this[248] = function() { /* 0xf8,SED None */
-		
-			this.consumeClock(2);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			
-			this.PC = pc + 1;
-
-
-			
+		break;}
+		case 41: {  /* CLI */
+			
+			// http://twitter.com/#!/KiC6280/status/112348378100281344
+			// http://twitter.com/#!/KiC6280/status/112351125084180480
+			//FIXME
+			//this.needStatusRewrite = true;
+			//this.newStatus = this.P & (0xfb);
+			this.P &= 0xfb;
+		break;}
+		case 42: {  /* CLV */
+			
+			this.P &= (0xbf);
+		break;}
+		case 43: {  /* SEC */
+			
+			this.P |= 0x1;
+		break;}
+		case 44: {  /* SED */
 			
 			this.P |= 0x8;
+		break;}
+		case 45: {  /* SEI */
+			
+			this.P |= 0x4;
+		break;}
+		case 46: {  /* BRK */
+			
+			//NES ON FPGAには、
+			//「割り込みが確認された時、Iフラグがセットされていれば割り込みは無視します。」
+			//…と合ったけど、他の資料だと違う。http://nesdev.parodius.com/6502.txt
+			//DQ4はこうしないと、動かない。
+			/*
+			if(this.P & 0x4){
+				return;
+			}*/
+			this.PC++;
+			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), ((this.PC >> 8) & 0xFF));
+			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.PC & 0xFF));
+			this.P |= 0x10;
+			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.P));
+			this.P |= 0x4;
+			this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
+		break;}
+		case 47: {  /* NOP */
+					break;}
+		case 48: {  /* RTS */
+			
+			this.PC = (/* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) | (/* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) << 8)) + 1;
+		break;}
+		case 49: {  /* RTI */
+			
+			this.P = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff)));
+			this.PC = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) | (/* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) << 8);
+		break;}
+		case 50: {  /* JMP */
+			
+			this.PC = addr;
+		break;}
+		case 51: {  /* JSR */
+			
+			/**
+			 * @const
+			 * @type {Number}
+			 */
+			var stored_pc = this.PC-1;
+			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), ((stored_pc >> 8) & 0xFF));
+			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), (stored_pc & 0xFF));
+			this.PC = addr;
+		break;}
+		case 52: {  /* BCC */
+			
+			if(!(this.P & 0x1)){
+				clockDelta += ((((this.PC ^ addr) & 0x0100) !== 0) ? 2 : 1);
+				this.PC = addr;
+			}
+		break;}
+		case 53: {  /* BCS */
+			
+			if(this.P & 0x1){
+				clockDelta += ((((this.PC ^ addr) & 0x0100) !== 0) ? 2 : 1);
+				this.PC = addr;
+			}
+		break;}
+		case 54: {  /* BEQ */
+			
+			if(this.P & 0x2){
+				clockDelta += ((((this.PC ^ addr) & 0x0100) !== 0) ? 2 : 1);
+				this.PC = addr;
+			}
+		break;}
+		case 55: {  /* BMI */
+			
+			if(this.P & 0x80){
+				clockDelta += ((((this.PC ^ addr) & 0x0100) !== 0) ? 2 : 1);
+				this.PC = addr;
+			}
+		break;}
+		case 56: {  /* BNE */
+			
+			if(!(this.P & 0x2)){
+				clockDelta += ((((this.PC ^ addr) & 0x0100) !== 0) ? 2 : 1);
+				this.PC = addr;
+			}
+		break;}
+		case 57: {  /* BPL */
+			
+			if(!(this.P & 0x80)){
+				clockDelta += ((((this.PC ^ addr) & 0x0100) !== 0) ? 2 : 1);
+				this.PC = addr;
+			}
+		break;}
+		case 58: {  /* BVC */
+			
+			if(!(this.P & 0x40)){
+				clockDelta += ((((this.PC ^ addr) & 0x0100) !== 0) ? 2 : 1);
+				this.PC = addr;
+			}
+		break;}
+		case 59: {  /* BVS */
+			
+			if(this.P & 0x40){
+				clockDelta += ((((this.PC ^ addr) & 0x0100) !== 0) ? 2 : 1);
+				this.PC = addr;
+			}
+		break;}
+}
+clockDelta += (inst >> 16);
 
-		
-		};
+
+
+this.nowX += clockDelta;
+while(this.nowX >= 341){
+	this.nowX -= 341;
+	/**
+	 * @const
+	 * @type {number}
+	 */
+	var nowY = (++this.nowY);
+	if(nowY <= 240){
+		/**
+		 * @const
+		 * @type {Uint8Array}
+		 */
+		var screenBuffer8 = this.screenBuffer8;
+		var screenBuffer32 = this.screenBuffer32
+		var palette = this.palette;
+		var _color = 0 | palette[32];
+		var _color32 = _color << 24 | _color << 16 | _color << 8 | _color;
+		for(var i=((nowY-1) << 4), max=i+64; i<max; ++i) screenBuffer32[i] = _color32;
+		this.spriteEval();
+		if(this.backgroundVisibility || this.spriteVisibility){
+			// from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
+			this.vramAddrRegister = (this.vramAddrRegister & 0x7BE0) | (this.vramAddrReloadRegister & 0x041F);
+			this.buildBgLine();
+			this.buildSpriteLine();
+			var vramAddrRegister = this.vramAddrRegister + (1 << 12);
+			vramAddrRegister += (vramAddrRegister & 0x8000) >> 10;
+			vramAddrRegister &= 0x7fff;
+			if((vramAddrRegister & 0x03e0) === 0x3c0){
+				vramAddrRegister &= 0xFC1F;
+				vramAddrRegister ^= 0x800;
+			}
+			this.vramAddrRegister = vramAddrRegister;
+		}
+	}else if(nowY === 241){
+		//241: The PPU just idles during this scanline. Despite this, this scanline still occurs before the VBlank flag is set.
+		this.videoFairy.dispatchRendering(screenBuffer, this.paletteMask);
+		this.nowOnVBnank = true;
+		this.spriteAddr = 0;//and typically contains 00h at the begin of the VBlank periods
+	}else if(nowY === 242){
+		// NESDEV: These occur during VBlank. The VBlank flag of the PPU is pulled low during scanline 241, so the VBlank NMI occurs here.
+		// EVERYNES: http://nocash.emubase.de/everynes.htm#ppudimensionstimings
+		// とあるものの…BeNesの実装だともっと後に発生すると記述されてる。詳しくは以下。
+		// なお、$2002のレジスタがHIGHになった後にVBLANKを起こさないと「ソロモンの鍵」にてゲームが始まらない。
+		// (NMI割り込みがレジスタを読み込みフラグをリセットしてしまう上、NMI割り込みが非常に長く、クリアしなくてもすでにVBLANKが終わった後に返ってくる)
+		//nowOnVBlankフラグの立ち上がり後、数クロックでNMIが発生。
+		if(this.executeNMIonVBlank){
+			this.reserveNMI();
+		}
+		this.onVBlank();
+	}else if(nowY <= 261){
+		//nowVBlank.
+	}else if(nowY === 262){
+		this.nowOnVBnank = false;
+		this.sprite0Hit = false;
+		this.nowY = 0;
+		if(!this.isEven){
+			this.nowX++;
+		}
+		this.isEven = !this.isEven;
+		// the reload value is automatically loaded into the Pointer at the end of the vblank period (vertical reload bits)
+		// from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
+		if(this.backgroundVisibility || this.spriteVisibility){
+			this.vramAddrRegister = (this.vramAddrRegister & 0x041F) | (this.vramAddrReloadRegister & 0x7BE0);
+		}
+	}else{
+		throw new cycloa.err.CoreException("Invalid scanline: "+this.nowY);
+	}
+}
+
+
+return clockDelta;
+	};
+
+
+
+this.reserveNMI = function () {
+	this.NMI = true;
+};
+this.reserveIRQ = function () {
+	this.IRQ = true;
+};
+this.releaseNMI = function () {
+	this.NMI = false;
+};
+this.releaseIRQ = function () {
+	this.IRQ = false;
+},
+/**
+ * データからアドレスを読み込む
+ * @function
+ * @param {Number} addr
+ * @return {Number} data
+ */
+this.read = function (addr) {
+	switch((addr & 0xE000) >> 14){
+		case 0:{
+			return this.ram[addr & 0x7ff];
+			break;
+		}
+		case 1:{
+			return 0;
+			break;
+		}
+		case 2:{
+			return this.board.rom[addr & 0x3fff];
+			break;
+		}
+		case 3:{
+			return this.board.rom[addr & 0x3fff];
+			break;
+		}
+	}
+	return this.board.readCPU(addr);
+},
+/**
+ * 書き込む
+ * @function
+ * @param {Number} addr
+ * @param {Number} val
+ */
+this.write = function (addr, val) {
+	switch((addr & 0xE000) >> 14){
+		case 0:{
+			this.ram[addr & 0x1fff] = val;
+			break;
+		}
+		case 1:{
+			break;
+		}
+		case 2:{
+			break;
+		}
+		case 3:{
+			break;
+		}
+	}
+};
+
+this.onHardResetCPU = function(){
+		//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
+		this.P = 0x24;
+		this.A = 0x0;
+		this.X = 0x0;
+		this.Y = 0x0;
+		this.SP = 0xfd;
+		this.write(0x4017, 0x00);
+		this.write(0x4015, 0x00);
+		this.PC = (this.read(0xFFFC) | (this.read(0xFFFD) << 8));
+
+		this.NMI = false;
+		this.IRQ = false;
+};
+
+this.onResetCPU = function () {
+	//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
+	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
+	this.consumeClock(cycloa.core.RESET_CLOCK);
+	this.SP -= 0x03;
+	this.P |= this.Flag.I;
+	this.write(0x4015, 0x0);
+	this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
+
+	this.NMI = false;
+	this.IRQ = false;
+};
 	
-		
-		this[249] = function() { /* 0xf9,SBC AbsoluteY */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.Y;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
 
 
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A - val - ((this.P & 0x1) ^ 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((this.A ^ val) & (this.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & 0x1) ^ 0x1);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
 
-		
-		};
+
+this.onHardResetVideo = function() {
+	//from http://wiki.nesdev.com/w/index.php/PPU_power_up_state
+	for(var i=0;i< 2048;++i) {
+		this.internalVram[i] = 0;
+	}
+	for(var i=0;i< 256;++i) {
+		this.spRam[i] = 0;
+	}
+	for(var i=0;i< 36;++i) {
+		this.palette[i] = 0;
+	}
+	this.nowY=0;
+	this.nowX=0;
+	//0x2000
+	this.executeNMIonVBlank = false;
+	this.spriteHeight = 8;
+	this.patternTableAddressBackground = 0x0000;
+	this.patternTableAddress8x8Sprites = 0x0000;
+	this.vramIncrementSize = 1;
+	//0x2005 & 0x2000
+	this.vramAddrReloadRegister = 0x0000;
+	this.horizontalScrollBits = 0;
+	//0x2001
+	this.colorEmphasis = 0;
+	this.spriteVisibility = false;
+	this.backgroundVisibility = false;
+	this.spriteClipping = true;
+	this.backgroundClipping = true;
+	this.paletteMask = 0x3f;
+	//0x2003
+	this.spriteAddr = 0;
+	//0x2005/0x2006
+	this.vramAddrRegisterWritten = false;
+	this.scrollRegisterWritten = false;
+	//0x2006
+	this.vramAddrRegister = 0;
+};
+this.onResetVideo = function() {
+	//from http://wiki.nesdev.com/w/index.php/PPU_power_up_state
+	//0x2000
+	this.executeNMIonVBlank = false;
+	this.spriteHeight = 8;
+	this.patternTableAddressBackground = 0x0000;
+	this.patternTableAddress8x8Sprites = 0x0000;
+	this.vramIncrementSize = 1;
+	//0x2005 & 0x2000
+	this.vramAddrReloadRegister = 0x0000;
+	this.horizontalScrollBits = 0;
+	//0x2001
+	this.colorEmphasis = 0;
+	this.spriteVisibility = false;
+	this.backgroundVisibility = false;
+	this.spriteClipping = true;
+	this.backgroundClipping = true;
+	this.paletteMask = 0x3f;
+	//0x2005/0x2006
+	this.vramAddrRegisterWritten = false;
+	this.scrollRegisterWritten = false;
+	//0x2007
+	this.vramBuffer = 0;
+};
+
+this.spriteEval = function() {
+	/**
+	 * @type {Uint8Array}
+	 * @const
+	 */
+	var spRam = this.spRam;
+	/**
+	 * @type {number}
+	 * @const
+	 */
+	var y = this.nowY-1;
+	/** @type {number} */
+	var _spriteHitCnt = 0;
+	this.lostSprites = false;
+	/**
+	 * @type {number}
+	 * @const
+	 */
+	var _sprightHeight = this.spriteHeight;
+	/**
+	 * @type {boolean}
+	 * @const
+	 */	
+	var bigSprite = _sprightHeight === 16;
+	/**
+	 * @type {object[]}
+	 * @const
+	 */
+	var spriteTable = this.spriteTable;
+	/**
+	 * @type {number}
+	 * @const
+	 */
+	var spriteTileAddrBase = this.patternTableAddress8x8Sprites;
+	for(var i=0;i<256;i+=4){
+		/** @type {number} */
+		var spY = spRam[i]+1;
+		/** @type {number} */
+		var spYend = spY+_sprightHeight;
+		/** @type {boolean} */
+		var hit = false;
+		if(spY <= y && y < spYend){//Hit!
+			if(_spriteHitCnt < 8){
+				hit = true;
+				/** type {object} */
+				var slot = spriteTable[_spriteHitCnt];
+				slot.idx = i>>2;
+				slot.y = spY;
+				slot.x = spRam[i+3];
+				if(bigSprite){
+					//8x16
+					/**
+					 * @type {number}
+					 * @const
+					 */
+					var val = spRam[i+1];
+					slot.tileAddr = (val & 1) << 12 | (val & 0xfe) << 4;
+				}else{
+					//8x8
+					slot.tileAddr = (spRam[i+1] << 4) | spriteTileAddrBase;
+				}
+				/**
+				 * @type {number}
+				 * @const
+				 */
+				var attr = spRam[i+2];
+				slot.paletteNo = 4 | (attr & 3);
+				slot.isForeground = (attr & (1<<5)) === 0;
+				slot.flipHorizontal = (attr & (1<<6)) !== 0;
+				slot.flipVertical = (attr & (1<<7)) !== 0;
+				_spriteHitCnt++;
+			}else{
+				//本当はもっと複雑な仕様みたいなものの、省略。
+				//http://wiki.nesdev.com/w/index.php/PPU_sprite_evaluation
+				this.lostSprites = true;
+				break;
+			}
+		}
+	}
+	//残りは無効化
+	this.spriteHitCnt = _spriteHitCnt;
+	for(var i=_spriteHitCnt;i< 8;i++){
+		spriteTable[i].y=255;
+	}
+};
+
+this.buildBgLine = function(){
+	if(!this.backgroundVisibility){
+		return;
+	}
+	/**
+	 * @type {number} uint8_t
+	 * @const
+	 */
+	var buffOffset = (this.nowY-1) << 8;
+	/**
+	 * @type {number} uint16_t
+	 */
+	var nameTableAddr = 0x2000 | (this.vramAddrRegister & 0xfff);
+	/**
+	 * @type {number} uint8_t
+	 * @const
+	 */
+	var offY = (this.vramAddrRegister >> 12);
+	/**
+	 * @type {number} uint8_t
+	 */
+	var offX = this.horizontalScrollBits;
+
+	/**
+	 * @type {number} uint16_t
+	 * @const
+	 */
+	var bgTileAddrBase = this.patternTableAddressBackground;
+
+	for(var /* uint16_t */ renderX=0;;){
+		/**
+		 * @type {number} uint16_t
+		 * @const
+		 */
+		var tileNo = this.readVram(nameTableAddr);
+		/**
+		 * @type {number} uint16_t
+		 * @const
+		 */
+		var tileYofScreen = (nameTableAddr & 0x03e0) >> 5;
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var palNo =
+				(
+					this.readVram((nameTableAddr & 0x2f00) | 0x3c0 | ((tileYofScreen & 0x1C) << 1) | ((nameTableAddr >> 2) & 7))
+								>> (((tileYofScreen & 2) << 1) | (nameTableAddr & 2))
+				) & 0x3;
+		//タイルのサーフェイスデータを取得
+		/**
+		 * @type {number} uint16_t
+		 * @const
+		 */
+		var off = bgTileAddrBase | (tileNo << 4) | offY;
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var firstPlane = this.readVram(off);
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var secondPlane = this.readVram(off+8);
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var paletteOffset = palNo << 2; /* *4 */
+		//書く！
+		for(var x=offX;x<8;x++){
+			/**
+			 * @type {number} uint8_t
+			 * @const
+			 */
+			var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1);
+			if(color != 0){
+				this.screenBuffer8[buffOffset+renderX] = this.palette[paletteOffset+color] | 128;
+			}
+			renderX++;
+			if(renderX >= 256){
+				return;
+			}
+		}
+		if((nameTableAddr & 0x001f) === 0x001f){
+			nameTableAddr &= 0xFFE0;
+			nameTableAddr ^= 0x400;
+		}else{
+			nameTableAddr++;
+		}
+		offX = 0;//次からは最初のピクセルから書ける。
+	}
+};
+
+this.buildSpriteLine = function(){
+	if(!this.spriteVisibility){
+		return;
+	}
+	/**
+	 * @type {number} uint8_t
+	 * @const
+	 */
+	var y = this.nowY-1;
+	/**
+	 * @type {number} uint16_t
+	 * @const
+	 */
+	var _spriteHeight = this.spriteHeight;
+	/**
+	 * @type {boolean} bool
+	 * @const
+	 */
+	var searchSprite0Hit = !this.sprite0Hit;
+	/**
+	 * @type {number} uint16_t
+	 * @const
+	 */
+	var _spriteHitCnt = this.spriteHitCnt;
+	/**
+	 * @type {number} uint8_t
+	 * @const
+	 */
+	var buffOffset = (this.nowY-1) << 8;
+	//readVram(this.spriteTable[0].tileAddr); //FIXME: 読み込まないと、MMC4が動かない。
+	for(var i=0;i<_spriteHitCnt;i++){
+		/**
+		 * @type {object} struct SpriteSlot&
+		 * @const
+		 */
+		var slot = this.spriteTable[i];
+		searchSprite0Hit &= (slot.idx === 0);
+		/**
+		 * @type {number} uint16_t
+		 */
+		var offY = 0;
+
+		if(slot.flipVertical){
+			offY = _spriteHeight+slot.y-y-1;
+		}else{
+			offY = y-slot.y;
+		}
+		/**
+		 * @type {number} uint16_t
+		 * @const
+		 */
+		var off = slot.tileAddr | ((offY & 0x8) << 1) | (offY&7);
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var firstPlane = this.readVram(off);
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var secondPlane = this.readVram(off+8);
+		/**
+		 * @type {number} uint16_t
+		 * @const
+		 */
+		var _tmp_endX = screenWidth-slot.x;
+		/**
+		 * @type {number} uint16_t
+		 * @const
+		 */
+		var endX = screenWidth < 8 ? screenWidth : 8;//std::min(screenWidth-slot.x, 8);
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var layerMask = slot.isForeground ? 192 : 64;
+		if(slot.flipHorizontal){
+			for(var x=0;x<endX;x++){
+				/**
+				 * @type {number} uint8_t
+				 * @const
+				 */
+				var color = ((firstPlane >> x) & 1) | (((secondPlane >> x) & 1)<<1); //ここだけ違います
+				/**
+				 * @type {number} uint8_t
+				 * @const
+				 */
+				var target = this.screenBuffer8[buffOffset + slot.x + x];
+				/**
+				 * @type {boolean} bool
+				 * @const
+				 */
+				var isEmpty = (target & LayerBitMask) === 0;
+				/**
+				 * @type {boolean} bool
+				 * @const
+				 */
+				var isBackgroundDrawn = (target & LayerBitMask) === 128;
+				/**
+				 * @type {boolean} bool
+				 * @const
+				 */
+				var isSpriteNotDrawn = (target & SpriteLayerBit) === 0;
+				if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
+					this.sprite0Hit = true;
+					searchSprite0Hit = false;
+				}
+				if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
+					this.screenBuffer8[buffOffset + slot.x + x] =
+						this.palette[(slot.paletteNo<<2) + color] | layerMask;
+					
+				}
+			}
+		}else{
+			/**
+			 * @type {number} uint8_t
+			 * @const
+			 */
+			var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1); //ここだけ違います
+			/**
+			 * @type {number} uint8_t
+			 * @const
+			 */
+			var target = this.screenBuffer8[buffOffset + slot.x + x];
+			/**
+			 * @type {boolean} bool
+			 * @const
+			 */
+			var isEmpty = (target & LayerBitMask) === 0;
+			/**
+			 * @type {boolean} bool
+			 * @const
+			 */
+			var isBackgroundDrawn = (target & LayerBitMask) === 128;
+			/**
+			 * @type {boolean} bool
+			 * @const
+			 */
+			var isSpriteNotDrawn = (target & SpriteLayerBit) === 0;
+			if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
+				this.sprite0Hit = true;
+				searchSprite0Hit = false;
+			}
+			if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
+				this.screenBuffer8[buffOffset + slot.x + x] =
+					this.palette[(slot.paletteNo<<2) + color] | layerMask;
+				
+			}
+		}
+	}
+};
+
 	
-		
-		this[250] = function() { /* 0xfa,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xfa");
-		
-		};
-	
-		
-		this[251] = function() { /* 0xfb,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xfb");
-		
-		};
-	
-		
-		this[252] = function() { /* 0xfc,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xfc");
-		
-		};
-	
-		
-		this[253] = function() { /* 0xfd,SBC AbsoluteX */
-		
-			this.consumeClock(4);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = this.read(addr);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var result = (this.A - val - ((this.P & 0x1) ^ 0x1)) & 0xffff;
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var newA = result & 0xff;
-			this.P = (this.P & 0xbe)
-				| ((this.A ^ val) & (this.A ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & 0x1) ^ 0x1);
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
-
-		
-		};
-	
-		
-		this[254] = function() { /* 0xfe,INC AbsoluteX */
-		
-			this.consumeClock(6);
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var pc = this.PC;
-
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr_base = this.read(pc+1) | (this.read(pc+2) << 8);
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var addr = addr_base + this.X;
-			if(((addr ^ addr_base) & 0x0100) != 0) this.consumeClock(1);
-			
-			this.PC = pc + 3;
-
-
-			
-			
-			/**
-			 * @const
-			 * @type {Number}
-			 */
-			var val = (this.read(addr)+1) & 0xff;
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
-			this.write(addr, val);
-
-		
-		};
-	
-		
-		this[255] = function() { /* 0xff,UNDEFINED NONE */
-		
-			throw new cycloa.err.CoreException("Invalid opcode: 0xff");
-		
-		};
-	
-	this.ZNFlagCache = cycloa.FastMachine.ZNFlagCache;
-	this.RESET_CLOCK = 6;
-	this.MAX_INST_LENGTH = 3;
+	this.consumeClock = function (clk) {
+		this.board.consumeClock(clk);
+	},
+	/**
+	 * @function
+	 */
+	this.onHardReset = function () {
+		this.onHardResetCPU();
+		this.onHardResetVideo();
+	};
+	this.onReset = function () {
+		this.onResetCPU();
+		this.onResetVideo();
+	};
+	this.onVBlank = function(){
+	}
 };
 
 cycloa.FastMachine.ZNFlagCache = new Uint8Array([
@@ -5806,4 +1321,6 @@ cycloa.FastMachine.ZNFlagCache = new Uint8Array([
 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
 ]);
+
+cycloa.FastMachine.TransTable = new Uint32Array([459499, 393688, 255, 255, 255, 197073, 327905, 255, 197195, 131536, 131323, 255, 255, 262612, 393444, 255, 131994, 328153, 255, 255, 255, 262610, 393442, 255, 131707, 262614, 255, 255, 255, 262613, 393445, 255, 394036, 393432, 255, 255, 196865, 196817, 328161, 255, 262763, 131280, 131579, 255, 262404, 262356, 393700, 255, 131962, 327897, 255, 255, 255, 262354, 393698, 255, 131771, 262358, 255, 255, 255, 262357, 393701, 255, 394011, 393592, 255, 255, 255, 196977, 328113, 255, 197179, 131440, 131531, 255, 197412, 262516, 393652, 255, 132010, 328057, 255, 255, 255, 262514, 393650, 255, 131739, 262518, 255, 255, 255, 262517, 393653, 255, 393995, 393416, 255, 255, 255, 196801, 328193, 255, 262747, 131264, 131611, 255, 328487, 262340, 393732, 255, 132026, 327881, 255, 255, 255, 262338, 393730, 255, 131803, 262342, 255, 255, 255, 262341, 393733, 255, 255, 393272, 255, 255, 196689, 196657, 196673, 255, 131435, 255, 131227, 255, 262228, 262196, 262212, 255, 131914, 327737, 255, 255, 262226, 262194, 262211, 255, 131259, 262198, 131243, 255, 255, 262197, 255, 255, 131104, 393224, 131088, 255, 196641, 196609, 196625, 255, 131195, 131072, 131179, 255, 262180, 262148, 262164, 255, 131930, 327689, 255, 255, 262178, 262146, 262163, 255, 131755, 262150, 131211, 255, 262181, 262149, 262166, 255, 131376, 393496, 255, 255, 196913, 196881, 328001, 255, 131499, 131344, 131419, 255, 262452, 262420, 393540, 255, 131978, 327961, 255, 255, 255, 262418, 393538, 255, 131723, 262422, 255, 255, 255, 262421, 393541, 255, 131360, 393768, 255, 255, 196897, 197153, 328065, 255, 131483, 131616, 131835, 255, 262436, 262692, 393604, 255, 131946, 328233, 255, 255, 255, 262690, 393602, 255, 131787, 262694, 255, 255, 255, 262693, 393605, 255]);
 	

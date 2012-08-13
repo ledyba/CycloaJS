@@ -3,7 +3,7 @@ require File.dirname(__FILE__)+"/opcode_info.rb";
 
 Target="this"
 
-module Generator
+module CPU
 	module Middle
 	    TransTable = [0xff]*0x100;
 		AddrMode = {
@@ -87,13 +87,17 @@ module Generator
 		ClockShift = 16;
         Opcode::eachInst do |b, opsym, addr|
             next if addr.nil? or opsym.nil?
-            TransTable[b] = Generator::Middle::AddrMode[addr] | Generator::Middle::InstMode[opsym] | ((Opcode::Cycle[b])<< Generator::Middle::ClockShift);
+            TransTable[b] = CPU::Middle::AddrMode[addr] | CPU::Middle::InstMode[opsym] | ((Opcode::Cycle[b])<< CPU::Middle::ClockShift);
         end
+	end
+	
+	def self.ConsumeClock(clk)
+		"clockDelta += (#{clk});"
 	end
 
 	module AddrMode
 		def self.CrossCheck()
-			"if(((addr ^ addr_base) & 0x0100) != 0) #{Target}.consumeClock(1);"
+			"if(((addr ^ addr_base) & 0x0100) !== 0) #{CPU::ConsumeClock 1}"
 		end
 		def self.Init()
 """
@@ -102,6 +106,7 @@ module Generator
 			 * @type {Number}
 			 */
 			var pc = #{Target}.PC;
+			var clockDelta = 0;
 """
 		end
 		def self.excelPC(size)
@@ -668,7 +673,7 @@ module Generator
 			//…と合ったけど、他の資料だと違う。http://nesdev.parodius.com/6502.txt
 			//DQ4はこうしないと、動かない。
 			/*
-			if((#{Target}.P & 0x#{Opcode::Flag[:I].to_s(16)}) == 0x#{Opcode::Flag[:I].to_s(16)}){
+			if(#{Target}.P & 0x#{Opcode::Flag[:I].to_s(16)}){
 				return;
 			}*/
 			#{Target}.PC++;
@@ -681,7 +686,7 @@ module Generator
 """
 		end
 		def self.CrossCheck
-			"#{Target}.consumeClock( (((#{Target}.PC ^ addr) & 0x0100) != 0) ? 2 : 1 );"
+			CPU::ConsumeClock "(((#{Target}.PC ^ addr) & 0x0100) !== 0) ? 2 : 1"
 		end
 		def self.BCC
 """

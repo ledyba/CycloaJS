@@ -1,0 +1,15 @@
+require 'erb'
+
+generated = ["js/cycloa/fast.js"];
+
+task :default => generated;
+file "js/cycloa/fast.js" => FileList["gen/fast*.erb.js", "gen/*.rb"] do |t|
+	puts "generating fast"
+	sh "erb gen/fast.erb.js > #{t.name}" 
+end
+
+task :clean do
+	rm generated
+end
+	
+
