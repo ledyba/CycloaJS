@@ -9,21 +9,35 @@
 	<script type="text/javascript" src="js/cycloa/trace.js"></script>
 	<script type="text/javascript" src="test/test_rom.js"></script>
 	<script>
-		function runMany(){
-			for(var i=0;i<1;++i){
-				measurePerformance();
-			}
+		function VideoFairy(){
+			this.screen = document.getElementById('screen');
+			this.ctx = this.screen.getContext('2d');
+			this.image = this.ctx.createImageData(256, 240);
+			this.palette = cycloa.NesPalette;
+			this.dispatchRendering = function(/* const uint8_t*/ nesBuffer, /* const uint8_t */ paletteMask){
+				var dat = this.image.data;
+				var palette = this.palette;
+				for(var i=0;i<256*240; ++i){
+					//TODO: 最適化
+					var idx = i << 2, color = palette[nesBuffer[i & paletteMask]];
+					dat[idx] = color & 0xff;
+					dat[idx+1] = (color >> 8) & 0xff;
+					dat[idx+2] = (color >> 16) & 0xff;
+					dat[idx+3] = 0xff;
+				}
+				this.ctx.putImageData(this.image, 0, 0);
+			};
 		}
 
 		function measurePerformance(){
-			var machine = new cycloa.FastMachine(TestROM.buffer);
+			var machine = new cycloa.FastMachine(TestROM.buffer, new VideoFairy());
 			var tracer = new cycloa.Tracer(machine);
 			var start = new Date();
 			var clock = 0;
 			
 			for(var i = 0; i < 1; ++i){
 				machine.onHardReset();
-				for(var t = 0; t < 500000; ++t){
+				for(var t = 0; t < 50000000; ++t){
 					//console.log(tracer.decode());
 					clock += machine.run();
 				}
@@ -36,7 +50,8 @@
 	<title>unit test</title>
 </head>
 <body>
-	<input id="start" onclick="runMany()" type="button" value="start" />
+	<input id="start" onclick="measurePerformance();" type="button" value="start" />
 	<div id="console"></div>
+	<canvas id="screen" width="256" height="240"></canvas>
 </body>
 </html>

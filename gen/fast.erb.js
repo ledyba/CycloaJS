@@ -4,7 +4,8 @@
 /**
  * @constructor
  */
-cycloa.FastMachine = function(rom) {
+cycloa.FastMachine = function(rom, videoFairy) {
+	this.videoFairy = videoFairy;
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_cpu_init.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_video_init.erb.js" %>
 
@@ -176,4 +177,5 @@ cycloa.FastMachine.ZNFlagCache = new Uint8Array([
 ]);
 
 cycloa.FastMachine.TransTable = new Uint32Array(<%= CPU::Middle::TransTable %>);
+
 	
