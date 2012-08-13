@@ -25,12 +25,11 @@ this.vramAddrReloadRegister = 0;
 this.horizontalScrollBits = 0;
 this.scrollRegisterWritten = false;
 this.vramAddrRegisterWritten = false;
-this.screenBuffer = new ArrayBuffer(<%= Video::ScreenHeight %> * <%= Video::ScreenHeight %>);
+this.screenBuffer = new ArrayBuffer(<%= Video::ScreenWidth %> * <%= Video::ScreenHeight %>);
 this.screenBuffer8 = new Uint8Array(this.screenBuffer);
 this.screenBuffer32 = new Uint32Array(this.screenBuffer);
-this.internalVram = new Uint8Array(0x800);
 this.spRam = new Uint8Array(256);
-this.palette = new Uint8Array(32);
+this.palette = new Uint8Array(9*4);
 this.spriteTable = new Array(<%= Video::DefaultSpriteCnt %>);
 for(var i=0; i< <%= Video::DefaultSpriteCnt %>; ++i){
 	this.spriteTable[i] = new Object;

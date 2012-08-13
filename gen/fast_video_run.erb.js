@@ -18,7 +18,7 @@ while(this.nowX >= 341){
 		var palette = this.palette;
 		var _color = <%= Video::EmptyBit %> | <%= Video::Palette(8, 0) %>;
 		var _color32 = _color << 24 | _color << 16 | _color << 8 | _color;
-		for(var i=((nowY-1) << <%= Video::ScreenWidthShift/2 %>), max=i+<%= Video::ScreenWidth/4 %>; i<max; ++i) screenBuffer32[i] = _color32;
+		for(var i=((nowY-1) << <%= Video::ScreenWidthShift-2 %>), max=i+<%= Video::ScreenWidth/4 %>; i<max; ++i) screenBuffer32[i] = _color32;
 		this.spriteEval();
 		if(this.backgroundVisibility || this.spriteVisibility){
 			// from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu

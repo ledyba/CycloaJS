@@ -4,6 +4,20 @@ require File.dirname(__FILE__)+"/opcode_info.rb";
 Target="this"
 
 module CPU
+	def self.Init()
+"""
+/**
+ * @type {Number}
+ */
+var clockDelta = 0;
+"""
+	end
+	def self.Push(val)
+		" /* ::CPU::Push */ #{Target}.write(0x0100 | (#{Target}.SP-- & 0xff), #{val});";
+	end
+	def self.Pop()
+		"/* ::CPU::Pop */ (#{Target}.read(0x0100 | (++#{Target}.SP & 0xff)))";
+	end
 	module Middle
 	    TransTable = [0xff]*0x100;
 		AddrMode = {
@@ -106,7 +120,6 @@ module CPU
 			 * @type {Number}
 			 */
 			var pc = #{Target}.PC;
-			var clockDelta = 0;
 """
 		end
 		def self.excelPC(size)
@@ -264,12 +277,6 @@ module CPU
 		end
 	end
 	module Inst
-		def self.Push(val)
-			" /* Push */ #{Target}.write(0x0100 | (#{Target}.SP-- & 0xff), #{val});";
-		end
-		def self.Pop()
-			"/* Pop */ (#{Target}.read(0x0100 | (++#{Target}.SP & 0xff)))";
-		end
 		def self.UpdateFlag(val)
 			"/* UpdateFlag */ #{Target}.P = (#{Target}.P & 0x7D) | this.ZNFlagCache[#{val}];"
 		end
@@ -312,7 +319,7 @@ module CPU
 		def self.PHP()
 """
 			// bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-			#{Push("#{Target}.P | 0x#{Opcode::Flag[:B].to_s(16)}")}
+			#{::CPU::Push("#{Target}.P | 0x#{Opcode::Flag[:B].to_s(16)}")}
 """
 		end
 		def self.PLP()
@@ -321,22 +328,22 @@ module CPU
 			 * @const
 			 * @type {Number}
 			 */
-			var val = #{Pop()};
+			var val = #{::CPU::Pop()};
 			if((#{Target}.P & 0x#{Opcode::Flag[:I].to_s(16)}) && !(val & 0x#{Opcode::Flag[:I].to_s(16)})){
 				// FIXME: ここどうする？？
-				//#{Target}.needStatusRewrite = true;
-				//#{Target}.newStatus =val;
-				#{Target}.P = val;
+				#{Target}.needStatusRewrite = true;
+				#{Target}.newStatus =val;
+				//#{Target}.P = val;
 			}else{
 				#{Target}.P = val;
 			}
 """
 		end
 		def self.PHA()
-			Push("#{Target}.A");
+			::CPU::Push("#{Target}.A");
 		end
 		def self.PLA()
-			UpdateFlag("#{Target}.A = #{Pop()}");
+			UpdateFlag("#{Target}.A = #{::CPU::Pop()}");
 		end
 		def self.ADC()
 """
@@ -633,9 +640,9 @@ module CPU
 			// http://twitter.com/#!/KiC6280/status/112348378100281344
 			// http://twitter.com/#!/KiC6280/status/112351125084180480
 			//FIXME
-			//#{Target}.needStatusRewrite = true;
-			//#{Target}.newStatus = #{Target}.P & (0x#{(~(Opcode::Flag[:I])&0xff).to_s(16)});
-			#{Target}.P &= 0x#{(~(Opcode::Flag[:I])&0xff).to_s(16)};
+			#{Target}.needStatusRewrite = true;
+			#{Target}.newStatus = #{Target}.P & (0x#{(~(Opcode::Flag[:I])&0xff).to_s(16)});
+			//#{Target}.P &= 0x#{(~(Opcode::Flag[:I])&0xff).to_s(16)};
 """
 		end
 		def self.CLV
@@ -677,10 +684,10 @@ module CPU
 				return;
 			}*/
 			#{Target}.PC++;
-			#{Push "((#{Target}.PC >> 8) & 0xFF)"}
-			#{Push "(#{Target}.PC & 0xFF)"}
+			#{::CPU::Push "((#{Target}.PC >> 8) & 0xFF)"}
+			#{::CPU::Push "(#{Target}.PC & 0xFF)"}
 			#{Target}.P |= 0x#{Opcode::Flag[:B].to_s(16)};
-			#{Push "(#{Target}.P)"}
+			#{::CPU::Push "(#{Target}.P)"}
 			#{Target}.P |= 0x#{Opcode::Flag[:I].to_s(16)};
 			#{Target}.PC = (#{Target}.read(0xFFFE) | (#{Target}.read(0xFFFF) << 8));
 """
@@ -759,8 +766,8 @@ module CPU
 			 * @type {Number}
 			 */
 			var stored_pc = #{Target}.PC-1;
-			#{Push "((stored_pc >> 8) & 0xFF)"}
-			#{Push "(stored_pc & 0xFF)"}
+			#{::CPU::Push "((stored_pc >> 8) & 0xFF)"}
+			#{::CPU::Push "(stored_pc & 0xFF)"}
 			#{Target}.PC = addr;
 """
 		end
@@ -771,13 +778,13 @@ module CPU
 		end
 			def self.RTI
 """
-			#{Target}.P = #{Pop()};
-			#{Target}.PC = #{Pop()} | (#{Pop()} << 8);
+			#{Target}.P = #{::CPU::Pop()};
+			#{Target}.PC = #{::CPU::Pop()} | (#{::CPU::Pop()} << 8);
 """
 		end
 		def self.RTS
 """
-			#{Target}.PC = (#{Pop()} | (#{Pop()} << 8)) + 1;
+			#{Target}.PC = (#{::CPU::Pop()} | (#{::CPU::Pop()} << 8)) + 1;
 """
 		end
 	end

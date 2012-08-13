@@ -19,7 +19,7 @@
 				var palette = this.palette;
 				for(var i=0;i<256*240; ++i){
 					//TODO: 最適化
-					var idx = i << 2, color = palette[nesBuffer[i & paletteMask]];
+					var idx = i << 2, color = palette[nesBuffer[i] & paletteMask];
 					dat[idx] = color & 0xff;
 					dat[idx+1] = (color >> 8) & 0xff;
 					dat[idx+2] = (color >> 16) & 0xff;

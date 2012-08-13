@@ -60,12 +60,11 @@ this.vramAddrReloadRegister = 0;
 this.horizontalScrollBits = 0;
 this.scrollRegisterWritten = false;
 this.vramAddrRegisterWritten = false;
-this.screenBuffer = new ArrayBuffer(240 * 240);
+this.screenBuffer = new ArrayBuffer(256 * 240);
 this.screenBuffer8 = new Uint8Array(this.screenBuffer);
 this.screenBuffer32 = new Uint32Array(this.screenBuffer);
-this.internalVram = new Uint8Array(0x800);
 this.spRam = new Uint8Array(256);
-this.palette = new Uint8Array(32);
+this.palette = new Uint8Array(9*4);
 this.spriteTable = new Array(8);
 for(var i=0; i< 8; ++i){
 	this.spriteTable[i] = new Object;
@@ -78,6 +77,40 @@ this.pattern = new Array(0x10);
 	this.run = function () {
 
 this.P |= 32; //必ずセットしてあるらしい。プログラム側から無理にいじっちゃった時用
+
+
+/**
+ * @type {Number}
+ */
+var clockDelta = 0;
+
+if(this.NMI){
+	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
+	//from http://nesdev.parodius.com/6502_cpu.txt
+	clockDelta += (7);;
+	this.P &= 239;
+	 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.PC >> 8) & 0xFF);	 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), this.PC & 0xFF);	 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), this.P);;
+	this.P |= 4;
+	this.PC = (this.read(0xFFFA) | (this.read(0xFFFB) << 8));
+	this.NMI = false;
+}else if(this.IRQ){
+	this.onIRQ();
+	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
+	//from http://nesdev.parodius.com/6502_cpu.txt
+	if((this.P & 4) === 4){
+		return;
+	}
+	clockDelta += (7);;
+	this.P &= 239;
+	 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.PC >> 8) & 0xFF);	 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), this.PC & 0xFF);	 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), this.P);	this.P |= 4;
+	this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
+}
+
+if(this.needStatusRewrite){
+	this.P = this.newStatus;
+	this.needStatusRewrite = false;
+}
+
 /**
  * @const
  * @type {Number}
@@ -89,7 +122,6 @@ var inst = this.TransTable[this.read(this.PC)];
 			 * @type {Number}
 			 */
 			var pc = this.PC;
-			var clockDelta = 0;
 // http://www.llx.com/~nparker/a2/opcodes.html
 switch( inst & 15 ){
 		case 0: { /* Immediate */
@@ -553,26 +585,26 @@ switch( (inst & 65520) >> 4 ){
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
 		break;}
 		case 35: {  /* PHA */
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), this.A);		break;}
+			 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), this.A);		break;}
 		case 36: {  /* PHP */
 			
 			// bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), this.P | 0x10);
+			 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), this.P | 0x10);
 		break;}
 		case 37: {  /* PLA */
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff)))];		break;}
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = /* ::CPU::Pop */ (this.read(0x0100 | (++this.SP & 0xff)))];		break;}
 		case 38: {  /* PLP */
 			
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var val = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff)));
+			var val = /* ::CPU::Pop */ (this.read(0x0100 | (++this.SP & 0xff)));
 			if((this.P & 0x4) && !(val & 0x4)){
 				// FIXME: ここどうする？？
-				//this.needStatusRewrite = true;
-				//this.newStatus =val;
-				this.P = val;
+				this.needStatusRewrite = true;
+				this.newStatus =val;
+				//this.P = val;
 			}else{
 				this.P = val;
 			}
@@ -590,9 +622,9 @@ switch( (inst & 65520) >> 4 ){
 			// http://twitter.com/#!/KiC6280/status/112348378100281344
 			// http://twitter.com/#!/KiC6280/status/112351125084180480
 			//FIXME
-			//this.needStatusRewrite = true;
-			//this.newStatus = this.P & (0xfb);
-			this.P &= 0xfb;
+			this.needStatusRewrite = true;
+			this.newStatus = this.P & (0xfb);
+			//this.P &= 0xfb;
 		break;}
 		case 42: {  /* CLV */
 			
@@ -621,10 +653,10 @@ switch( (inst & 65520) >> 4 ){
 				return;
 			}*/
 			this.PC++;
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), ((this.PC >> 8) & 0xFF));
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.PC & 0xFF));
+			 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), ((this.PC >> 8) & 0xFF));
+			 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.PC & 0xFF));
 			this.P |= 0x10;
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.P));
+			 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), (this.P));
 			this.P |= 0x4;
 			this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
 		break;}
@@ -632,12 +664,12 @@ switch( (inst & 65520) >> 4 ){
 					break;}
 		case 48: {  /* RTS */
 			
-			this.PC = (/* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) | (/* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) << 8)) + 1;
+			this.PC = (/* ::CPU::Pop */ (this.read(0x0100 | (++this.SP & 0xff))) | (/* ::CPU::Pop */ (this.read(0x0100 | (++this.SP & 0xff))) << 8)) + 1;
 		break;}
 		case 49: {  /* RTI */
 			
-			this.P = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff)));
-			this.PC = /* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) | (/* Pop */ (this.read(0x0100 | (++this.SP & 0xff))) << 8);
+			this.P = /* ::CPU::Pop */ (this.read(0x0100 | (++this.SP & 0xff)));
+			this.PC = /* ::CPU::Pop */ (this.read(0x0100 | (++this.SP & 0xff))) | (/* ::CPU::Pop */ (this.read(0x0100 | (++this.SP & 0xff))) << 8);
 		break;}
 		case 50: {  /* JMP */
 			
@@ -650,8 +682,8 @@ switch( (inst & 65520) >> 4 ){
 			 * @type {Number}
 			 */
 			var stored_pc = this.PC-1;
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), ((stored_pc >> 8) & 0xFF));
-			 /* Push */ this.write(0x0100 | (this.SP-- & 0xff), (stored_pc & 0xFF));
+			 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), ((stored_pc >> 8) & 0xFF));
+			 /* ::CPU::Push */ this.write(0x0100 | (this.SP-- & 0xff), (stored_pc & 0xFF));
 			this.PC = addr;
 		break;}
 		case 52: {  /* BCC */
@@ -733,7 +765,7 @@ while(this.nowX >= 341){
 		var palette = this.palette;
 		var _color = 0 | palette[32];
 		var _color32 = _color << 24 | _color << 16 | _color << 8 | _color;
-		for(var i=((nowY-1) << 4), max=i+64; i<max; ++i) screenBuffer32[i] = _color32;
+		for(var i=((nowY-1) << 6), max=i+64; i<max; ++i) screenBuffer32[i] = _color32;
 		this.spriteEval();
 		if(this.backgroundVisibility || this.spriteVisibility){
 			// from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
@@ -906,15 +938,16 @@ this.onResetCPU = function () {
 	this.NMI = false;
 	this.IRQ = false;
 };
-	
-
 
 
 
 this.onHardResetVideo = function() {
 	//from http://wiki.nesdev.com/w/index.php/PPU_power_up_state
-	for(var i=0;i< 2048;++i) {
-		this.internalVram[i] = 0;
+	for(var i=0;i< 4;++i) {
+		var iv = this.internalVram[i];
+		for(var j=0;j<0x400; ++j){
+			iv[j] = 0;
+		}
 	}
 	for(var i=0;i< 256;++i) {
 		this.spRam[i] = 0;
@@ -1458,17 +1491,18 @@ this.analyzeSpriteAddrRegister = function(/* uint8_t */ value)
 
 this.readVramExternal = function(/* uint16_t */ addr)
 {
-	switch((addr & 0x2000) >> 12)
+	switch((addr & 0x2000) >> 13)
 	{
 		case 0: /* 0x0000 -> 0x1fff */
 			return this.pattern[(addr >> 9) & 0xf][addr & 0x1ff];
 		case 1:
 			return this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff];
+		default: throw new cycloa.err.CoreException("Invalid vram access: "+addr.toString(16));
 	}
 }
 this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
-	switch((addr & 0x2000) >> 12)
+	switch((addr & 0x2000) >> 13)
 	{
 		case 0: /* 0x0000 -> 0x1fff */
 			this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value; //FIXME
@@ -1476,6 +1510,7 @@ this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 		case 1:
 			this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
 			break;
+		default: throw new cycloa.err.CoreException("Invalid vram access: "+addr.toString(16));
 	}
 }
 
@@ -1491,8 +1526,8 @@ this.readVram = function(/* uint16_t */ addr) {
 	}
 };
 this.writeVram = function(/* uint16_t */ addr, /* uint8_t */ value) {
-	if((addr & 0x3f00) == 0x3f00){ /* writePalette */
-		if((addr & 0x3) == 0){
+	if((addr & 0x3f00) === 0x3f00){ /* writePalette */
+		if((addr & 0x3) === 0){
 			this.palette[32 + ((addr >> 2) & 3)] = value & 0x3f;
 		}else{
 			this.palette[(((addr>>2) & 7) << 2) + (addr & 3)] = value & 0x3f;
@@ -1578,10 +1613,10 @@ cycloa.FastMachine.Mappter.initDefault = function(self){
 			break;
 		}
 		case 0: {
-			this.vramMirroring[0] = this.fourScreenVram[1];
-			this.vramMirroring[1] = this.fourScreenVram[2];
-			this.vramMirroring[2] = this.fourScreenVram[3];
-			this.vramMirroring[3] = this.fourScreenVram[4];
+			this.vramMirroring[0] = this.internalVram[1];
+			this.vramMirroring[1] = this.internalVram[2];
+			this.vramMirroring[2] = this.internalVram[3];
+			this.vramMirroring[3] = this.internalVram[4];
 			break;
 		}
 		case 2: {

@@ -92,10 +92,10 @@ cycloa.FastMachine.Mappter.initDefault = function(self){
 			break;
 		}
 		case <%= NES::FOUR_SCREEN %>: {
-			this.vramMirroring[0] = this.fourScreenVram[1];
-			this.vramMirroring[1] = this.fourScreenVram[2];
-			this.vramMirroring[2] = this.fourScreenVram[3];
-			this.vramMirroring[3] = this.fourScreenVram[4];
+			this.vramMirroring[0] = this.internalVram[1];
+			this.vramMirroring[1] = this.internalVram[2];
+			this.vramMirroring[2] = this.internalVram[3];
+			this.vramMirroring[3] = this.internalVram[4];
 			break;
 		}
 		case <%= NES::HORIZONTAL %>: {

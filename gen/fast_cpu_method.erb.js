@@ -115,6 +115,4 @@ this.onResetCPU = function () {
 	this.NMI = false;
 	this.IRQ = false;
 };
-	
-
 

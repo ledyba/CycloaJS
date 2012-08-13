@@ -2,8 +2,11 @@
 
 this.onHardResetVideo = function() {
 	//from http://wiki.nesdev.com/w/index.php/PPU_power_up_state
-	for(var i=0;i< <%= Video::VramSize %>;++i) {
-		this.internalVram[i] = 0;
+	for(var i=0;i< 4;++i) {
+		var iv = this.internalVram[i];
+		for(var j=0;j<0x400; ++j){
+			iv[j] = 0;
+		}
 	}
 	for(var i=0;i< <%= Video::SpRamSize %>;++i) {
 		this.spRam[i] = 0;
@@ -547,17 +550,18 @@ this.analyzeSpriteAddrRegister = function(/* uint8_t */ value)
 
 this.readVramExternal = function(/* uint16_t */ addr)
 {
-	switch((addr & 0x2000) >> 12)
+	switch((addr & 0x2000) >> 13)
 	{
 		case 0: /* 0x0000 -> 0x1fff */
 			return this.pattern[(addr >> 9) & 0xf][addr & 0x1ff];
 		case 1:
 			return this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff];
+		default: throw new cycloa.err.CoreException("Invalid vram access: "+addr.toString(16));
 	}
 }
 this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
-	switch((addr & 0x2000) >> 12)
+	switch((addr & 0x2000) >> 13)
 	{
 		case 0: /* 0x0000 -> 0x1fff */
 			this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value; //FIXME
@@ -565,6 +569,7 @@ this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 		case 1:
 			this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
 			break;
+		default: throw new cycloa.err.CoreException("Invalid vram access: "+addr.toString(16));
 	}
 }
 
@@ -580,8 +585,8 @@ this.readVram = function(/* uint16_t */ addr) {
 	}
 };
 this.writeVram = function(/* uint16_t */ addr, /* uint8_t */ value) {
-	if((addr & 0x3f00) == 0x3f00){ /* writePalette */
-		if((addr & 0x3) == 0){
+	if((addr & 0x3f00) === 0x3f00){ /* writePalette */
+		if((addr & 0x3) === 0){
 			this.palette[<%= 8*4 %> + ((addr >> 2) & 3)] = value & 0x3f;
 		}else{
 			this.palette[(((addr>>2) & 7) << 2) + (addr & 3)] = value & 0x3f;
