@@ -13,7 +13,8 @@ if(this.NMI){
 	<%= CPU::Push "this.PC & 0xFF" %>
 	<%= CPU::Push "this.P" %>;
 	this.P |= <%= Opcode::Flag[:I] %>;
-	this.PC = (this.read(0xFFFA) | (this.read(0xFFFB) << 8));
+	//this.PC = (this.read(0xFFFA) | (this.read(0xFFFB) << 8));
+	this.PC = (this.rom[31][0x3FA]| (this.rom[31][0x3FB] << 8));
 	this.NMI = false;
 }else if(this.IRQ){
 	this.onIRQ();
@@ -28,7 +29,8 @@ if(this.NMI){
 	<%= CPU::Push "this.PC & 0xFF" %>
 	<%= CPU::Push "this.P" %>
 	this.P |= <%= Opcode::Flag[:I] %>;
-	this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
+	//this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
+	this.PC = (this.rom[31][0x3FE] | (this.rom[31][0x3FF] << 8));
 }
 
 if(this.needStatusRewrite){
@@ -36,12 +38,15 @@ if(this.needStatusRewrite){
 	this.needStatusRewrite = false;
 }
 
+<%= CPU::AddrMode::Init() %>
+
+var opbyte;
+<%= CPU::MemRead("pc", "opbyte") %>
 /**
  * @const
  * @type {Number}
  */
-var inst = this.TransTable[this.read(this.PC)];
-<%= CPU::AddrMode::Init() %>
+var inst = this.TransTable[opbyte];
 // http://www.llx.com/~nparker/a2/opcodes.html
 switch( inst & <%= CPU::Middle::AddrModeMask %> ){
 %	CPU::Middle::AddrMode.each do |addr, code|

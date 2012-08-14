@@ -6,7 +6,7 @@
  * @type {Object}
  */
 var cycloa;
-if(!cycloa) cycloa = new Object;
+if(!cycloa) cycloa = {};
 
 cycloa.debug = false;
 

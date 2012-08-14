@@ -472,7 +472,7 @@ this.readVramDataRegister = function()
 		/**
 		 * @const
 		 * @type {number} uint8_t */
-		var ret = readPalette(vramAddrRegister);
+		var ret = this.readPalette(vramAddrRegister);
 		this.vramBuffer = this.readVramExternal(this.vramAddrRegister); //ミラーされてるVRAMにも同時にアクセスしなければならない。
 		this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
 		return ret;
@@ -550,49 +550,42 @@ this.analyzeSpriteAddrRegister = function(/* uint8_t */ value)
 
 this.readVramExternal = function(/* uint16_t */ addr)
 {
-	switch((addr & 0x2000) >> 13)
-	{
-		case 0: /* 0x0000 -> 0x1fff */
-			return this.pattern[(addr >> 9) & 0xf][addr & 0x1ff];
-		case 1:
-			return this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff];
-		default: throw new cycloa.err.CoreException("Invalid vram access: "+addr.toString(16));
+	if(addr < 0x2000) {
+		return this.pattern[(addr >> 9) & 0xf][addr & 0x1ff];
+	} else {
+		return this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff];
 	}
 }
 this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
-	switch((addr & 0x2000) >> 13)
-	{
-		case 0: /* 0x0000 -> 0x1fff */
-			this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value; //FIXME
-			break;
-		case 1:
-			this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
-			break;
-		default: throw new cycloa.err.CoreException("Invalid vram access: "+addr.toString(16));
+	if(addr < 0x2000) {
+		this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value; //FIXME
+	} else {
+		this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
 	}
-}
+};
 
 this.readVram = function(/* uint16_t */ addr) {
 	if((addr & 0x3f00) == 0x3f00){ /* readPalette */
 		if((addr & 0x3) == 0){
 			return this.palette[<%= 8*4 %> + ((addr >> 2) & 3)];
 		}else{
-			return this.palette[(((addr>>2) & 7) << 2) + (addr & 3)];
+			return this.palette[addr & 31];
 		}
 	}else{
 		return this.readVramExternal(addr);
 	}
 };
+
 this.writeVram = function(/* uint16_t */ addr, /* uint8_t */ value) {
-	if((addr & 0x3f00) === 0x3f00){ /* writePalette */
-		if((addr & 0x3) === 0){
+	if((addr & 0x3f00) !== 0x3f00){
+		this.writeVramExternal(addr, value);
+	}else{
+		if((addr & 0x3) === 0){ /* writePalette */
 			this.palette[<%= 8*4 %> + ((addr >> 2) & 3)] = value & 0x3f;
 		}else{
-			this.palette[(((addr>>2) & 7) << 2) + (addr & 3)] = value & 0x3f;
+			this.palette[addr & 31] = value & 0x3f;
 		}
-	}else{
-		this.writeVramExternal(addr, value);
 	}
 };
 

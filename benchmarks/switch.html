@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="../test/probe.js"></script>
+	<script>
+		"use strict";
+		function doBench() {
+			log("switch: "+cycloa.probe.measure(function(){
+				var total = 0;
+				for(var i=0;i<500000000;++i){
+					switch(i & 0x1){
+						case 0:
+							total += 3;
+							break;
+						case 1:
+							total += 6;
+							break;
+					};
+				}
+			}));
+			log("三項演算子："+cycloa.probe.measure(function(){
+				var total = 0;
+				for(var i=0;i<500000000;++i){
+					var tmp = i & 0x1;
+					(tmp === 0) ? total+=3 :
+					(tmp === 1) ? total+=6 :
+					new Error("oops");
+				}
+			}));
+			log("if文"+cycloa.probe.measure(function(){
+				var total = 0;
+				for(var i=0;i<500000000;++i){
+					var tmp = i & 0x1;
+					if ((tmp & 1)) {
+						total += 6;
+					} else {
+						total += 3;
+					}
+				}
+			}));
+		}
+	</script>
+	<title>unit test</title>
+</head>
+<body>
+	<input id="start" onclick="doBench();" type="button" value="start" />
+	<div id="console"></div>
+</body>
+</html>
