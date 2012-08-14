@@ -4,13 +4,18 @@ require File.dirname(__FILE__)+"/opcode_info.rb";
 Target="this"
 
 module CPU
-	def self.Init()
+	def self.RunInit()
 """
 /**
  * @type {Number}
  */
-var clockDelta = 0;
+var clockDelta;
 var rom = this.rom; var ram = this.ram;
+"""
+	end
+	def self.Init()
+"""
+clockDelta = 0;
 """
 	end
 	def self.MemWrite(addr, val)
@@ -54,6 +59,59 @@ switch((#{addrsym} & 0xE000) >> 13){
 	}
 }
 """.gsub(/[\r\n]/, '');
+	end
+	def self.MemWrite(addr, val)
+	return "this.write(#{addr}, #{val});";
+"""
+switch((#{addr} & 0xE000) >> 13){
+	case 0:{ /* 0x0000 -> 0x2000 */
+		ram[#{addr} & 0x1fff] = #{val};
+		break;
+	}
+	case 1:{ /* 0x2000 -> 0x4000 */
+		this.writeVideoReg(#{addr}, #{val});
+		break;
+	}
+	case 2:{ /* 0x4000 -> 0x6000 */
+		if(#{addr} === 0x4014){
+			/** @type {number} uint16_t */
+			var addrMask = #{val} << 8;
+			var spriteAddr = this.spriteAddr;
+			for(var i=0;i<256;++i) {
+				var __addr__ = addrMask | i;
+				#{CPU::MemRead("__addr__", "spRam[(spriteAddr+i) & 0xff]")}
+			}
+			//clockDelta += 514;
+		}else if(#{addr} === 0x4016){
+			//ioPort.writeOutReg(#{val});
+		}else if(#{addr} < 0x4018){
+			//audio.writeReg(#{addr}, #{val});
+		}else{
+			//cartridge->writeRegisterArea(#{addr}, #{val});
+		}
+		break;
+	}
+	case 3:{ /* 0x6000 -> 0x8000 */
+		break;
+	}
+	case 4:{ /* 0x8000 -> 0xA000 */
+		this.writeMapperCPU(#{addr}, #{val});
+		break;
+	}
+	case 5:{ /* 0xA000 -> 0xC000 */
+		this.writeMapperCPU(#{addr}, #{val});
+		break;
+	}
+	case 6:{ /* 0xC000 -> 0xE000 */
+		this.writeMapperCPU(#{addr}, #{val});
+		break;
+	}
+	case 7:{ /* 0xE000 -> 0xffff */
+		this.writeMapperCPU(#{addr}, #{val});
+		break;
+	}
+}
+"""
 	end
 	def self.Push(val)
 		" /* ::CPU::Push */ ram[0x0100 | (#{Target}.SP-- & 0xff)] = #{val};";
@@ -362,13 +420,13 @@ var tmpX;
 """
 		end
 		def self.STA()
-			"#{Target}.write(addr, #{Target}.A);"
+			CPU::MemWrite("addr", "#{Target}.A");
 		end
 		def self.STX()
-			"#{Target}.write(addr, #{Target}.X);"
+			CPU::MemWrite("addr", "#{Target}.X");
 		end
 		def self.STY()
-			"#{Target}.write(addr, #{Target}.Y);"
+			CPU::MemWrite("addr", "#{Target}.Y");
 		end
 		def self.TXA()
 			UpdateFlag("#{Target}.A = #{Target}.X");
@@ -573,7 +631,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			 * @type {Number}
 			 */
 			var shifted = val << 1;
-			#{Target}.write(addr, shifted);
+			#{CPU::MemWrite("addr", "shifted")}
 			#{UpdateFlag("shifted & 0xff")}
 """
 		end
@@ -596,7 +654,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			 * @type {Number}
 			 */
 			var shifted = val >> 1;
-			#{Target}.write(addr, shifted);
+			#{CPU::MemWrite("addr", "shifted")}
 			#{UpdateFlag("shifted")}
 """
 		end
@@ -635,7 +693,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			var shifted = ((val << 1) & 0xff) | (p & 0x01);
 			#{Target}.P = (p & 0xFE) | (val >> 7);
 			#{UpdateFlag("shifted")}
-			#{Target}.write(addr, shifted);
+			#{CPU::MemWrite("addr", "shifted")}
 """
 		end
 		def self.ROR_
@@ -677,7 +735,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			var shifted = (val >> 1) | ((p & 0x01) << 7);
 			#{Target}.P = (p & 0xFE) | (val & 0x01);
 			#{UpdateFlag("shifted")}
-			#{Target}.write(addr, shifted);
+			#{CPU::MemWrite("addr", "shifted")}
 """
 		end
 		def self.INX
@@ -695,7 +753,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			var mem; #{CPU::MemRead("addr","mem")}
 			var val = (mem+1) & 0xff;
 			#{UpdateFlag("val")}
-			#{Target}.write(addr, val);
+			#{CPU::MemWrite("addr", "val")}
 """
 		end
 		def self.DEX
@@ -713,7 +771,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			var mem; #{CPU::MemRead("addr","mem")}
 			var val = (mem-1) & 0xff;
 			#{UpdateFlag("val")}
-			#{Target}.write(addr, val);
+			#{CPU::MemWrite("addr", "val")}
 """
 		end
 		def self.CLC

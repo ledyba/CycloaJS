@@ -75,16 +75,22 @@ this.pattern = new Array(0x10);
 
 
 	this.run = function () {
+		
+/**
+ * @type {Number}
+ */
+var clockDelta;
+var rom = this.rom; var ram = this.ram;
+
+		var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;
+		var _run = true;
+		while(_run) {
 
 this.P |= 32; //必ずセットしてあるらしい。プログラム側から無理にいじっちゃった時用
 
 
-/**
- * @type {Number}
- */
-var clockDelta = 0;
-var rom = this.rom; var ram = this.ram;
-var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;
+clockDelta = 0;
+
 if(this.NMI){
 	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
 	//from http://nesdev.parodius.com/6502_cpu.txt
@@ -833,6 +839,7 @@ while(this.nowX >= 341){
 	}else if(nowY === 241){
 		//241: The PPU just idles during this scanline. Despite this, this scanline still occurs before the VBlank flag is set.
 		this.videoFairy.dispatchRendering(this.screenBuffer8, this.paletteMask);
+		_run = false;
 		this.nowOnVBnank = true;
 		this.spriteAddr = 0;//and typically contains 00h at the begin of the VBlank periods
 	}else if(nowY === 242){
@@ -867,7 +874,8 @@ while(this.nowX >= 341){
 }
 
 
-return clockDelta;
+		}
+		return _run;
 	};
 
 
@@ -884,6 +892,34 @@ this.releaseNMI = function () {
 this.releaseIRQ = function () {
 	this.IRQ = false;
 };
+
+this.onHardResetCPU = function(){
+		//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
+		this.P = 0x24;
+		this.A = 0x0;
+		this.X = 0x0;
+		this.Y = 0x0;
+		this.SP = 0xfd;
+		this.write(0x4017, 0x00);		this.write(0x4015, 0x00);		//this.PC = (this.read(0xFFFC) | (this.read(0xFFFD) << 8));
+		this.PC = (this.rom[31][0x3FC]| (this.rom[31][0x3FD] << 8));
+
+		this.NMI = false;
+		this.IRQ = false;
+};
+
+this.onResetCPU = function () {
+	//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
+	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
+	this.consumeClock(cycloa.core.RESET_CLOCK);
+	this.SP -= 0x03;
+	this.P |= 4;
+	this.write(0x4015, 0x00);	//this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
+	this.PC = (this.rom[31][0x3FC]| (this.rom[31][0x3FD] << 8));
+
+	this.NMI = false;
+	this.IRQ = false;
+};
+
 /**
  * 書き込む
  * @function
@@ -901,6 +937,22 @@ this.write = function (addr, val) {
 			break;
 		}
 		case 2:{ /* 0x4000 -> 0x6000 */
+			if(addr === 0x4014){
+				/** @type {number} uint16_t */
+//				var addrMask = val << 8;
+//				var spRam = this.spRam;
+//				var spriteAddr = this.spriteAddr;
+//				for(var i=0;i<256;++i){
+//					var __addr__ = addrMask | i;
+//					switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		this.spRam[(spriteAddr+i) & 0xff] = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.spRam[(spriteAddr+i) & 0xff] = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		this.spRam[(spriteAddr+i) & 0xff] = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		this.spRam[(spriteAddr+i) & 0xff] = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}//				}
+				//this->VM.consumeCpuClock(514);
+			}else if(addr === 0x4016){
+				//ioPort.writeOutReg(value);
+			}else if(addr < 0x4018){
+				//audio.writeReg(addr, value);
+			}else{
+				//cartridge->writeRegisterArea(addr, value);
+			}
 			break;
 		}
 		case 3:{ /* 0x6000 -> 0x8000 */
@@ -923,36 +975,6 @@ this.write = function (addr, val) {
 			break;
 		}
 	}
-};
-
-this.onHardResetCPU = function(){
-		//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
-		this.P = 0x24;
-		this.A = 0x0;
-		this.X = 0x0;
-		this.Y = 0x0;
-		this.SP = 0xfd;
-		this.write(0x4017, 0x00);
-		this.write(0x4015, 0x00);
-		//this.PC = (this.read(0xFFFC) | (this.read(0xFFFD) << 8));
-		this.PC = (this.rom[31][0x3FC]| (this.rom[31][0x3FD] << 8));
-
-		this.NMI = false;
-		this.IRQ = false;
-};
-
-this.onResetCPU = function () {
-	//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
-	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-	this.consumeClock(cycloa.core.RESET_CLOCK);
-	this.SP -= 0x03;
-	this.P |= 4;
-	this.write(0x4015, 0x0);
-	//this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
-	this.PC = (this.rom[31][0x3FC]| (this.rom[31][0x3FD] << 8));
-
-	this.NMI = false;
-	this.IRQ = false;
 };
 
 
@@ -1109,10 +1131,10 @@ this.spriteEval = function() {
 };
 
 this.buildBgLine = function(){
-	var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;	if(!this.backgroundVisibility){
+	if(!this.backgroundVisibility){
 		return;
 	}
-	/**
+	var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;	/**
 	 * @type {number} uint8_t
 	 * @const
 	 */
@@ -1217,7 +1239,7 @@ this.buildSpriteLine = function(){
 	if(!this.spriteVisibility){
 		return;
 	}
-	/**
+	var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;	/**
 	 * @type {number} uint8_t
 	 * @const
 	 */
@@ -1269,22 +1291,27 @@ this.buildSpriteLine = function(){
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var firstPlane = this.readVram(off);
+		var firstPlane = (((off & 0x3f00) !== 0x3f00) ? (off < 0x2000 ? pattern[(off >> 9) & 0xf][off & 0x1ff] : vramMirroring[(off >> 10) & 0x3][off & 0x3ff]) : ((off & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[off & 31]) );
 		/**
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var secondPlane = this.readVram(off+8);
+		var secondPlaneAddr = off+8;
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var secondPlane = (((secondPlaneAddr & 0x3f00) !== 0x3f00) ? (secondPlaneAddr < 0x2000 ? pattern[(secondPlaneAddr >> 9) & 0xf][secondPlaneAddr & 0x1ff] : vramMirroring[(secondPlaneAddr >> 10) & 0x3][secondPlaneAddr & 0x3ff]) : ((secondPlaneAddr & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[secondPlaneAddr & 31]) );
 		/**
 		 * @type {number} uint16_t
 		 * @const
 		 */
-		var _tmp_endX = screenWidth-slot.x;
+		var _tmp_endX = 8-slot.x;
 		/**
 		 * @type {number} uint16_t
 		 * @const
 		 */
-		var endX = screenWidth < 8 ? screenWidth : 8;//std::min(screenWidth-slot.x, 8);
+		var endX = _tmp_endX < 8 ? _tmp_endX : 8;//std::min(screenWidth-slot.x, 8);
 		/**
 		 * @type {number} uint8_t
 		 * @const
@@ -1306,25 +1333,23 @@ this.buildSpriteLine = function(){
 				 * @type {boolean} bool
 				 * @const
 				 */
-				var isEmpty = (target & LayerBitMask) === 0;
+				var isEmpty = (target & 192) === 0;
 				/**
 				 * @type {boolean} bool
 				 * @const
 				 */
-				var isBackgroundDrawn = (target & LayerBitMask) === 128;
+				var isBackgroundDrawn = (target & 192) === 128;
 				/**
 				 * @type {boolean} bool
 				 * @const
 				 */
-				var isSpriteNotDrawn = (target & SpriteLayerBit) === 0;
+				var isSpriteNotDrawn = (target & 64) === 0;
 				if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
 					this.sprite0Hit = true;
 					searchSprite0Hit = false;
 				}
 				if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
-					this.screenBuffer8[buffOffset + slot.x + x] =
-						this.palette[(slot.paletteNo<<2) + color] | layerMask;
-					
+					screenBuffer8[buffOffset + slot.x + x] = palette[(slot.paletteNo<<2) + color] | layerMask;
 				}
 			}
 		}else{
@@ -1342,33 +1367,31 @@ this.buildSpriteLine = function(){
 			 * @type {boolean} bool
 			 * @const
 			 */
-			var isEmpty = (target & LayerBitMask) === 0;
+			var isEmpty = (target & 192) === 0;
 			/**
 			 * @type {boolean} bool
 			 * @const
 			 */
-			var isBackgroundDrawn = (target & LayerBitMask) === 128;
+			var isBackgroundDrawn = (target & 192) === 128;
 			/**
 			 * @type {boolean} bool
 			 * @const
 			 */
-			var isSpriteNotDrawn = (target & SpriteLayerBit) === 0;
+			var isSpriteNotDrawn = (target & 64) === 0;
 			if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
 				this.sprite0Hit = true;
 				searchSprite0Hit = false;
 			}
 			if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
-				this.screenBuffer8[buffOffset + slot.x + x] =
-					this.palette[(slot.paletteNo<<2) + color] | layerMask;
-				
+				screenBuffer8[buffOffset + slot.x + x] = palette[(slot.paletteNo<<2) + color] | layerMask;
 			}
 		}
 	}
 };
 
 this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
-	switch(addr & 0x07)
-	{
+	var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;
+	switch(addr & 0x07) {
 		/* PPU Control and Status Registers */
 		case 0x00: { //2000h - PPU Control Register 1 (W)
 			this.executeNMIonVBlank = ((value & 0x80) === 0x80) ? true : false;
@@ -1395,7 +1418,7 @@ this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
 			break;
 		}
 		case 0x04: { //2004h - SPR-RAM Data Register (Read/Write)
-			this.spRam[this.spriteAddr] = value;
+			spRam[this.spriteAddr] = value;
 			this.spriteAddr = (this.spriteAddr+1) & 0xff;
 			break;
 		}
@@ -1433,7 +1456,7 @@ this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
 
 this.readVideoReg = function(/* uint16_t */ addr)
 {
-	switch(addr & 0x07)
+	var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;	switch(addr & 0x07)
 	{
 		/* PPU Control and Status Registers */
 		//case 0x00: //2000h - PPU Control Register 1 (W)

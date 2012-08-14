@@ -19,6 +19,9 @@ module Video
 	PaletteSize = 9*4;
 	VramSize = 0x800;
 	SpRamSize = 0x100;
+	def self.RunInit()
+		"#{UseVideoAccess()}"
+	end
 	def self.Init()
 		""
 	end

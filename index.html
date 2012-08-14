@@ -1,67 +1,78 @@
 <!doctype html>
-<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
-<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
-<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
-<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!-- Consider adding a manifest.appcache: h5bp.com/d/Offline -->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-
-  <!-- Use the .htaccess and remove these lines to avoid edge case issues.
-       More info: h5bp.com/i/378 -->
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-
-  <title></title>
-  <meta name="description" content="">
-
-  <!-- Mobile viewport optimized: h5bp.com/viewport -->
-  <meta name="viewport" content="width=device-width">
-
-  <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
-
-  <link rel="stylesheet" href="css/style.css">
-
-  <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
-
-  <!-- All JavaScript at the bottom, except this Modernizr build.
-       Modernizr enables HTML5 elements & feature detects for optimal performance.
-       Create your own custom Modernizr build: www.modernizr.com/download/ -->
-  <script src="js/libs/modernizr-2.5.3.min.js"></script>
+	<meta charset="utf-8">
+	<title></title>
+	<meta name="description" content="">
+	<link rel="stylesheet" href="css/style.css">
+	<script type="text/javascript" src="js/cycloa/cycloa.js"></script>
+	<script type="text/javascript" src="js/cycloa/err.js"></script>
+	<script type="text/javascript" src="js/cycloa/util.js"></script>
+	<script type="text/javascript" src="js/cycloa/fast.js"></script>
+	<script type="text/javascript" src="js/cycloa/trace.js"></script>
+	<script type="text/javascript" src="test/test_rom.js"></script>
+	<script>
+		function VideoFairy(){
+			this.screen = document.getElementById('nes_screen');
+			this.ctx = this.screen.getContext('2d');
+			this.image = this.ctx.createImageData(256, 240);
+			this.palette = cycloa.NesPalette;
+			for(var i=0;i<256*240; ++i){
+				this.image.data[(i<<2)+3] = 0xff;
+			}
+			this.dispatchRendering = function(/* const uint8_t*/ nesBuffer, /* const uint8_t */ paletteMask){
+				var dat = this.image.data;
+				var palette = this.palette;
+				for(var i=0;i<256*240; ++i){
+					//TODO: 最適化
+					var idx = i << 2, color = palette[nesBuffer[i] & paletteMask];
+					dat[idx  ] = (color >> 16) & 0xff;
+					dat[idx+1] = (color >> 8) & 0xff;
+					dat[idx+2] = color & 0xff;
+				}
+				this.ctx.putImageData(this.image, 0, 0);
+			};
+		}
+		function loadFile(file){
+			var reader = new FileReader();
+			reader.onload = function(rom){
+				var machine = new cycloa.FastMachine(rom.target.result, new VideoFairy());
+				machine.onHardReset();
+				var beg = new Date();
+				var cnt = 0;
+				var fps = document.getElementById("fps");
+				var frame = function(){
+					machine.run();
+					cnt++;
+					if(cnt == 60){
+						var now = new Date();
+						fps.innerHTML = "fps: "+(60*1000/(now-beg));
+						beg = now;
+						cnt = 0;
+					}
+				};
+				window.setInterval(frame, 16);
+			};
+			reader.readAsArrayBuffer(file);
+		}
+		function load(){
+			window.addEventListener("dragenter", function (e) { e.preventDefault(); }, false);
+			window.addEventListener("dragover", function (e) { e.preventDefault(); }, false);
+			window.addEventListener("drop", function (e) { e.preventDefault(); loadFile(e.dataTransfer.files[0]); }, false);
+		}
+	</script>
 </head>
-<body>
-  <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you support IE 6.
-       chromium.org/developers/how-tos/chrome-frame-getting-started -->
-  <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
-  <header>
-    <script src="js/cycloa/cycloa.js" />
-  </header>
-  <div role="main">
-
-  </div>
-  <footer>
-
-  </footer>
-
-
-  <!-- JavaScript at the bottom for fast page loading -->
-
-  <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-  <script>window.jQuery || document.write('<script src="js/libs/jquery-1.7.1.min.js"><\/script>')</script>
-
-  <!-- scripts concatenated and minified via build script -->
-  <script src="js/plugins.js"></script>
-  <script src="js/script.js"></script>
-  <!-- end scripts -->
-
-  <!-- Asynchronous Google Analytics snippet. Change UA-XXXXX-X to be your site's ID.
-       mathiasbynens.be/notes/async-analytics-snippet -->
-  <script>
-    var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
-    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-    s.parentNode.insertBefore(g,s)}(document,'script'));
-  </script>
+<body onload="load()">
+	<div id="wrapper">
+		<div id="header">
+		</div>
+		<div id="content">
+			<canvas id="nes_screen" width="256" height="240"></canvas>
+			<div id="fps"></div>
+		</div>
+		<div id="footer">
+		2012 (C)PSI GPLv3 or later
+		</div>
+	</div>
 </body>
 </html>

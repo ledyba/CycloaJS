@@ -3,7 +3,7 @@
 this.P |= 32; //必ずセットしてあるらしい。プログラム側から無理にいじっちゃった時用
 
 <%= CPU::Init() %>
-<%= Video::UseVideoAccess() %>
+<%= Video::Init() %>
 
 if(this.NMI){
 	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm

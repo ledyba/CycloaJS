@@ -10,9 +10,14 @@ cycloa.FastMachine = function(rom, videoFairy) {
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_video_init.erb.js" %>
 
 	this.run = function () {
+		<%= CPU::RunInit() %>
+		<%= Video::RunInit() %>
+		var _run = true;
+		while(_run) {
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_cpu_run.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_video_run.erb.js" %>
-return clockDelta;
+		}
+		return _run;
 	};
 
 

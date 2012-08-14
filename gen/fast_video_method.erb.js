@@ -152,10 +152,10 @@ this.spriteEval = function() {
 };
 
 this.buildBgLine = function(){
-	<%= Video::UseVideoAccess() %>
 	if(!this.backgroundVisibility){
 		return;
 	}
+	<%= Video::UseVideoAccess() %>
 	/**
 	 * @type {number} uint8_t
 	 * @const
@@ -262,6 +262,7 @@ this.buildSpriteLine = function(){
 	if(!this.spriteVisibility){
 		return;
 	}
+	<%= Video::UseVideoAccess() %>
 	/**
 	 * @type {number} uint8_t
 	 * @const
@@ -314,22 +315,27 @@ this.buildSpriteLine = function(){
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var firstPlane = this.readVram(off);
+		var firstPlane = <%= Video::ReadVram("off") %>;
 		/**
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var secondPlane = this.readVram(off+8);
+		var secondPlaneAddr = off+8;
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var secondPlane = <%= Video::ReadVram("secondPlaneAddr") %>;
 		/**
 		 * @type {number} uint16_t
 		 * @const
 		 */
-		var _tmp_endX = screenWidth-slot.x;
+		var _tmp_endX = <%= Video::ScreenWidthShift %>-slot.x;
 		/**
 		 * @type {number} uint16_t
 		 * @const
 		 */
-		var endX = screenWidth < 8 ? screenWidth : 8;//std::min(screenWidth-slot.x, 8);
+		var endX = _tmp_endX < 8 ? _tmp_endX : 8;//std::min(screenWidth-slot.x, 8);
 		/**
 		 * @type {number} uint8_t
 		 * @const
@@ -351,25 +357,23 @@ this.buildSpriteLine = function(){
 				 * @type {boolean} bool
 				 * @const
 				 */
-				var isEmpty = (target & LayerBitMask) === <%= Video::EmptyBit %>;
+				var isEmpty = (target & <%= Video::LayerBitMask %>) === <%= Video::EmptyBit %>;
 				/**
 				 * @type {boolean} bool
 				 * @const
 				 */
-				var isBackgroundDrawn = (target & LayerBitMask) === <%= Video::BackgroundBit %>;
+				var isBackgroundDrawn = (target & <%= Video::LayerBitMask %>) === <%= Video::BackgroundBit %>;
 				/**
 				 * @type {boolean} bool
 				 * @const
 				 */
-				var isSpriteNotDrawn = (target & SpriteLayerBit) === 0;
+				var isSpriteNotDrawn = (target & <%= Video::SpriteLayerBit %>) === 0;
 				if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
 					this.sprite0Hit = true;
 					searchSprite0Hit = false;
 				}
 				if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
-					this.screenBuffer8[buffOffset + slot.x + x] =
-						this.palette[(slot.paletteNo<<2) + color] | layerMask;
-					
+					screenBuffer8[buffOffset + slot.x + x] = palette[(slot.paletteNo<<2) + color] | layerMask;
 				}
 			}
 		}else{
@@ -387,33 +391,32 @@ this.buildSpriteLine = function(){
 			 * @type {boolean} bool
 			 * @const
 			 */
-			var isEmpty = (target & LayerBitMask) === <%= Video::EmptyBit %>;
+			var isEmpty = (target & <%= Video::LayerBitMask %>) === <%= Video::EmptyBit %>;
 			/**
 			 * @type {boolean} bool
 			 * @const
 			 */
-			var isBackgroundDrawn = (target & LayerBitMask) === <%= Video::BackgroundBit %>;
+			var isBackgroundDrawn = (target & <%= Video::LayerBitMask %>) === <%= Video::BackgroundBit %>;
 			/**
 			 * @type {boolean} bool
 			 * @const
 			 */
-			var isSpriteNotDrawn = (target & SpriteLayerBit) === 0;
+			var isSpriteNotDrawn = (target & <%= Video::SpriteLayerBit %>) === 0;
 			if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
 				this.sprite0Hit = true;
 				searchSprite0Hit = false;
 			}
 			if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
-				this.screenBuffer8[buffOffset + slot.x + x] =
-					this.palette[(slot.paletteNo<<2) + color] | layerMask;
-				
+				screenBuffer8[buffOffset + slot.x + x] = palette[(slot.paletteNo<<2) + color] | layerMask;
 			}
 		}
 	}
 };
 
 this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
-	switch(addr & 0x07)
-	{
+	<%= Video::UseVideoAccess() %>
+
+	switch(addr & 0x07) {
 		/* PPU Control and Status Registers */
 		case 0x00: { //2000h - PPU Control Register 1 (W)
 			this.executeNMIonVBlank = ((value & 0x80) === 0x80) ? true : false;
@@ -440,7 +443,7 @@ this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
 			break;
 		}
 		case 0x04: { //2004h - SPR-RAM Data Register (Read/Write)
-			this.spRam[this.spriteAddr] = value;
+			spRam[this.spriteAddr] = value;
 			this.spriteAddr = (this.spriteAddr+1) & 0xff;
 			break;
 		}
@@ -478,6 +481,7 @@ this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
 
 this.readVideoReg = function(/* uint16_t */ addr)
 {
+	<%= Video::UseVideoAccess() %>
 	switch(addr & 0x07)
 	{
 		/* PPU Control and Status Registers */
