@@ -10,22 +10,22 @@ module CPU
  * @type {Number}
  */
 var clockDelta = 0;
+var rom = this.rom; var ram = this.ram;
 """
 	end
 	def self.MemWrite(addr, val)
 	end
-	def self.MemRead(addr, store_sym, with_this = true)
-		_this = with_this ? "this." : "";
-		addrsym = "___mem___addr___"
+	#変数はaddrは複数参照するので、副作用を起こさないこと
+	def self.MemRead(addr, store_sym)
+		addrsym = addr;
 """
-var #{addrsym} = #{addr};
 switch((#{addrsym} & 0xE000) >> 13){
 	case 0:{ /* 0x0000 -> 0x2000 */
-		#{store_sym} = #{_this}ram[#{addrsym} & 0x7ff];
+		#{store_sym} = ram[#{addrsym} & 0x7ff];
 		break;
 	}
 	case 1:{ /* 0x2000 -> 0x4000 */
-		#{store_sym} = #{_this}readVideoReg(#{addrsym});
+		#{store_sym} = this.readVideoReg(#{addrsym});
 		break;
 	}
 	case 2:{ /* 0x4000 -> 0x6000 */
@@ -37,29 +37,29 @@ switch((#{addrsym} & 0xE000) >> 13){
 		break;
 	}
 	case 4:{ /* 0x8000 -> 0xA000 */
-		#{store_sym} = #{_this}rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
+		#{store_sym} = rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
 		break;
 	}
 	case 5:{ /* 0xA000 -> 0xC000 */
-		#{store_sym} = #{_this}rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
+		#{store_sym} = rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
 		break;
 	}
 	case 6:{ /* 0xC000 -> 0xE000 */
-		#{store_sym} = #{_this}rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
+		#{store_sym} = rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
 		break;
 	}
 	case 7:{ /* 0xE000 -> 0xffff */
-		#{store_sym} = #{_this}rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
+		#{store_sym} = rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
 		break;
 	}
 }
 """.gsub(/[\r\n]/, '');
 	end
 	def self.Push(val)
-		" /* ::CPU::Push */ this.ram[0x0100 | (#{Target}.SP-- & 0xff)] = #{val};";
+		" /* ::CPU::Push */ ram[0x0100 | (#{Target}.SP-- & 0xff)] = #{val};";
 	end
 	def self.Pop()
-		"/* ::CPU::Pop */ (this.ram[0x0100 | (++#{Target}.SP & 0xff)])";
+		"/* ::CPU::Pop */ (ram[0x0100 | (++#{Target}.SP & 0xff)])";
 	end
 	module Middle
 	    TransTable = [0xff]*0x100;
@@ -187,15 +187,16 @@ switch((#{addrsym} & 0xE000) >> 13){
 			 * @const
 			 * @type {Number}
 			 */
+			var addr_base = pc+1;
 			var addr;
-			#{CPU::MemRead("pc+1", "addr")}
+			#{CPU::MemRead("addr_base", "addr")}
 			#{excelPC 2}
 """
 		end
 		def self.ZeropageX()
 """
-			var addr_base;
-			#{CPU::MemRead("pc+1", "addr_base")}
+			var addr_base = pc+1;
+			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
 			 * @const
 			 * @type {Number}
@@ -206,8 +207,8 @@ switch((#{addrsym} & 0xE000) >> 13){
 		end
 		def self.ZeropageY()
 """
-			var addr_base;
-			#{CPU::MemRead("pc+1", "addr_base")}
+			var addr_base = pc+1;
+			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
 			 * @const
 			 * @type {Number}
@@ -218,10 +219,10 @@ switch((#{addrsym} & 0xE000) >> 13){
 		end
 		def self.Absolute()
 """
-			var addr_base1;
-			#{CPU::MemRead("pc+1", "addr_base1")}
-			var addr_base2;
-			#{CPU::MemRead("pc+2", "addr_base2")}
+			var addr_base1 = pc+1;
+			#{CPU::MemRead("addr_base1", "addr_base1")}
+			var addr_base2 = pc+2;
+			#{CPU::MemRead("addr_base2", "addr_base2")}
 			/**
 			 * @const
 			 * @type {Number}
@@ -232,10 +233,10 @@ switch((#{addrsym} & 0xE000) >> 13){
 		end
 		def self.AbsoluteX()
 """
-			var addr_base1;
-			#{CPU::MemRead("pc+1", "addr_base1")}
-			var addr_base2;
-			#{CPU::MemRead("pc+2", "addr_base2")}
+			var addr_base1 = pc+1;
+			#{CPU::MemRead("addr_base1", "addr_base1")}
+			var addr_base2 = pc+2;
+			#{CPU::MemRead("addr_base2", "addr_base2")}
 			/**
 			 * @const
 			 * @type {Number}
@@ -247,10 +248,10 @@ switch((#{addrsym} & 0xE000) >> 13){
 		end
 		def self.AbsoluteY()
 """
-			var addr_base1;
-			#{CPU::MemRead("pc+1", "addr_base1")}
-			var addr_base2;
-			#{CPU::MemRead("pc+2", "addr_base2")}
+			var addr_base1 = pc+1;
+			#{CPU::MemRead("addr_base1", "addr_base1")}
+			var addr_base2 = pc+2;
+			#{CPU::MemRead("addr_base2", "addr_base2")}
 			/**
 			 * @const
 			 * @type {Number}
@@ -262,16 +263,16 @@ switch((#{addrsym} & 0xE000) >> 13){
 		end
 		def self.Indirect()
 """
-			var addr_base1;
-			#{CPU::MemRead("pc+1", "addr_base1")}
-			var addr_base2;
-			#{CPU::MemRead("pc+2", "addr_base2")}
+			var addr_base1 = pc+1;
+			#{CPU::MemRead("addr_base1", "addr_base1")}
+			var addr_base2 = pc+2;
+			#{CPU::MemRead("addr_base2", "addr_base2")}
 			var addr_base3 = (addr_base1 | (addr_base2 << 8));
 
 			var addr_base4;
 			#{CPU::MemRead("addr_base3", "addr_base4")}
-			var addr_base5;
-			#{CPU::MemRead("(addr_base3 & 0xff00) | ((addr_base3+1) & 0x00ff) /* bug of NES */", "addr_base5")}
+			var addr_base5 = (addr_base3 & 0xff00) | ((addr_base3+1) & 0x00ff) /* bug of NES */;
+			#{CPU::MemRead("addr_base5", "addr_base5")}
 			/**
 			 * @const
 			 * @type {Number}
@@ -286,14 +287,14 @@ switch((#{addrsym} & 0xE000) >> 13){
 			 * @const
 			 * @type {Number}
 			 */
-			var addr_base;
-			#{CPU::MemRead("pc+1", "addr_base")}
+			var addr_base = pc+1;
+			#{CPU::MemRead("addr_base", "addr_base")}
 			addr_base = (addr_base + #{Target}.X) & 0xff;
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var addr = this.ram[addr_base] | (this.ram[(addr_base + 1) & 0xff] << 8);
+			var addr = ram[addr_base] | (ram[(addr_base + 1) & 0xff] << 8);
 			#{excelPC 2}
 """
 		end
@@ -303,13 +304,13 @@ switch((#{addrsym} & 0xE000) >> 13){
 			 * @const
 			 * @type {Number}
 			 */
-			var addr_base;
-			#{CPU::MemRead("pc+1", "addr_base")}
+			var addr_base = pc+1;
+			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var addr = (this.ram[addr_base] | (this.ram[(addr_base + 1) & 0xff] << 8)) + #{Target}.Y;
+			var addr = (ram[addr_base] | (ram[(addr_base + 1) & 0xff] << 8)) + #{Target}.Y;
 			#{excelPC 2}
 """
 		end
@@ -319,8 +320,8 @@ switch((#{addrsym} & 0xE000) >> 13){
 			 * @const
 			 * @type {Number}
 			 */
-			var addr_base;
-			#{CPU::MemRead("pc+1", "addr_base")}
+			var addr_base = pc+1;
+			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
 			 * @const
 			 * @type {Number}
@@ -775,7 +776,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			#{::CPU::Push "(#{Target}.P)"}
 			#{Target}.P |= 0x#{Opcode::Flag[:I].to_s(16)};
 			//#{Target}.PC = (#{Target}.read(0xFFFE) | (#{Target}.read(0xFFFF) << 8));
-			#{Target}.PC = (this.rom[31][0x3FE] | (this.rom[31][0x3FF] << 8));
+			#{Target}.PC = (rom[31][0x3FE] | (rom[31][0x3FF] << 8));
 """
 		end
 		def self.CrossCheck

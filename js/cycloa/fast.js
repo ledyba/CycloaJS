@@ -83,13 +83,14 @@ this.P |= 32; //必ずセットしてあるらしい。プログラム側から�
  * @type {Number}
  */
 var clockDelta = 0;
-
+var rom = this.rom; var ram = this.ram;
+var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;
 if(this.NMI){
 	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
 	//from http://nesdev.parodius.com/6502_cpu.txt
 	clockDelta += (7);;
 	this.P &= 239;
-	 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = (this.PC >> 8) & 0xFF;	 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = this.PC & 0xFF;	 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = this.P;;
+	 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = (this.PC >> 8) & 0xFF;	 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = this.PC & 0xFF;	 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = this.P;;
 	this.P |= 4;
 	//this.PC = (this.read(0xFFFA) | (this.read(0xFFFB) << 8));
 	this.PC = (this.rom[31][0x3FA]| (this.rom[31][0x3FB] << 8));
@@ -103,7 +104,7 @@ if(this.NMI){
 	}
 	clockDelta += (7);;
 	this.P &= 239;
-	 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = (this.PC >> 8) & 0xFF;	 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = this.PC & 0xFF;	 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = this.P;	this.P |= 4;
+	 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = (this.PC >> 8) & 0xFF;	 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = this.PC & 0xFF;	 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = this.P;	this.P |= 4;
 	//this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
 	this.PC = (this.rom[31][0x3FE] | (this.rom[31][0x3FF] << 8));
 }
@@ -121,7 +122,7 @@ if(this.needStatusRewrite){
 			var pc = this.PC;
 
 var opbyte;
-var ___mem___addr___ = pc;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		opbyte = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		opbyte = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		opbyte = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		opbyte = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		opbyte = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		opbyte = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		opbyte = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		opbyte = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}/**
+switch((pc & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		opbyte = ram[pc & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		opbyte = this.readVideoReg(pc);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		opbyte = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		opbyte = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		opbyte = rom[(pc>>10) & 31][pc & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		opbyte = rom[(pc>>10) & 31][pc & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		opbyte = rom[(pc>>10) & 31][pc & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		opbyte = rom[(pc>>10) & 31][pc & 0x3ff];		break;	}}/**
  * @const
  * @type {Number}
  */
@@ -146,8 +147,9 @@ switch( inst & 15 ){
 			 * @const
 			 * @type {Number}
 			 */
+			var addr_base = pc+1;
 			var addr;
-			var ___mem___addr___ = pc+1;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			switch((addr_base & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr = ram[addr_base & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr = this.readVideoReg(addr_base);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}}
 			
 			this.PC = pc + 2;
 
@@ -155,8 +157,8 @@ switch( inst & 15 ){
 	}
 		case 2: { /* ZeropageX */
 			
-			var addr_base;
-			var ___mem___addr___ = pc+1;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var addr_base = pc+1;
+			switch((addr_base & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base = ram[addr_base & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base = this.readVideoReg(addr_base);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -169,8 +171,8 @@ switch( inst & 15 ){
 	}
 		case 3: { /* ZeropageY */
 			
-			var addr_base;
-			var ___mem___addr___ = pc+1;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var addr_base = pc+1;
+			switch((addr_base & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base = ram[addr_base & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base = this.readVideoReg(addr_base);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -183,10 +185,10 @@ switch( inst & 15 ){
 	}
 		case 4: { /* Absolute */
 			
-			var addr_base1;
-			var ___mem___addr___ = pc+1;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base1 = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base1 = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base1 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base1 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
-			var addr_base2;
-			var ___mem___addr___ = pc+2;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base2 = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base2 = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base2 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base2 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var addr_base1 = pc+1;
+			switch((addr_base1 & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base1 = ram[addr_base1 & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base1 = this.readVideoReg(addr_base1);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base1 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base1 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}}
+			var addr_base2 = pc+2;
+			switch((addr_base2 & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base2 = ram[addr_base2 & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base2 = this.readVideoReg(addr_base2);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base2 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base2 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -199,10 +201,10 @@ switch( inst & 15 ){
 	}
 		case 5: { /* AbsoluteX */
 			
-			var addr_base1;
-			var ___mem___addr___ = pc+1;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base1 = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base1 = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base1 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base1 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
-			var addr_base2;
-			var ___mem___addr___ = pc+2;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base2 = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base2 = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base2 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base2 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var addr_base1 = pc+1;
+			switch((addr_base1 & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base1 = ram[addr_base1 & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base1 = this.readVideoReg(addr_base1);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base1 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base1 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}}
+			var addr_base2 = pc+2;
+			switch((addr_base2 & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base2 = ram[addr_base2 & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base2 = this.readVideoReg(addr_base2);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base2 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base2 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -216,10 +218,10 @@ switch( inst & 15 ){
 	}
 		case 6: { /* AbsoluteY */
 			
-			var addr_base1;
-			var ___mem___addr___ = pc+1;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base1 = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base1 = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base1 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base1 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
-			var addr_base2;
-			var ___mem___addr___ = pc+2;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base2 = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base2 = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base2 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base2 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var addr_base1 = pc+1;
+			switch((addr_base1 & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base1 = ram[addr_base1 & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base1 = this.readVideoReg(addr_base1);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base1 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base1 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}}
+			var addr_base2 = pc+2;
+			switch((addr_base2 & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base2 = ram[addr_base2 & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base2 = this.readVideoReg(addr_base2);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base2 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base2 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -233,16 +235,16 @@ switch( inst & 15 ){
 	}
 		case 7: { /* Indirect */
 			
-			var addr_base1;
-			var ___mem___addr___ = pc+1;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base1 = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base1 = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base1 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base1 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base1 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
-			var addr_base2;
-			var ___mem___addr___ = pc+2;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base2 = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base2 = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base2 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base2 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base2 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var addr_base1 = pc+1;
+			switch((addr_base1 & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base1 = ram[addr_base1 & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base1 = this.readVideoReg(addr_base1);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base1 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base1 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base1 = rom[(addr_base1>>10) & 31][addr_base1 & 0x3ff];		break;	}}
+			var addr_base2 = pc+2;
+			switch((addr_base2 & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base2 = ram[addr_base2 & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base2 = this.readVideoReg(addr_base2);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base2 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base2 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base2 = rom[(addr_base2>>10) & 31][addr_base2 & 0x3ff];		break;	}}
 			var addr_base3 = (addr_base1 | (addr_base2 << 8));
 
 			var addr_base4;
-			var ___mem___addr___ = addr_base3;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base4 = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base4 = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base4 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base4 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base4 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base4 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base4 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base4 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
-			var addr_base5;
-			var ___mem___addr___ = (addr_base3 & 0xff00) | ((addr_base3+1) & 0x00ff) /* bug of NES */;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base5 = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base5 = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base5 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base5 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base5 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base5 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base5 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base5 = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			switch((addr_base3 & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base4 = ram[addr_base3 & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base4 = this.readVideoReg(addr_base3);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base4 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base4 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base4 = rom[(addr_base3>>10) & 31][addr_base3 & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base4 = rom[(addr_base3>>10) & 31][addr_base3 & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base4 = rom[(addr_base3>>10) & 31][addr_base3 & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base4 = rom[(addr_base3>>10) & 31][addr_base3 & 0x3ff];		break;	}}
+			var addr_base5 = (addr_base3 & 0xff00) | ((addr_base3+1) & 0x00ff) /* bug of NES */;
+			switch((addr_base5 & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base5 = ram[addr_base5 & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base5 = this.readVideoReg(addr_base5);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base5 = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base5 = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base5 = rom[(addr_base5>>10) & 31][addr_base5 & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base5 = rom[(addr_base5>>10) & 31][addr_base5 & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base5 = rom[(addr_base5>>10) & 31][addr_base5 & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base5 = rom[(addr_base5>>10) & 31][addr_base5 & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -259,14 +261,14 @@ switch( inst & 15 ){
 			 * @const
 			 * @type {Number}
 			 */
-			var addr_base;
-			var ___mem___addr___ = pc+1;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var addr_base = pc+1;
+			switch((addr_base & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base = ram[addr_base & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base = this.readVideoReg(addr_base);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}}
 			addr_base = (addr_base + this.X) & 0xff;
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var addr = this.ram[addr_base] | (this.ram[(addr_base + 1) & 0xff] << 8);
+			var addr = ram[addr_base] | (ram[(addr_base + 1) & 0xff] << 8);
 			
 			this.PC = pc + 2;
 
@@ -278,13 +280,13 @@ switch( inst & 15 ){
 			 * @const
 			 * @type {Number}
 			 */
-			var addr_base;
-			var ___mem___addr___ = pc+1;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var addr_base = pc+1;
+			switch((addr_base & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base = ram[addr_base & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base = this.readVideoReg(addr_base);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var addr = (this.ram[addr_base] | (this.ram[(addr_base + 1) & 0xff] << 8)) + this.Y;
+			var addr = (ram[addr_base] | (ram[(addr_base + 1) & 0xff] << 8)) + this.Y;
 			
 			this.PC = pc + 2;
 
@@ -296,8 +298,8 @@ switch( inst & 15 ){
 			 * @const
 			 * @type {Number}
 			 */
-			var addr_base;
-			var ___mem___addr___ = pc+1;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var addr_base = pc+1;
+			switch((addr_base & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		addr_base = ram[addr_base & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		addr_base = this.readVideoReg(addr_base);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		addr_base = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		addr_base = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		addr_base = rom[(addr_base>>10) & 31][addr_base & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -321,19 +323,19 @@ switch( (inst & 65520) >> 4 ){
 		case 0: {  /* LDA */
 			
 var tmpA;
-var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		tmpA = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		tmpA = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		tmpA = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		tmpA = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		tmpA = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		tmpA = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		tmpA = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		tmpA = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		tmpA = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		tmpA = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		tmpA = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		tmpA = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		tmpA = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		tmpA = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		tmpA = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		tmpA = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 /* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = tmpA];
 		break;}
 		case 1: {  /* LDX */
 			
 var tmpX;
-var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		tmpX = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		tmpX = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		tmpX = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		tmpX = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		tmpX = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		tmpX = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		tmpX = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		tmpX = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		tmpX = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		tmpX = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		tmpX = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		tmpX = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		tmpX = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		tmpX = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		tmpX = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		tmpX = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 /* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = tmpX];
 		break;}
 		case 2: {  /* LDY */
 			
 var tmpY;
-var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		tmpY = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		tmpY = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		tmpY = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		tmpY = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		tmpY = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		tmpY = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		tmpY = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		tmpY = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		tmpY = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		tmpY = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		tmpY = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		tmpY = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		tmpY = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		tmpY = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		tmpY = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		tmpY = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 /* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = tmpY];
 		break;}
 		case 3: {  /* STA */
@@ -370,7 +372,7 @@ var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ 
 			 * @const
 			 * @type {Number}
 			 */
-			var val; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var val; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -388,7 +390,7 @@ var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ 
 		break;}
 		case 13: {  /* AND */
 			
-var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}};
+var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}};
 /* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A &= mem];
 		break;}
 		case 14: {  /* ASL */
@@ -397,7 +399,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			 * @const
 			 * @type {Number}
 			 */
-			var val; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var val; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			this.P = (this.P & 0xFE) | val >> 7;
 			/**
 			 * @const
@@ -423,14 +425,14 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			 * @const
 			 * @type {Number}
 			 */
-			var val; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var val; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			this.P = (this.P & 0x3d)
 				| (val & 0xc0)
 				| (this.ZNFlagCache[this.A & val] & 0x2);
 		break;}
 		case 17: {  /* CMP */
 			
-			var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -441,7 +443,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 		break;}
 		case 18: {  /* CPX */
 			
-			var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -452,7 +454,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 		break;}
 		case 19: {  /* CPY */
 			
-			var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -467,7 +469,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			 * @const
 			 * @type {Number}
 			 */
-			var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			var val = (mem-1) & 0xff;
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
 			this.write(addr, val);
@@ -478,7 +480,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = (this.Y-1)&0xff];		break;}
 		case 23: {  /* EOR */
 			
-var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}};
+var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}};
 /* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A ^= mem];
 		break;}
 		case 24: {  /* INC */
@@ -487,7 +489,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			 * @const
 			 * @type {Number}
 			 */
-			var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			var val = (mem+1) & 0xff;
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
 			this.write(addr, val);
@@ -502,7 +504,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			 * @const
 			 * @type {Number}
 			 */
-			var val; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var val; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			this.P = (this.P & 0xFE) | (val & 0x01);
 			/**
 			 * @const
@@ -519,7 +521,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 		break;}
 		case 29: {  /* ORA */
 			
-var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}};
+var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}};
 /* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A |= mem];
 		break;}
 		case 30: {  /* ROL */
@@ -528,7 +530,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			 * @const
 			 * @type {Number}
 			 */
-			var val; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var val; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -564,7 +566,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			 * @const
 			 * @type {Number}
 			 */
-			var val; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var val; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -614,7 +616,7 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			 * @const
 			 * @type {Number}
 			 */
-			var val; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = this.ram[___mem___addr___ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(___mem___addr___);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = this.rom[(___mem___addr___>>10) & 31][___mem___addr___ & 0x3ff];		break;	}}
+			var val; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		val = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		val = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		val = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		val = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		val = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			/**
 			 * @const
 			 * @type {Number}
@@ -631,21 +633,21 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = newA];
 		break;}
 		case 35: {  /* PHA */
-			 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = this.A;		break;}
+			 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = this.A;		break;}
 		case 36: {  /* PHP */
 			
 			// bug of 6502! from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-			 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = this.P | 0x10;
+			 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = this.P | 0x10;
 		break;}
 		case 37: {  /* PLA */
-			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = /* ::CPU::Pop */ (this.ram[0x0100 | (++this.SP & 0xff)])];		break;}
+			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.A = /* ::CPU::Pop */ (ram[0x0100 | (++this.SP & 0xff)])];		break;}
 		case 38: {  /* PLP */
 			
 			/**
 			 * @const
 			 * @type {Number}
 			 */
-			var val = /* ::CPU::Pop */ (this.ram[0x0100 | (++this.SP & 0xff)]);
+			var val = /* ::CPU::Pop */ (ram[0x0100 | (++this.SP & 0xff)]);
 			if((this.P & 0x4) && !(val & 0x4)){
 				// FIXME: ここどうする？？
 				this.needStatusRewrite = true;
@@ -699,24 +701,24 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 				return;
 			}*/
 			this.PC++;
-			 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = ((this.PC >> 8) & 0xFF);
-			 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = (this.PC & 0xFF);
+			 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = ((this.PC >> 8) & 0xFF);
+			 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = (this.PC & 0xFF);
 			this.P |= 0x10;
-			 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = (this.P);
+			 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = (this.P);
 			this.P |= 0x4;
 			//this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
-			this.PC = (this.rom[31][0x3FE] | (this.rom[31][0x3FF] << 8));
+			this.PC = (rom[31][0x3FE] | (rom[31][0x3FF] << 8));
 		break;}
 		case 47: {  /* NOP */
 					break;}
 		case 48: {  /* RTS */
 			
-			this.PC = (/* ::CPU::Pop */ (this.ram[0x0100 | (++this.SP & 0xff)]) | (/* ::CPU::Pop */ (this.ram[0x0100 | (++this.SP & 0xff)]) << 8)) + 1;
+			this.PC = (/* ::CPU::Pop */ (ram[0x0100 | (++this.SP & 0xff)]) | (/* ::CPU::Pop */ (ram[0x0100 | (++this.SP & 0xff)]) << 8)) + 1;
 		break;}
 		case 49: {  /* RTI */
 			
-			this.P = /* ::CPU::Pop */ (this.ram[0x0100 | (++this.SP & 0xff)]);
-			this.PC = /* ::CPU::Pop */ (this.ram[0x0100 | (++this.SP & 0xff)]) | (/* ::CPU::Pop */ (this.ram[0x0100 | (++this.SP & 0xff)]) << 8);
+			this.P = /* ::CPU::Pop */ (ram[0x0100 | (++this.SP & 0xff)]);
+			this.PC = /* ::CPU::Pop */ (ram[0x0100 | (++this.SP & 0xff)]) | (/* ::CPU::Pop */ (ram[0x0100 | (++this.SP & 0xff)]) << 8);
 		break;}
 		case 50: {  /* JMP */
 			
@@ -729,8 +731,8 @@ var mem; var ___mem___addr___ = addr;switch((___mem___addr___ & 0xE000) >> 13){	
 			 * @type {Number}
 			 */
 			var stored_pc = this.PC-1;
-			 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = ((stored_pc >> 8) & 0xFF);
-			 /* ::CPU::Push */ this.ram[0x0100 | (this.SP-- & 0xff)] = (stored_pc & 0xFF);
+			 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = ((stored_pc >> 8) & 0xFF);
+			 /* ::CPU::Push */ ram[0x0100 | (this.SP-- & 0xff)] = (stored_pc & 0xFF);
 			this.PC = addr;
 		break;}
 		case 52: {  /* BCC */
@@ -1107,7 +1109,7 @@ this.spriteEval = function() {
 };
 
 this.buildBgLine = function(){
-	if(!this.backgroundVisibility){
+	var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;	if(!this.backgroundVisibility){
 		return;
 	}
 	/**
@@ -1140,7 +1142,7 @@ this.buildBgLine = function(){
 		 * @type {number} uint16_t
 		 * @const
 		 */
-		var tileNo = this.readVram(nameTableAddr);
+		var tileNo = (((nameTableAddr & 0x3f00) !== 0x3f00) ? (nameTableAddr < 0x2000 ? pattern[(nameTableAddr >> 9) & 0xf][nameTableAddr & 0x1ff] : vramMirroring[(nameTableAddr >> 10) & 0x3][nameTableAddr & 0x3ff]) : ((nameTableAddr & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[nameTableAddr & 31]) );
 		/**
 		 * @type {number} uint16_t
 		 * @const
@@ -1150,11 +1152,16 @@ this.buildBgLine = function(){
 		 * @type {number} uint8_t
 		 * @const
 		 */
+		var palAddr = ((nameTableAddr & 0x2f00) | 0x3c0 | ((tileYofScreen & 0x1C) << 1) | ((nameTableAddr >> 2) & 7));
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
 		var palNo =
 				(
-					this.readVram((nameTableAddr & 0x2f00) | 0x3c0 | ((tileYofScreen & 0x1C) << 1) | ((nameTableAddr >> 2) & 7))
-								>> (((tileYofScreen & 2) << 1) | (nameTableAddr & 2))
+					(((palAddr & 0x3f00) !== 0x3f00) ? (palAddr < 0x2000 ? pattern[(palAddr >> 9) & 0xf][palAddr & 0x1ff] : vramMirroring[(palAddr >> 10) & 0x3][palAddr & 0x3ff]) : ((palAddr & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[palAddr & 31]) )								>> (((tileYofScreen & 2) << 1) | (nameTableAddr & 2))
 				) & 0x3;
+
 		//タイルのサーフェイスデータを取得
 		/**
 		 * @type {number} uint16_t
@@ -1165,12 +1172,17 @@ this.buildBgLine = function(){
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var firstPlane = this.readVram(off);
+		var firstPlane = (((off & 0x3f00) !== 0x3f00) ? (off < 0x2000 ? pattern[(off >> 9) & 0xf][off & 0x1ff] : vramMirroring[(off >> 10) & 0x3][off & 0x3ff]) : ((off & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[off & 31]) );
 		/**
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var secondPlane = this.readVram(off+8);
+		var secondPlaneAddr = off+8;
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var secondPlane = (((secondPlaneAddr & 0x3f00) !== 0x3f00) ? (secondPlaneAddr < 0x2000 ? pattern[(secondPlaneAddr >> 9) & 0xf][secondPlaneAddr & 0x1ff] : vramMirroring[(secondPlaneAddr >> 10) & 0x3][secondPlaneAddr & 0x3ff]) : ((secondPlaneAddr & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[secondPlaneAddr & 31]) );
 		/**
 		 * @type {number} uint8_t
 		 * @const
@@ -1184,7 +1196,7 @@ this.buildBgLine = function(){
 			 */
 			var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1);
 			if(color != 0){
-				this.screenBuffer8[buffOffset+renderX] = this.palette[paletteOffset+color] | 128;
+				screenBuffer8[buffOffset+renderX] = palette[paletteOffset+color] | 128;
 			}
 			renderX++;
 			if(renderX >= 256){
@@ -1358,32 +1370,64 @@ this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
 	switch(addr & 0x07)
 	{
 		/* PPU Control and Status Registers */
-		case 0x00: //2000h - PPU Control Register 1 (W)
-			this.analyzePPUControlRegister1(value);
+		case 0x00: { //2000h - PPU Control Register 1 (W)
+			this.executeNMIonVBlank = ((value & 0x80) === 0x80) ? true : false;
+			this.spriteHeight = ((value & 0x20) === 0x20) ? 16 : 8;
+			this.patternTableAddressBackground = (value & 0x10) << 8;
+			this.patternTableAddress8x8Sprites = (value & 0x8) << 9;
+			this.vramIncrementSize = ((value & 0x4) === 0x4) ? 32 : 1;
+			this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x73ff) | ((value & 0x3) << 10);
 			break;
-		case 0x01: //2001h - PPU Control Register 2 (W)
-			this.analyzePPUControlRegister2(value);
+		}
+		case 0x01: { //2001h - PPU Control Register 2 (W)
+			this.colorEmphasis = value >> 5; //FIXME: この扱い、どーする？
+			this.spriteVisibility = ((value & 0x10) === 0x10) ? true : false;
+			this.backgroundVisibility = ((value & 0x08) == 0x08) ? true : false;
+			this.spriteClipping = ((value & 0x04) === 0x04) ? false : true;
+			this.backgroundClipping = ((value & 0x2) === 0x02) ? false : true;
+			this.paletteMask = ((value & 0x1) === 0x01) ? 0x30 : 0x3f;
 			break;
+		}
 		//case 0x02: //2002h - PPU Status Register (R)
 		/* PPU SPR-RAM Access Registers */
-		case 0x03: //2003h - SPR-RAM Address Register (W)
-			this.analyzeSpriteAddrRegister(value);
+		case 0x03: { //2003h - SPR-RAM Address Register (W)
+			this.spriteAddr = value;
 			break;
-		case 0x04: //2004h - SPR-RAM Data Register (Read/Write)
-			this.writeSpriteDataRegister(value);
+		}
+		case 0x04: { //2004h - SPR-RAM Data Register (Read/Write)
+			this.spRam[this.spriteAddr] = value;
+			this.spriteAddr = (this.spriteAddr+1) & 0xff;
 			break;
+		}
 		/* PPU VRAM Access Registers */
-		case 0x05: //PPU Background Scrolling Offset (W2)
-			this.analyzePPUBackgroundScrollingOffset(value);
+		case 0x05: { //PPU Background Scrolling Offset (W2)
+			if(this.scrollRegisterWritten){ //Y
+				this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x8C1F) | ((value & 0xf8) << 2) | ((value & 7) << 12);
+			}else{ //X
+				this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0xFFE0) | value >> 3;
+				this.horizontalScrollBits = value & 7;
+			}
+			this.scrollRegisterWritten = !this.scrollRegisterWritten;
 			break;
-		case 0x06: //VRAM Address Register (W2)
-			this.analyzeVramAddrRegister(value);
+		}
+		case 0x06: { //VRAM Address Register (W2)
+			if(this.vramAddrRegisterWritten){
+				this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x7f00) | value;
+				this.vramAddrRegister = this.vramAddrReloadRegister & 0x3fff;
+			} else {
+				this.vramAddrReloadRegister =(this.vramAddrReloadRegister & 0x00ff) | ((value & 0x7f) << 8);
+			}
+			this.vramAddrRegisterWritten = !this.vramAddrRegisterWritten;
 			break;
-		case 0x07: //VRAM Read/Write Data Register (RW)
-			this.writeVramDataRegister(value);
+		}
+		case 0x07: { //VRAM Read/Write Data Register (RW)
+			this.writeVram(this.vramAddrRegister, value);
+			this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
 			break;
-		default:
-			throw cycloa.err.CoreException("Invalid addr: 0x"+addr.toString(16));
+		}
+		default: {
+			throw new cycloa.err.CoreException("Invalid addr: 0x"+addr.toString(16));
+		}
 	}
 };
 
@@ -1394,150 +1438,74 @@ this.readVideoReg = function(/* uint16_t */ addr)
 		/* PPU Control and Status Registers */
 		//case 0x00: //2000h - PPU Control Register 1 (W)
 		//case 0x01: //2001h - PPU Control Register 2 (W)
-		case 0x02: //2002h - PPU Status Register (R)
-			return this.buildPPUStatusRegister();
+		case 0x02: { //2002h - PPU Status Register (R)
+			//from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
+			this.vramAddrRegisterWritten = false;
+			this.scrollRegisterWritten = false;
+			//Reading resets the 1st/2nd-write flipflop (used by Port 2005h and 2006h).
+			/**
+			 * @const
+			 * @type {number} uint8_t
+			 */
+			var result =
+					((this.nowOnVBnank) ? 128 : 0)
+				|   ((this.sprite0Hit) ? 64 : 0)
+				|   ((this.lostSprites) ? 32 : 0);
+			this.nowOnVBnank = false;
+			return result;
+		}
 		/* PPU SPR-RAM Access Registers */
 		//case 0x03: //2003h - SPR-RAM Address Register (W)
-		case 0x04: //2004h - SPR-RAM Data Register (Read/Write)
-			return this.readSpriteDataRegister();
+		case 0x04: { //2004h - SPR-RAM Data Register (Read/Write)
+			return this.spRam[this.spriteAddr];
+		}
 		/* PPU VRAM Access Registers */
 		//case 0x05: //PPU Background Scrolling Offset (W2)
 		//case 0x06: //VRAM Address Register (W2)
-		case 0x07: //VRAM Read/Write Data Register (RW)
-			return this.readVramDataRegister();
-		default:
+		case 0x07: { //VRAM Read/Write Data Register (RW)
+			var vramAddrRegister = this.vramAddrRegister;
+			if((vramAddrRegister & 0x3f00) !== 0x3f00){
+				/**
+				 * @const
+				 * @type {number} uint8_t */
+				var ret = this.vramBuffer;
+				this.vramBuffer = (vramAddrRegister < 0x2000 ? pattern[(vramAddrRegister >> 9) & 0xf][vramAddrRegister & 0x1ff] : vramMirroring[(vramAddrRegister >> 10) & 0x3][vramAddrRegister & 0x3ff]);
+				this.vramAddrRegister = (vramAddrRegister + this.vramIncrementSize) & 0x3fff;
+				return ret;
+			} else {
+				/**
+				 * @const
+				 * @type {number} uint8_t */
+				var ret = ((vramAddrRegister & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[vramAddrRegister & 31]);
+				this.vramBuffer = (vramAddrRegister < 0x2000 ? pattern[(vramAddrRegister >> 9) & 0xf][vramAddrRegister & 0x1ff] : vramMirroring[(vramAddrRegister >> 10) & 0x3][vramAddrRegister & 0x3ff]); //ミラーされてるVRAMにも同時にアクセスしなければならない。
+				this.vramAddrRegister = (vramAddrRegister + this.vramIncrementSize) & 0x3fff;
+				return ret;
+			}
+		}
+		default: {
 			return 0;
 //			throw EmulatorException() << "Invalid addr: 0x" << std::hex << addr;
+		}
 	}
 };
 
-this.writeVramDataRegister = function(/*uint8_t*/ value)
-{
-	this.writeVram(this.vramAddrRegister, value);
-	this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
-}
 
-this.readSpriteDataRegister = function(){
-	return this.spRam[this.spriteAddr];
-};
-
-this.readVramDataRegister = function()
-{
-	if((this.vramAddrRegister & 0x3f00) === 0x3f00){
-		/**
-		 * @const
-		 * @type {number} uint8_t */
-		var ret = this.readPalette(vramAddrRegister);
-		this.vramBuffer = this.readVramExternal(this.vramAddrRegister); //ミラーされてるVRAMにも同時にアクセスしなければならない。
-		this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
-		return ret;
-	}else{
-		/**
-		 * @const
-		 * @type {number} uint8_t */
-		var ret = this.vramBuffer;
-		this.vramBuffer = this.readVramExternal(this.vramAddrRegister);
-		this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
-		return ret;
-	}
-};
-
-this.buildPPUStatusRegister = function()
-{
-	//from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
-	this.vramAddrRegisterWritten = false;
-	this.scrollRegisterWritten = false;
-	//Reading resets the 1st/2nd-write flipflop (used by Port 2005h and 2006h).
-	/**
-	 * @const
-	 * @type {number} uint8_t
-	 */
-	var result =
-			((this.nowOnVBnank) ? 128 : 0)
-		|   ((this.sprite0Hit) ? 64 : 0)
-		|   ((this.lostSprites) ? 32 : 0);
-	this.nowOnVBnank = false;
-	return result;
-};
-
-this.analyzePPUControlRegister1 = function(/* uint8_t */ value)
-{
-	this.executeNMIonVBlank = ((value & 0x80) === 0x80) ? true : false;
-	this.spriteHeight = ((value & 0x20) === 0x20) ? 16 : 8;
-	this.patternTableAddressBackground = (value & 0x10) << 8;
-	this.patternTableAddress8x8Sprites = (value & 0x8) << 9;
-	this.vramIncrementSize = ((value & 0x4) === 0x4) ? 32 : 1;
-	this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x73ff) | ((value & 0x3) << 10);
-};
-this.analyzePPUControlRegister2 = function(/* uint8_t */ value)
-{
-	this.colorEmphasis = value >> 5; //FIXME: この扱い、どーする？
-	this.spriteVisibility = ((value & 0x10) === 0x10) ? true : false;
-	this.backgroundVisibility = ((value & 0x08) == 0x08) ? true : false;
-	this.spriteClipping = ((value & 0x04) === 0x04) ? false : true;
-	this.backgroundClipping = ((value & 0x2) === 0x02) ? false : true;
-	this.paletteMask = ((value & 0x1) === 0x01) ? 0x30 : 0x3f;
-};
-this.analyzePPUBackgroundScrollingOffset = function(/* uint8_t */ value)
-{
-	if(this.scrollRegisterWritten){ //Y
-		this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x8C1F) | ((value & 0xf8) << 2) | ((value & 7) << 12);
-	}else{ //X
-		this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0xFFE0) | value >> 3;
-		this.horizontalScrollBits = value & 7;
-	}
-	this.scrollRegisterWritten = !this.scrollRegisterWritten;
-};
-this.analyzeVramAddrRegister = function(/* uint8_t */ value)
-{
-	if(this.vramAddrRegisterWritten){
-		this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x7f00) | value;
-		this.vramAddrRegister = this.vramAddrReloadRegister & 0x3fff;
-	} else {
-		this.vramAddrReloadRegister =(this.vramAddrReloadRegister & 0x00ff) | ((value & 0x7f) << 8);
-	}
-	this.vramAddrRegisterWritten = !this.vramAddrRegisterWritten;
-};
-this.analyzeSpriteAddrRegister = function(/* uint8_t */ value)
-{
-	this.spriteAddr = value;
-};
-
-this.readVramExternal = function(/* uint16_t */ addr)
-{
-	if(addr < 0x2000) {
-		return this.pattern[(addr >> 9) & 0xf][addr & 0x1ff];
-	} else {
-		return this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff];
-	}
-}
 this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
 	if(addr < 0x2000) {
-		this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value; //FIXME
+		this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
 	} else {
 		this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
 	}
 };
 
-this.readVram = function(/* uint16_t */ addr) {
-	if((addr & 0x3f00) == 0x3f00){ /* readPalette */
-		if((addr & 0x3) == 0){
-			return this.palette[32 + ((addr >> 2) & 3)];
-		}else{
-			return this.palette[addr & 31];
-		}
-	}else{
-		return this.readVramExternal(addr);
-	}
-};
 
 this.writeVram = function(/* uint16_t */ addr, /* uint8_t */ value) {
 	if((addr & 0x3f00) !== 0x3f00){
 		this.writeVramExternal(addr, value);
 	}else{
 		if((addr & 0x3) === 0){ /* writePalette */
-			this.palette[32 + ((addr >> 2) & 3)] = value & 0x3f;
+			this.palette[32 | ((addr >> 2) & 3)] = value & 0x3f;
 		}else{
 			this.palette[addr & 31] = value & 0x3f;
 		}

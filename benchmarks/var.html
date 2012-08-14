@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="../test/probe.js"></script>
+	<script>
+		"use strict";
+		function doBench() {
+			log("with var: "+cycloa.probe.measure(function(){
+				var total = 0;
+				for(var i=0;i<5000000000;++i){
+					var val = i & 0xff;
+					total += i;
+				}
+			}));
+			log("without var: "+cycloa.probe.measure(function(){
+				var total = 0;
+				var val;
+				for(var i=0;i<5000000000;++i){
+					val = i & 0xff;
+					total += i;
+				}
+			}));
+		}
+	</script>
+	<title>unit test</title>
+</head>
+<body>
+	<input id="start" onclick="doBench();" type="button" value="start" />
+	<div id="console"></div>
+</body>
+</html>

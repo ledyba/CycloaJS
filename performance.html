@@ -14,16 +14,18 @@
 			this.ctx = this.screen.getContext('2d');
 			this.image = this.ctx.createImageData(256, 240);
 			this.palette = cycloa.NesPalette;
+			for(var i=0;i<256*240; ++i){
+				this.image.data[(i<<2)+3] = 0xff;
+			}
 			this.dispatchRendering = function(/* const uint8_t*/ nesBuffer, /* const uint8_t */ paletteMask){
 				var dat = this.image.data;
 				var palette = this.palette;
 				for(var i=0;i<256*240; ++i){
 					//TODO: 最適化
 					var idx = i << 2, color = palette[nesBuffer[i] & paletteMask];
-					dat[idx] = color & 0xff;
+					dat[idx  ] = (color >> 16) & 0xff;
 					dat[idx+1] = (color >> 8) & 0xff;
-					dat[idx+2] = (color >> 16) & 0xff;
-					dat[idx+3] = 0xff;
+					dat[idx+2] = color & 0xff;
 				}
 				this.ctx.putImageData(this.image, 0, 0);
 			};

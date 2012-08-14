@@ -19,20 +19,23 @@ module Video
 	PaletteSize = 9*4;
 	VramSize = 0x800;
 	SpRamSize = 0x100;
-	def self.Palette(i,j)
-		"palette[#{i*4+j}]";
+	def self.Init()
+		""
 	end
-	def self.FillLineBuffer(line, offset, color)
-=begin
-		block_cnt = 2;
-		block_size = ScreenWidth/block_cnt;
-		init = "var _f_offset = (#{offset}); var _f_subarray_ = #{line}.subarray(_f_offset, _f_offset + #{block_size});for(var _f_ = 0;_f_ < #{block_size}; ++_f_) _f_subarray_[_f_] = #{color};"
-		(1..block_cnt-1).each{|t|
-			init += "#{line}.set(_f_subarray_, #{t*block_size});"
-		}
-		return init
-=end
-		"var _f_offset = (#{offset}); for(var _f_; _f_ < #{ScreenWidth}; ++_f_) #{line}[_f_offset + _f_] = #{color};"
+	def self.UseVideoAccess()
+		"var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;"
+	end
+	def self.Palette(i,j)
+		"palette[#{i<<2+j}]";
+	end
+	def self.ReadVramExternal(addr)
+		"(#{addr} < 0x2000 ? pattern[(#{addr} >> 9) & 0xf][#{addr} & 0x1ff] : vramMirroring[(#{addr} >> 10) & 0x3][#{addr} & 0x3ff])"
+	end
+	def self.ReadPalette(addr)
+		"((#{addr} & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[#{addr} & 31])"
+	end
+	def self.ReadVram(addr, with_this = false)
+		"(((#{addr} & 0x3f00) !== 0x3f00) ? #{ReadVramExternal(addr)} : #{ReadPalette(addr)} )"
 	end
 end
 

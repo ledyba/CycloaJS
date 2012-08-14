@@ -152,6 +152,7 @@ this.spriteEval = function() {
 };
 
 this.buildBgLine = function(){
+	<%= Video::UseVideoAccess() %>
 	if(!this.backgroundVisibility){
 		return;
 	}
@@ -185,7 +186,7 @@ this.buildBgLine = function(){
 		 * @type {number} uint16_t
 		 * @const
 		 */
-		var tileNo = this.readVram(nameTableAddr);
+		var tileNo = <%= Video::ReadVram("nameTableAddr") %>;
 		/**
 		 * @type {number} uint16_t
 		 * @const
@@ -195,11 +196,17 @@ this.buildBgLine = function(){
 		 * @type {number} uint8_t
 		 * @const
 		 */
+		var palAddr = ((nameTableAddr & 0x2f00) | 0x3c0 | ((tileYofScreen & 0x1C) << 1) | ((nameTableAddr >> 2) & 7));
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
 		var palNo =
 				(
-					this.readVram((nameTableAddr & 0x2f00) | 0x3c0 | ((tileYofScreen & 0x1C) << 1) | ((nameTableAddr >> 2) & 7))
+					<%= Video::ReadVram("palAddr") %>
 								>> (((tileYofScreen & 2) << 1) | (nameTableAddr & 2))
 				) & 0x3;
+
 		//タイルのサーフェイスデータを取得
 		/**
 		 * @type {number} uint16_t
@@ -210,12 +217,17 @@ this.buildBgLine = function(){
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var firstPlane = this.readVram(off);
+		var firstPlane = <%= Video::ReadVram("off") %>;
 		/**
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var secondPlane = this.readVram(off+8);
+		var secondPlaneAddr = off+8;
+		/**
+		 * @type {number} uint8_t
+		 * @const
+		 */
+		var secondPlane = <%= Video::ReadVram("secondPlaneAddr") %>;
 		/**
 		 * @type {number} uint8_t
 		 * @const
@@ -229,7 +241,7 @@ this.buildBgLine = function(){
 			 */
 			var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1);
 			if(color != 0){
-				this.screenBuffer8[buffOffset+renderX] = this.palette[paletteOffset+color] | <%= Video::BackgroundBit %>;
+				screenBuffer8[buffOffset+renderX] = palette[paletteOffset+color] | <%= Video::BackgroundBit %>;
 			}
 			renderX++;
 			if(renderX >= <%= Video::ScreenWidth %>){
@@ -403,32 +415,64 @@ this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
 	switch(addr & 0x07)
 	{
 		/* PPU Control and Status Registers */
-		case 0x00: //2000h - PPU Control Register 1 (W)
-			this.analyzePPUControlRegister1(value);
+		case 0x00: { //2000h - PPU Control Register 1 (W)
+			this.executeNMIonVBlank = ((value & 0x80) === 0x80) ? true : false;
+			this.spriteHeight = ((value & 0x20) === 0x20) ? 16 : 8;
+			this.patternTableAddressBackground = (value & 0x10) << 8;
+			this.patternTableAddress8x8Sprites = (value & 0x8) << 9;
+			this.vramIncrementSize = ((value & 0x4) === 0x4) ? 32 : 1;
+			this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x73ff) | ((value & 0x3) << 10);
 			break;
-		case 0x01: //2001h - PPU Control Register 2 (W)
-			this.analyzePPUControlRegister2(value);
+		}
+		case 0x01: { //2001h - PPU Control Register 2 (W)
+			this.colorEmphasis = value >> 5; //FIXME: この扱い、どーする？
+			this.spriteVisibility = ((value & 0x10) === 0x10) ? true : false;
+			this.backgroundVisibility = ((value & 0x08) == 0x08) ? true : false;
+			this.spriteClipping = ((value & 0x04) === 0x04) ? false : true;
+			this.backgroundClipping = ((value & 0x2) === 0x02) ? false : true;
+			this.paletteMask = ((value & 0x1) === 0x01) ? 0x30 : 0x3f;
 			break;
+		}
 		//case 0x02: //2002h - PPU Status Register (R)
 		/* PPU SPR-RAM Access Registers */
-		case 0x03: //2003h - SPR-RAM Address Register (W)
-			this.analyzeSpriteAddrRegister(value);
+		case 0x03: { //2003h - SPR-RAM Address Register (W)
+			this.spriteAddr = value;
 			break;
-		case 0x04: //2004h - SPR-RAM Data Register (Read/Write)
-			this.writeSpriteDataRegister(value);
+		}
+		case 0x04: { //2004h - SPR-RAM Data Register (Read/Write)
+			this.spRam[this.spriteAddr] = value;
+			this.spriteAddr = (this.spriteAddr+1) & 0xff;
 			break;
+		}
 		/* PPU VRAM Access Registers */
-		case 0x05: //PPU Background Scrolling Offset (W2)
-			this.analyzePPUBackgroundScrollingOffset(value);
+		case 0x05: { //PPU Background Scrolling Offset (W2)
+			if(this.scrollRegisterWritten){ //Y
+				this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x8C1F) | ((value & 0xf8) << 2) | ((value & 7) << 12);
+			}else{ //X
+				this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0xFFE0) | value >> 3;
+				this.horizontalScrollBits = value & 7;
+			}
+			this.scrollRegisterWritten = !this.scrollRegisterWritten;
 			break;
-		case 0x06: //VRAM Address Register (W2)
-			this.analyzeVramAddrRegister(value);
+		}
+		case 0x06: { //VRAM Address Register (W2)
+			if(this.vramAddrRegisterWritten){
+				this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x7f00) | value;
+				this.vramAddrRegister = this.vramAddrReloadRegister & 0x3fff;
+			} else {
+				this.vramAddrReloadRegister =(this.vramAddrReloadRegister & 0x00ff) | ((value & 0x7f) << 8);
+			}
+			this.vramAddrRegisterWritten = !this.vramAddrRegisterWritten;
 			break;
-		case 0x07: //VRAM Read/Write Data Register (RW)
-			this.writeVramDataRegister(value);
+		}
+		case 0x07: { //VRAM Read/Write Data Register (RW)
+			this.writeVram(this.vramAddrRegister, value);
+			this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
 			break;
-		default:
-			throw cycloa.err.CoreException("Invalid addr: 0x"+addr.toString(16));
+		}
+		default: {
+			throw new cycloa.err.CoreException("Invalid addr: 0x"+addr.toString(16));
+		}
 	}
 };
 
@@ -439,150 +483,74 @@ this.readVideoReg = function(/* uint16_t */ addr)
 		/* PPU Control and Status Registers */
 		//case 0x00: //2000h - PPU Control Register 1 (W)
 		//case 0x01: //2001h - PPU Control Register 2 (W)
-		case 0x02: //2002h - PPU Status Register (R)
-			return this.buildPPUStatusRegister();
+		case 0x02: { //2002h - PPU Status Register (R)
+			//from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
+			this.vramAddrRegisterWritten = false;
+			this.scrollRegisterWritten = false;
+			//Reading resets the 1st/2nd-write flipflop (used by Port 2005h and 2006h).
+			/**
+			 * @const
+			 * @type {number} uint8_t
+			 */
+			var result =
+					((this.nowOnVBnank) ? 128 : 0)
+				|   ((this.sprite0Hit) ? 64 : 0)
+				|   ((this.lostSprites) ? 32 : 0);
+			this.nowOnVBnank = false;
+			return result;
+		}
 		/* PPU SPR-RAM Access Registers */
 		//case 0x03: //2003h - SPR-RAM Address Register (W)
-		case 0x04: //2004h - SPR-RAM Data Register (Read/Write)
-			return this.readSpriteDataRegister();
+		case 0x04: { //2004h - SPR-RAM Data Register (Read/Write)
+			return this.spRam[this.spriteAddr];
+		}
 		/* PPU VRAM Access Registers */
 		//case 0x05: //PPU Background Scrolling Offset (W2)
 		//case 0x06: //VRAM Address Register (W2)
-		case 0x07: //VRAM Read/Write Data Register (RW)
-			return this.readVramDataRegister();
-		default:
+		case 0x07: { //VRAM Read/Write Data Register (RW)
+			var vramAddrRegister = this.vramAddrRegister;
+			if((vramAddrRegister & 0x3f00) !== 0x3f00){
+				/**
+				 * @const
+				 * @type {number} uint8_t */
+				var ret = this.vramBuffer;
+				this.vramBuffer = <%= Video::ReadVramExternal("vramAddrRegister") %>;
+				this.vramAddrRegister = (vramAddrRegister + this.vramIncrementSize) & 0x3fff;
+				return ret;
+			} else {
+				/**
+				 * @const
+				 * @type {number} uint8_t */
+				var ret = <%= Video::ReadPalette("vramAddrRegister") %>;
+				this.vramBuffer = <%= Video::ReadVramExternal("vramAddrRegister") %>; //ミラーされてるVRAMにも同時にアクセスしなければならない。
+				this.vramAddrRegister = (vramAddrRegister + this.vramIncrementSize) & 0x3fff;
+				return ret;
+			}
+		}
+		default: {
 			return 0;
 //			throw EmulatorException() << "Invalid addr: 0x" << std::hex << addr;
+		}
 	}
 };
 
-this.writeVramDataRegister = function(/*uint8_t*/ value)
-{
-	this.writeVram(this.vramAddrRegister, value);
-	this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
-}
 
-this.readSpriteDataRegister = function(){
-	return this.spRam[this.spriteAddr];
-};
-
-this.readVramDataRegister = function()
-{
-	if((this.vramAddrRegister & 0x3f00) === 0x3f00){
-		/**
-		 * @const
-		 * @type {number} uint8_t */
-		var ret = this.readPalette(vramAddrRegister);
-		this.vramBuffer = this.readVramExternal(this.vramAddrRegister); //ミラーされてるVRAMにも同時にアクセスしなければならない。
-		this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
-		return ret;
-	}else{
-		/**
-		 * @const
-		 * @type {number} uint8_t */
-		var ret = this.vramBuffer;
-		this.vramBuffer = this.readVramExternal(this.vramAddrRegister);
-		this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
-		return ret;
-	}
-};
-
-this.buildPPUStatusRegister = function()
-{
-	//from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
-	this.vramAddrRegisterWritten = false;
-	this.scrollRegisterWritten = false;
-	//Reading resets the 1st/2nd-write flipflop (used by Port 2005h and 2006h).
-	/**
-	 * @const
-	 * @type {number} uint8_t
-	 */
-	var result =
-			((this.nowOnVBnank) ? 128 : 0)
-		|   ((this.sprite0Hit) ? 64 : 0)
-		|   ((this.lostSprites) ? 32 : 0);
-	this.nowOnVBnank = false;
-	return result;
-};
-
-this.analyzePPUControlRegister1 = function(/* uint8_t */ value)
-{
-	this.executeNMIonVBlank = ((value & 0x80) === 0x80) ? true : false;
-	this.spriteHeight = ((value & 0x20) === 0x20) ? 16 : 8;
-	this.patternTableAddressBackground = (value & 0x10) << 8;
-	this.patternTableAddress8x8Sprites = (value & 0x8) << 9;
-	this.vramIncrementSize = ((value & 0x4) === 0x4) ? 32 : 1;
-	this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x73ff) | ((value & 0x3) << 10);
-};
-this.analyzePPUControlRegister2 = function(/* uint8_t */ value)
-{
-	this.colorEmphasis = value >> 5; //FIXME: この扱い、どーする？
-	this.spriteVisibility = ((value & 0x10) === 0x10) ? true : false;
-	this.backgroundVisibility = ((value & 0x08) == 0x08) ? true : false;
-	this.spriteClipping = ((value & 0x04) === 0x04) ? false : true;
-	this.backgroundClipping = ((value & 0x2) === 0x02) ? false : true;
-	this.paletteMask = ((value & 0x1) === 0x01) ? 0x30 : 0x3f;
-};
-this.analyzePPUBackgroundScrollingOffset = function(/* uint8_t */ value)
-{
-	if(this.scrollRegisterWritten){ //Y
-		this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x8C1F) | ((value & 0xf8) << 2) | ((value & 7) << 12);
-	}else{ //X
-		this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0xFFE0) | value >> 3;
-		this.horizontalScrollBits = value & 7;
-	}
-	this.scrollRegisterWritten = !this.scrollRegisterWritten;
-};
-this.analyzeVramAddrRegister = function(/* uint8_t */ value)
-{
-	if(this.vramAddrRegisterWritten){
-		this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x7f00) | value;
-		this.vramAddrRegister = this.vramAddrReloadRegister & 0x3fff;
-	} else {
-		this.vramAddrReloadRegister =(this.vramAddrReloadRegister & 0x00ff) | ((value & 0x7f) << 8);
-	}
-	this.vramAddrRegisterWritten = !this.vramAddrRegisterWritten;
-};
-this.analyzeSpriteAddrRegister = function(/* uint8_t */ value)
-{
-	this.spriteAddr = value;
-};
-
-this.readVramExternal = function(/* uint16_t */ addr)
-{
-	if(addr < 0x2000) {
-		return this.pattern[(addr >> 9) & 0xf][addr & 0x1ff];
-	} else {
-		return this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff];
-	}
-}
 this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
 	if(addr < 0x2000) {
-		this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value; //FIXME
+		this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
 	} else {
 		this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
 	}
 };
 
-this.readVram = function(/* uint16_t */ addr) {
-	if((addr & 0x3f00) == 0x3f00){ /* readPalette */
-		if((addr & 0x3) == 0){
-			return this.palette[<%= 8*4 %> + ((addr >> 2) & 3)];
-		}else{
-			return this.palette[addr & 31];
-		}
-	}else{
-		return this.readVramExternal(addr);
-	}
-};
 
 this.writeVram = function(/* uint16_t */ addr, /* uint8_t */ value) {
 	if((addr & 0x3f00) !== 0x3f00){
 		this.writeVramExternal(addr, value);
 	}else{
 		if((addr & 0x3) === 0){ /* writePalette */
-			this.palette[<%= 8*4 %> + ((addr >> 2) & 3)] = value & 0x3f;
+			this.palette[32 | ((addr >> 2) & 3)] = value & 0x3f;
 		}else{
 			this.palette[addr & 31] = value & 0x3f;
 		}
