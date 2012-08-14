@@ -61,9 +61,9 @@ switch((#{addrsym} & 0xE000) >> 13){
 """.gsub(/[\r\n]/, '');
 	end
 	def self.MemWrite(addr, val)
-	return "this.write(#{addr}, #{val});";
+#	return "this.write(#{addr}, #{val});";
 """
-switch((#{addr} & 0xE000) >> 13){
+switch((#{addr} & 0xE000) >> 13) {
 	case 0:{ /* 0x0000 -> 0x2000 */
 		ram[#{addr} & 0x1fff] = #{val};
 		break;
@@ -76,18 +76,21 @@ switch((#{addr} & 0xE000) >> 13){
 		if(#{addr} === 0x4014){
 			/** @type {number} uint16_t */
 			var addrMask = #{val} << 8;
+			var spRam = this.spRam;
 			var spriteAddr = this.spriteAddr;
-			for(var i=0;i<256;++i) {
+			for(var i=0;i<256;++i){
 				var __addr__ = addrMask | i;
-				#{CPU::MemRead("__addr__", "spRam[(spriteAddr+i) & 0xff]")}
+				var __val__;
+				#{CPU::MemRead("__addr__", "__val__")}
+				spRam[(spriteAddr+i) & 0xff] = __val__;
 			}
-			//clockDelta += 514;
+			clockDelta += 512;
 		}else if(#{addr} === 0x4016){
-			//ioPort.writeOutReg(#{val});
+			/* ioPort.writeOutReg(#{val}); */
 		}else if(#{addr} < 0x4018){
-			//audio.writeReg(#{addr}, #{val});
+			/* audio.writeReg(#{addr}, #{val}); */
 		}else{
-			//cartridge->writeRegisterArea(#{addr}, #{val});
+			/* cartridge->writeRegisterArea(#{addr}, #{val}); */
 		}
 		break;
 	}
@@ -111,7 +114,7 @@ switch((#{addr} & 0xE000) >> 13){
 		break;
 	}
 }
-"""
+""".gsub(/[\r\n]/, '');
 	end
 	def self.Push(val)
 		" /* ::CPU::Push */ ram[0x0100 | (#{Target}.SP-- & 0xff)] = #{val};";

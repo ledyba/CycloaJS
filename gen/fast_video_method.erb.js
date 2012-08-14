@@ -330,7 +330,7 @@ this.buildSpriteLine = function(){
 		 * @type {number} uint16_t
 		 * @const
 		 */
-		var _tmp_endX = <%= Video::ScreenWidthShift %>-slot.x;
+		var _tmp_endX = <%= Video::ScreenWidth %>-slot.x;
 		/**
 		 * @type {number} uint16_t
 		 * @const
@@ -377,37 +377,39 @@ this.buildSpriteLine = function(){
 				}
 			}
 		}else{
-			/**
-			 * @type {number} uint8_t
-			 * @const
-			 */
-			var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1); //ここだけ違います
-			/**
-			 * @type {number} uint8_t
-			 * @const
-			 */
-			var target = this.screenBuffer8[buffOffset + slot.x + x];
-			/**
-			 * @type {boolean} bool
-			 * @const
-			 */
-			var isEmpty = (target & <%= Video::LayerBitMask %>) === <%= Video::EmptyBit %>;
-			/**
-			 * @type {boolean} bool
-			 * @const
-			 */
-			var isBackgroundDrawn = (target & <%= Video::LayerBitMask %>) === <%= Video::BackgroundBit %>;
-			/**
-			 * @type {boolean} bool
-			 * @const
-			 */
-			var isSpriteNotDrawn = (target & <%= Video::SpriteLayerBit %>) === 0;
-			if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
-				this.sprite0Hit = true;
-				searchSprite0Hit = false;
-			}
-			if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
-				screenBuffer8[buffOffset + slot.x + x] = palette[(slot.paletteNo<<2) + color] | layerMask;
+			for(var x=0;x<endX;x++){
+				/**
+				 * @type {number} uint8_t
+				 * @const
+				 */
+				var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1); //ここだけ違います
+				/**
+				 * @type {number} uint8_t
+				 * @const
+				 */
+				var target = this.screenBuffer8[buffOffset + slot.x + x];
+				/**
+				 * @type {boolean} bool
+				 * @const
+				 */
+				var isEmpty = (target & <%= Video::LayerBitMask %>) === <%= Video::EmptyBit %>;
+				/**
+				 * @type {boolean} bool
+				 * @const
+				 */
+				var isBackgroundDrawn = (target & <%= Video::LayerBitMask %>) === <%= Video::BackgroundBit %>;
+				/**
+				 * @type {boolean} bool
+				 * @const
+				 */
+				var isSpriteNotDrawn = (target & <%= Video::SpriteLayerBit %>) === 0;
+				if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
+					this.sprite0Hit = true;
+					searchSprite0Hit = false;
+				}
+				if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
+					screenBuffer8[buffOffset + slot.x + x] = palette[(slot.paletteNo<<2) + color] | layerMask;
+				}
 			}
 		}
 	}

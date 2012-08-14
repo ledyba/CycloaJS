@@ -345,11 +345,11 @@ switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		tmpY = ram[addr 
 /* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.Y = tmpY];
 		break;}
 		case 3: {  /* STA */
-			this.write(addr, this.A);		break;}
+			switch((addr & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[addr & 0x1fff] = this.A;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(addr, this.A);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(addr === 0x4014){			/** @type {number} uint16_t */			var addrMask = this.A << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(addr === 0x4016){			/* ioPort.writeOutReg(this.A); */		}else if(addr < 0x4018){			/* audio.writeReg(addr, this.A); */		}else{			/* cartridge->writeRegisterArea(addr, this.A); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(addr, this.A);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(addr, this.A);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(addr, this.A);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(addr, this.A);		break;	}}		break;}
 		case 4: {  /* STX */
-			this.write(addr, this.X);		break;}
+			switch((addr & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[addr & 0x1fff] = this.X;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(addr, this.X);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(addr === 0x4014){			/** @type {number} uint16_t */			var addrMask = this.X << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(addr === 0x4016){			/* ioPort.writeOutReg(this.X); */		}else if(addr < 0x4018){			/* audio.writeReg(addr, this.X); */		}else{			/* cartridge->writeRegisterArea(addr, this.X); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(addr, this.X);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(addr, this.X);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(addr, this.X);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(addr, this.X);		break;	}}		break;}
 		case 5: {  /* STY */
-			this.write(addr, this.Y);		break;}
+			switch((addr & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[addr & 0x1fff] = this.Y;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(addr, this.Y);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(addr === 0x4014){			/** @type {number} uint16_t */			var addrMask = this.Y << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(addr === 0x4016){			/* ioPort.writeOutReg(this.Y); */		}else if(addr < 0x4018){			/* audio.writeReg(addr, this.Y); */		}else{			/* cartridge->writeRegisterArea(addr, this.Y); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(addr, this.Y);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(addr, this.Y);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(addr, this.Y);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(addr, this.Y);		break;	}}		break;}
 		case 6: {  /* TAX */
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = this.A];		break;}
 		case 7: {  /* TAY */
@@ -412,7 +412,7 @@ var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = r
 			 * @type {Number}
 			 */
 			var shifted = val << 1;
-			this.write(addr, shifted);
+			switch((addr & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[addr & 0x1fff] = shifted;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(addr, shifted);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(addr === 0x4014){			/** @type {number} uint16_t */			var addrMask = shifted << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(addr === 0x4016){			/* ioPort.writeOutReg(shifted); */		}else if(addr < 0x4018){			/* audio.writeReg(addr, shifted); */		}else{			/* cartridge->writeRegisterArea(addr, shifted); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(addr, shifted);		break;	}}
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted & 0xff];
 		break;}
 		case 15: {  /* ASL_ */
@@ -478,7 +478,7 @@ var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = r
 			var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			var val = (mem-1) & 0xff;
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
-			this.write(addr, val);
+			switch((addr & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[addr & 0x1fff] = val;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(addr, val);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(addr === 0x4014){			/** @type {number} uint16_t */			var addrMask = val << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(addr === 0x4016){			/* ioPort.writeOutReg(val); */		}else if(addr < 0x4018){			/* audio.writeReg(addr, val); */		}else{			/* cartridge->writeRegisterArea(addr, val); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(addr, val);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(addr, val);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(addr, val);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(addr, val);		break;	}}
 		break;}
 		case 21: {  /* DEX */
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = (this.X-1)&0xff];		break;}
@@ -498,7 +498,7 @@ var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = r
 			var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = ram[addr & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		mem = this.readVideoReg(addr);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		mem = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		mem = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		mem = rom[(addr>>10) & 31][addr & 0x3ff];		break;	}}
 			var val = (mem+1) & 0xff;
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[val];
-			this.write(addr, val);
+			switch((addr & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[addr & 0x1fff] = val;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(addr, val);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(addr === 0x4014){			/** @type {number} uint16_t */			var addrMask = val << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(addr === 0x4016){			/* ioPort.writeOutReg(val); */		}else if(addr < 0x4018){			/* audio.writeReg(addr, val); */		}else{			/* cartridge->writeRegisterArea(addr, val); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(addr, val);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(addr, val);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(addr, val);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(addr, val);		break;	}}
 		break;}
 		case 25: {  /* INX */
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[this.X = (this.X+1)&0xff];		break;}
@@ -517,7 +517,7 @@ var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = r
 			 * @type {Number}
 			 */
 			var shifted = val >> 1;
-			this.write(addr, shifted);
+			switch((addr & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[addr & 0x1fff] = shifted;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(addr, shifted);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(addr === 0x4014){			/** @type {number} uint16_t */			var addrMask = shifted << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(addr === 0x4016){			/* ioPort.writeOutReg(shifted); */		}else if(addr < 0x4018){			/* audio.writeReg(addr, shifted); */		}else{			/* cartridge->writeRegisterArea(addr, shifted); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(addr, shifted);		break;	}}
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
 		break;}
 		case 28: {  /* LSR_ */
@@ -549,7 +549,7 @@ var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = r
 			var shifted = ((val << 1) & 0xff) | (p & 0x01);
 			this.P = (p & 0xFE) | (val >> 7);
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-			this.write(addr, shifted);
+			switch((addr & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[addr & 0x1fff] = shifted;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(addr, shifted);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(addr === 0x4014){			/** @type {number} uint16_t */			var addrMask = shifted << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(addr === 0x4016){			/* ioPort.writeOutReg(shifted); */		}else if(addr < 0x4018){			/* audio.writeReg(addr, shifted); */		}else{			/* cartridge->writeRegisterArea(addr, shifted); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(addr, shifted);		break;	}}
 		break;}
 		case 31: {  /* ROL_ */
 			
@@ -585,7 +585,7 @@ var mem; switch((addr & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		mem = r
 			var shifted = (val >> 1) | ((p & 0x01) << 7);
 			this.P = (p & 0xFE) | (val & 0x01);
 			/* UpdateFlag */ this.P = (this.P & 0x7D) | this.ZNFlagCache[shifted];
-			this.write(addr, shifted);
+			switch((addr & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[addr & 0x1fff] = shifted;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(addr, shifted);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(addr === 0x4014){			/** @type {number} uint16_t */			var addrMask = shifted << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(addr === 0x4016){			/* ioPort.writeOutReg(shifted); */		}else if(addr < 0x4018){			/* audio.writeReg(addr, shifted); */		}else{			/* cartridge->writeRegisterArea(addr, shifted); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(addr, shifted);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(addr, shifted);		break;	}}
 		break;}
 		case 33: {  /* ROR_ */
 			
@@ -900,7 +900,7 @@ this.onHardResetCPU = function(){
 		this.X = 0x0;
 		this.Y = 0x0;
 		this.SP = 0xfd;
-		this.write(0x4017, 0x00);		this.write(0x4015, 0x00);		//this.PC = (this.read(0xFFFC) | (this.read(0xFFFD) << 8));
+		switch((0x4017 & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[0x4017 & 0x1fff] = 0x00;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(0x4017, 0x00);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(0x4017 === 0x4014){			/** @type {number} uint16_t */			var addrMask = 0x00 << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(0x4017 === 0x4016){			/* ioPort.writeOutReg(0x00); */		}else if(0x4017 < 0x4018){			/* audio.writeReg(0x4017, 0x00); */		}else{			/* cartridge->writeRegisterArea(0x4017, 0x00); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(0x4017, 0x00);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(0x4017, 0x00);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(0x4017, 0x00);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(0x4017, 0x00);		break;	}}		switch((0x4015 & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[0x4015 & 0x1fff] = 0x00;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(0x4015, 0x00);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(0x4015 === 0x4014){			/** @type {number} uint16_t */			var addrMask = 0x00 << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(0x4015 === 0x4016){			/* ioPort.writeOutReg(0x00); */		}else if(0x4015 < 0x4018){			/* audio.writeReg(0x4015, 0x00); */		}else{			/* cartridge->writeRegisterArea(0x4015, 0x00); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(0x4015, 0x00);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(0x4015, 0x00);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(0x4015, 0x00);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(0x4015, 0x00);		break;	}}		//this.PC = (this.read(0xFFFC) | (this.read(0xFFFD) << 8));
 		this.PC = (this.rom[31][0x3FC]| (this.rom[31][0x3FD] << 8));
 
 		this.NMI = false;
@@ -913,7 +913,7 @@ this.onResetCPU = function () {
 	this.consumeClock(cycloa.core.RESET_CLOCK);
 	this.SP -= 0x03;
 	this.P |= 4;
-	this.write(0x4015, 0x00);	//this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
+	switch((0x4015 & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[0x4015 & 0x1fff] = 0x00;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(0x4015, 0x00);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(0x4015 === 0x4014){			/** @type {number} uint16_t */			var addrMask = 0x00 << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		__val__ = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;		}else if(0x4015 === 0x4016){			/* ioPort.writeOutReg(0x00); */		}else if(0x4015 < 0x4018){			/* audio.writeReg(0x4015, 0x00); */		}else{			/* cartridge->writeRegisterArea(0x4015, 0x00); */		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(0x4015, 0x00);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(0x4015, 0x00);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(0x4015, 0x00);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(0x4015, 0x00);		break;	}}	//this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
 	this.PC = (this.rom[31][0x3FC]| (this.rom[31][0x3FD] << 8));
 
 	this.NMI = false;
@@ -939,12 +939,14 @@ this.write = function (addr, val) {
 		case 2:{ /* 0x4000 -> 0x6000 */
 			if(addr === 0x4014){
 				/** @type {number} uint16_t */
-//				var addrMask = val << 8;
-//				var spRam = this.spRam;
-//				var spriteAddr = this.spriteAddr;
-//				for(var i=0;i<256;++i){
-//					var __addr__ = addrMask | i;
-//					switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		this.spRam[(spriteAddr+i) & 0xff] = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.spRam[(spriteAddr+i) & 0xff] = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		this.spRam[(spriteAddr+i) & 0xff] = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		this.spRam[(spriteAddr+i) & 0xff] = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}//				}
+				var addrMask = val << 8;
+				var spRam = this.spRam;
+				var spriteAddr = this.spriteAddr;
+				for(var i=0;i<256;++i){
+					var __addr__ = addrMask | i;
+					this.spRam[(spriteAddr+i) & 0xff] = this.ram[(0x7ff) & (addrMask | i)];
+					//switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		this.spRam[(spriteAddr+i) & 0xff] = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.spRam[(spriteAddr+i) & 0xff] = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		this.spRam[(spriteAddr+i) & 0xff] = 0;		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		this.spRam[(spriteAddr+i) & 0xff] = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.spRam[(spriteAddr+i) & 0xff] = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}
+				}
 				//this->VM.consumeCpuClock(514);
 			}else if(addr === 0x4016){
 				//ioPort.writeOutReg(value);
@@ -1306,7 +1308,7 @@ this.buildSpriteLine = function(){
 		 * @type {number} uint16_t
 		 * @const
 		 */
-		var _tmp_endX = 8-slot.x;
+		var _tmp_endX = 256-slot.x;
 		/**
 		 * @type {number} uint16_t
 		 * @const
@@ -1353,37 +1355,39 @@ this.buildSpriteLine = function(){
 				}
 			}
 		}else{
-			/**
-			 * @type {number} uint8_t
-			 * @const
-			 */
-			var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1); //ここだけ違います
-			/**
-			 * @type {number} uint8_t
-			 * @const
-			 */
-			var target = this.screenBuffer8[buffOffset + slot.x + x];
-			/**
-			 * @type {boolean} bool
-			 * @const
-			 */
-			var isEmpty = (target & 192) === 0;
-			/**
-			 * @type {boolean} bool
-			 * @const
-			 */
-			var isBackgroundDrawn = (target & 192) === 128;
-			/**
-			 * @type {boolean} bool
-			 * @const
-			 */
-			var isSpriteNotDrawn = (target & 64) === 0;
-			if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
-				this.sprite0Hit = true;
-				searchSprite0Hit = false;
-			}
-			if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
-				screenBuffer8[buffOffset + slot.x + x] = palette[(slot.paletteNo<<2) + color] | layerMask;
+			for(var x=0;x<endX;x++){
+				/**
+				 * @type {number} uint8_t
+				 * @const
+				 */
+				var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1); //ここだけ違います
+				/**
+				 * @type {number} uint8_t
+				 * @const
+				 */
+				var target = this.screenBuffer8[buffOffset + slot.x + x];
+				/**
+				 * @type {boolean} bool
+				 * @const
+				 */
+				var isEmpty = (target & 192) === 0;
+				/**
+				 * @type {boolean} bool
+				 * @const
+				 */
+				var isBackgroundDrawn = (target & 192) === 128;
+				/**
+				 * @type {boolean} bool
+				 * @const
+				 */
+				var isSpriteNotDrawn = (target & 64) === 0;
+				if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
+					this.sprite0Hit = true;
+					searchSprite0Hit = false;
+				}
+				if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
+					screenBuffer8[buffOffset + slot.x + x] = palette[(slot.paletteNo<<2) + color] | layerMask;
+				}
 			}
 		}
 	}

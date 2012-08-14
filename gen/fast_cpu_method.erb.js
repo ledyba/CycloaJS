@@ -62,13 +62,15 @@ this.write = function (addr, val) {
 		case 2:{ /* 0x4000 -> 0x6000 */
 			if(addr === 0x4014){
 				/** @type {number} uint16_t */
-//				var addrMask = val << 8;
-//				var spRam = this.spRam;
-//				var spriteAddr = this.spriteAddr;
-//				for(var i=0;i<256;++i){
-//					var __addr__ = addrMask | i;
-//					<%= CPU::MemRead("__addr__", "this.spRam[(spriteAddr+i) & 0xff]") %>
-//				}
+				var addrMask = val << 8;
+				var spRam = this.spRam;
+				var spriteAddr = this.spriteAddr;
+				for(var i=0;i<256;++i){
+					var __addr__ = addrMask | i;
+					this.spRam[(spriteAddr+i) & 0xff] = this.ram[(0x7ff) & (addrMask | i)];
+					//<%= CPU::MemRead("__addr__", "this.spRam[(spriteAddr+i) & 0xff]") %>
+
+				}
 				//this->VM.consumeCpuClock(514);
 			}else if(addr === 0x4016){
 				//ioPort.writeOutReg(value);
