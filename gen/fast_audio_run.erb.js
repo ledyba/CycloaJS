@@ -111,6 +111,12 @@ while(this.__audio__clockCnt >= <%= Audio::AUDIO_CLOCK %>){
 <%= render (File.expand_path (File.dirname(__FILE__)+"/gen/fast_audio_triangle_create.erb.js")), :isFirstChannel=>true %>
 <%= render (File.expand_path (File.dirname(__FILE__)+"/gen/fast_audio_noize_create.erb.js")), :isFirstChannel=>true %>
 <%= render (File.expand_path (File.dirname(__FILE__)+"/gen/fast_audio_digital_create.erb.js")), :isFirstChannel=>true %>
-	this.audioFairy.pushAudio(sound / 100);
+	if(__audio__enabled){
+		__audio__data[audioFairy.dataIndex++] = sound / 100;
+		if(audioFairy.dataIndex >= __audio__data__length){
+			audioFairy.onDataFilled();
+			__audio__data = audioFairy.data;
+		}
+	}
 }
 

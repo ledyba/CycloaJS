@@ -17,14 +17,6 @@ this.__digital__analyzeSampleAddrRegister = function(/*uint8_t*/ value) {
 this.__digital__analyzeSampleLengthRegister = function(/*uint8_t*/ value) {
 	this.__digital__sampleLength = this.__digital__sampleLengthBuffer = (value << 4) | 1;
 };
-this.__digital__setEnabled = function(/*bool*/ enabled)
-{
-	if(!enabled){
-		this.__digital__sampleLength = 0;
-	}else if(this.__digital__sampleLength == 0){
-		this.__digital__sampleLength = this.__digital__sampleLengthBuffer;
-	}
-}
 this.__digital__isEnabled = function()
 {
 	return this.__digital__sampleLength != 0;

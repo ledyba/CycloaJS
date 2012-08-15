@@ -50,6 +50,7 @@ cycloa.FastMachine = function(rom, videoFairy, audioFairy, pad1Fairy, pad2Fairy)
 	this.run = function () {
 		<%= CPU::RunInit() %>
 		<%= Video::RunInit() %>
+		<%= Audio::RunInit() %>
 		var _run = true;
 		var reservedClockDelta = this.reservedClockDelta;
 		while(_run) {

@@ -99,11 +99,31 @@ switch((#{addr} & 0xE000) >> 13) {
 	case 2:{ /* 0x4000 -> 0x6000 */
 		switch(#{addr} & 0x1f) {
 		case 0x0: { /* 4000h - APU Volume/Decay Channel 1 (Rectangle) */
-			this.__rectangle0__analyzeVolumeRegister(#{val});
+			this.__rectangle0__decayCounter = this.__rectangle0__volumeOrDecayRate = #{val} & 15;
+			this.__rectangle0__decayEnabled = (#{val} & 16) == 0;
+			this.__rectangle0__loopEnabled = (#{val} & 32) == 32;
+			switch(#{val} >> 6)
+			{
+			case 0:
+				this.__rectangle0__dutyRatio = 2;
+				break;
+			case 1:
+				this.__rectangle0__dutyRatio = 4;
+				break;
+			case 2:
+				this.__rectangle0__dutyRatio = 8;
+				break;
+			case 3:
+				this.__rectangle0__dutyRatio = 12;
+				break;
+			}
 			break;
 		}
 		case 0x1: { /* 4001h - APU Sweep Channel 1 (Rectangle) */
-			this.__rectangle0__analyzeSweepRegister(#{val});
+			this.__rectangle0__sweepShiftAmount = #{val} & 7;
+			this.__rectangle0__sweepIncreased = (#{val} & 0x8) === 0x0;
+			this.__rectangle0__sweepCounter = this.__rectangle0__sweepUpdateRatio = (#{val} >> 4) & 3;
+			this.__rectangle0__sweepEnabled = (#{val}&0x80) === 0x80;
 			break;
 		}
 		case 0x2: { /* 4002h - APU Frequency Channel 1 (Rectangle) */
@@ -115,11 +135,31 @@ switch((#{addr} & 0xE000) >> 13) {
 			break;
 		}
 		case 0x4: { /* 4004h - APU Volume/Decay Channel 2 (Rectangle) */
-			this.__rectangle1__analyzeVolumeRegister(#{val});
+			this.__rectangle1__decayCounter = this.__rectangle1__volumeOrDecayRate = #{val} & 15;
+			this.__rectangle1__decayEnabled = (#{val} & 16) == 0;
+			this.__rectangle1__loopEnabled = (#{val} & 32) == 32;
+			switch(#{val} >> 6)
+			{
+			case 0:
+				this.__rectangle1__dutyRatio = 2;
+				break;
+			case 1:
+				this.__rectangle1__dutyRatio = 4;
+				break;
+			case 2:
+				this.__rectangle1__dutyRatio = 8;
+				break;
+			case 3:
+				this.__rectangle1__dutyRatio = 12;
+				break;
+			}
 			break;
 		}
 		case 0x5: { /* 4005h - APU Sweep Channel 2 (Rectangle) */
-			this.__rectangle1__analyzeSweepRegister(#{val});
+			this.__rectangle1__sweepShiftAmount = #{val} & 7;
+			this.__rectangle1__sweepIncreased = (#{val} & 0x8) === 0x0;
+			this.__rectangle1__sweepCounter = this.__rectangle1__sweepUpdateRatio = (#{val} >> 4) & 3;
+			this.__rectangle1__sweepEnabled = (#{val}&0x80) === 0x80;
 			break;
 		}
 		case 0x6: { /* 4006h - APU Frequency Channel 2 (Rectangle) */
@@ -194,8 +234,12 @@ switch((#{addr} & 0xE000) >> 13) {
 			break;
 		}
 		/* ------------------------------ CTRL -------------------------------------------------- */
-		case 0x15: {
-			this.__audio__analyzeStatusRegister(#{val});
+		case 0x15: { /* __audio__analyzeStatusRegister */
+			if(!(#{val} & 1)) this.__rectangle0__lengthCounter = 0;
+			if(!(#{val} & 2)) this.__rectangle1__lengthCounter = 0;
+			if(!(#{val} & 4)) { this.__triangle__lengthCounter = 0; this.__triangle__linearCounter = this.__triangle__linearCounterBuffer = 0; }
+			if(!(#{val} & 8)) this.__noize__lengthCounter = 0;
+			if(!(#{val} & 16)) { this.__digital__sampleLength = 0; }else if(this.__digital__sampleLength == 0){ this.__digital__sampleLength = this.__digital__sampleLengthBuffer;}
 			break;
 		}
 		case 0x16: {
@@ -205,8 +249,22 @@ switch((#{addr} & 0xE000) >> 13) {
 			}
 			break;
 		}
-		case 0x17: {
-			this.__audio__analyzeLowFrequentryRegister(#{val});
+		case 0x17: { /* __audio__analyzeLowFrequentryRegister */
+			/* Any write to $4017 resets both the frame counter, and the clock divider. */
+			if(#{val} & 0x80) {
+				this.__audio__isNTSCmode = false;
+				this.__audio__frameCnt = #{ Audio::AUDIO_CLOCK-2*Audio::FRAME_IRQ_RATE };
+				this.__audio__frameIRQCnt = 4;
+			}else{
+				this.__audio__isNTSCmode = true;
+				this.__audio__frameIRQenabled = true;
+				this.__audio__frameCnt = #{ Audio::AUDIO_CLOCK-2*Audio::FRAME_IRQ_RATE };
+				this.__audio__frameIRQCnt = 3;
+			}
+			if((#{val} & 0x40) === 0x40){
+				this.__audio__frameIRQenabled = false;
+				#{ CPU::ReleaseIRQ(CPU::IRQ::FRAMECNT) }
+			}
 			break;
 		}
 		default: {

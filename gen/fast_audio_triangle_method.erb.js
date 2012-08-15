@@ -25,13 +25,6 @@ this.__triangle__onReset = function()
 {
 	this.__triangle__onHardReset();
 }
-this.__triangle__setEnabled = function(/* bool */ enabled)
-{
-	if(!enabled){
-		this.__triangle__lengthCounter = 0;
-		this.__triangle__linearCounter = this.__triangle__linearCounterBuffer = 0;
-	}
-}
 this.__triangle__isEnabled = function()
 {
 	return this.__triangle__lengthCounter != 0 && this.__triangle__linearCounter != 0;

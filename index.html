@@ -12,66 +12,72 @@
 	<script type="text/javascript" src="js/cycloa/fast.js"></script>
 	<script type="text/javascript" src="test/test_rom.js"></script>
 	<script>
-		function VideoFairy(){
+		// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+		window.requestAnimFrame = (function () {
+			return  window.requestAnimationFrame ||
+					window.webkitRequestAnimationFrame ||
+					window.mozRequestAnimationFrame ||
+					window.oRequestAnimationFrame ||
+					window.msRequestAnimationFrame ||
+					function (callback) {
+						window.setTimeout(callback, 1000 / 60);
+					};
+		})();
+		function VideoFairy() {
 			this.screen = document.getElementById('nes_screen');
 			this.ctx = this.screen.getContext('2d');
 			this.image = this.ctx.createImageData(256, 240);
 			this.palette = cycloa.NesPalette;
-			for(var i=0;i<256*240; ++i){
-				this.image.data[(i<<2)+3] = 0xff;
+			for (var i = 0; i < 256 * 240; ++i) {
+				this.image.data[(i << 2) + 3] = 0xff;
 			}
-			this.dispatchRendering = function(/* const uint8_t*/ nesBuffer, /* const uint8_t */ paletteMask){
+			this.dispatchRendering = function (/* const uint8_t*/ nesBuffer, /* const uint8_t */ paletteMask) {
 				var dat = this.image.data;
 				var palette = this.palette;
-				for(var i=0;i<256*240; ++i){
+				for (var i = 0; i < 256 * 240; ++i) {
 					//TODO: 最適化
 					var idx = i << 2, color = palette[nesBuffer[i] & paletteMask];
 					dat[idx  ] = (color >> 16) & 0xff;
-					dat[idx+1] = (color >> 8) & 0xff;
-					dat[idx+2] = color & 0xff;
+					dat[idx + 1] = (color >> 8) & 0xff;
+					dat[idx + 2] = color & 0xff;
 				}
 				this.ctx.putImageData(this.image, 0, 0);
 			};
 		}
-		var called = 0;
-		function AudioFairy(){
-			this.SAMPLE_RATE = 22050;
-			this.BUFFER_SIZE = (this.SAMPLE_RATE/4) | 0;
+		function AudioFairy() {
+			this.SAMPLE_RATE_ = 22050;
+			this.dataLength = (this.SAMPLE_RATE_ / 4) | 0;
+			this.enabled = false;
 			var context = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
-			if(context){
-				this.context = new context();
-				this.context.sampleRate = this.SAMPLE_RATE;
-				this.index = 0;
-				this.initBuffer = function(){
-					this.buffer = this.context.createBuffer(1, this.BUFFER_SIZE, this.SAMPLE_RATE);
-					this.data = this.buffer.getChannelData(0);
+			if (context) {
+				this.enabled = true;
+				this.context_ = new context();
+				this.context_.sampleRate = this.SAMPLE_RATE_;
+				this.dataIndex = 0;
+				this.initBuffer = function () {
+					this.buffer_ = this.context_.createBuffer(1, this.dataLength, this.SAMPLE_RATE_);
+					this.data = this.buffer_.getChannelData(0);
 				};
-				this.pushAudio = function(audio){
-					this.data[this.index++] = audio;
-					if(this.index >= this.BUFFER_SIZE){
-						var src = this.context.createBufferSource();
-						src.loop = false;
-						src.connect(this.context.destination);
-						src.buffer = this.buffer;
-						src.noteOn(0);
-						this.initBuffer();
-						this.index = 0;
-					}
-					called++;
+				this.onDataFilled = function () {
+					var src = this.context_.createBufferSource();
+					src.loop = false;
+					src.connect(this.context_.destination);
+					src.buffer = this.buffer_;
+					src.noteOn(0);
+					this.initBuffer();
+					this.dataIndex = 0;
 				};
 				this.initBuffer();
-			}else{
-				this.pushAudio = function(audio){};
 			}
 		}
-		function PadFairy(){
+		function PadFairy() {
 			this.state = 0;
-			this.isPressed = function(keyIdx){
+			this.isPressed = function (keyIdx) {
 				return ((this.state >> keyIdx) & 1) === 1;
 			};
 			var self = this;
-			window.onkeydown = function(e){
-				switch(e.keyCode){
+			window.onkeydown = function (e) {
+				switch (e.keyCode) {
 					case 38:
 						self.state |= self.MASK_UP;
 						e.preventDefault();
@@ -106,9 +112,9 @@
 						break;
 				}
 			};
-			window.onkeyup = function(e){
+			window.onkeyup = function (e) {
 				e.preventDefault();
-				switch(e.keyCode){
+				switch (e.keyCode) {
 					case 38:
 						self.state &= ~self.MASK_UP;
 						e.preventDefault();
@@ -145,53 +151,60 @@
 			};
 		}
 		PadFairy.prototype = new cycloa.AbstractPadFairy();
-		function start(arrayBuffer){
+		function start(arrayBuffer) {
 			var machine = new cycloa.FastMachine(arrayBuffer, new VideoFairy(), new AudioFairy(), new PadFairy());
 			machine.onHardReset();
 			var beg = new Date();
 			var cnt = 0;
 			var fps = document.getElementById("fps");
-			var frame = function(){
+			var loop = function () {
+				window.requestAnimFrame(loop);
 				machine.run();
 				cnt++;
-				if(cnt == 30) {
+				if (cnt == 30) {
 					var now = new Date();
-					fps.innerHTML = "fps: "+(30000/(now-beg))+" / called: "+(called*2);
-					called = 0;
+					fps.innerHTML = "fps: " + (30000 / (now - beg));
 					beg = now;
 					cnt = 0;
 				}
 			};
-			window.setInterval(frame, 16);
+			loop();
 		}
-		function loadFile(file){
+		function loadFile(file) {
 			var reader = new FileReader();
-			reader.onload = function(rom){
+			reader.onload = function (rom) {
 				start(rom.target.result);
 			};
 			reader.readAsArrayBuffer(file);
 		}
-		function load(){
-			window.addEventListener("dragenter", function (e) { e.preventDefault(); }, false);
-			window.addEventListener("dragover", function (e) { e.preventDefault(); }, false);
-			window.addEventListener("drop", function (e) { e.preventDefault(); loadFile(e.dataTransfer.files[0]); }, false);
+		function load() {
+			window.addEventListener("dragenter", function (e) {
+				e.preventDefault();
+			}, false);
+			window.addEventListener("dragover", function (e) {
+				e.preventDefault();
+			}, false);
+			window.addEventListener("drop", function (e) {
+				e.preventDefault();
+				loadFile(e.dataTransfer.files[0]);
+			}, false);
 		}
 	</script>
 </head>
 <body onload="load()">
-	<div id="wrapper">
-		<div id="header">
-		</div>
-		<div id="content">
-			<div>
-				<canvas id="nes_screen" width="256" height="240"></canvas>
-				<div id="fps"></div>
-			</div>
-			<input type="button" onclick="start(TestROM.buffer)" value="Load TEST ROM" />
-		</div>
-		<div id="footer">
-		2012 (C)PSI GPLv3 or later
-		</div>
+<div id="wrapper">
+	<div id="header">
 	</div>
+	<div id="content">
+		<div>
+			<canvas id="nes_screen" width="256" height="240"></canvas>
+			<div id="fps"></div>
+		</div>
+		<input type="button" onclick="start(TestROM.buffer)" value="Load TEST ROM"/>
+	</div>
+	<div id="footer">
+		2012 (C)PSI GPLv3 or later
+	</div>
+</div>
 </body>
 </html>

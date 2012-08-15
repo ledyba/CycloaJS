@@ -16,11 +16,6 @@ this.__noize__analyzeLengthRegister = function(/* uint8_t */ reg) {
 	//and restarts the decay volume (channel 1,2,4 only).
 	this.__noize__decayReloaded = true;
 };
-this.__noize__setEnabled = function(/*bool*/ enabled) {
-	if(!enabled){
-		this.__noize__lengthCounter = 0;
-	}
-};
 this.__noize__isEnabled = function() {
 	return this.__noize__lengthCounter != 0;
 };

@@ -41,11 +41,6 @@ this.<%= prefix %>analyzeLengthRegister = function(/* uint8_t */ reg) {
 	//and restarts the decay volume (channel 1,2,4 only).
 	this.<%= prefix %>decayReloaded = true;
 };
-this.<%= prefix %>setEnabled = function(/* bool */ enabled) {
-	if(!enabled){
-		this.<%= prefix %>lengthCounter = 0;
-	}
-};
 this.<%= prefix %>isEnabled = function() {
 	return this.<%= prefix %>lengthCounter != 0 && this.<%= prefix %>frequency >= 0x8 && this.<%= prefix %>frequency  < 0x800;
 };
