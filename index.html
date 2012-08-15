@@ -33,25 +33,28 @@
 				this.ctx.putImageData(this.image, 0, 0);
 			};
 		}
+		function start(arrayBuffer){
+			var machine = new cycloa.FastMachine(arrayBuffer, new VideoFairy());
+			machine.onHardReset();
+			var beg = new Date();
+			var cnt = 0;
+			var fps = document.getElementById("fps");
+			var frame = function(){
+				machine.run();
+				cnt++;
+				if(cnt == 30){
+					var now = new Date();
+					fps.innerHTML = "fps: "+(30000/(now-beg));
+					beg = now;
+					cnt = 0;
+				}
+			};
+			window.setInterval(frame, 16);
+		}
 		function loadFile(file){
 			var reader = new FileReader();
 			reader.onload = function(rom){
-				var machine = new cycloa.FastMachine(rom.target.result, new VideoFairy());
-				machine.onHardReset();
-				var beg = new Date();
-				var cnt = 0;
-				var fps = document.getElementById("fps");
-				var frame = function(){
-					machine.run();
-					cnt++;
-					if(cnt == 60){
-						var now = new Date();
-						fps.innerHTML = "fps: "+(60*1000/(now-beg));
-						beg = now;
-						cnt = 0;
-					}
-				};
-				window.setInterval(frame, 16);
+				start(rom.target.result);
 			};
 			reader.readAsArrayBuffer(file);
 		}
@@ -67,8 +70,11 @@
 		<div id="header">
 		</div>
 		<div id="content">
-			<canvas id="nes_screen" width="256" height="240"></canvas>
-			<div id="fps"></div>
+			<div>
+				<canvas id="nes_screen" width="256" height="240"></canvas>
+				<div id="fps"></div>
+			</div>
+			<input type="button" onclick="start(TestROM.buffer)" value="Load TEST ROM" />
 		</div>
 		<div id="footer">
 		2012 (C)PSI GPLv3 or later

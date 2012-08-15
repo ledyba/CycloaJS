@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="../test/probe.js"></script>
+	<script>
+		"use strict";
+		function doBench() {
+			for(var i=0;i<0xff;++i){
+				this[i] = 0;
+			}
+			var self = this;
+			log("with var: "+cycloa.probe.measure(function(){
+				for(var i=0;i<5000000000;++i){
+					self[i&0xff] += i;
+				}
+			}));
+			for(var i=0;i<0xff;++i){
+				this[i] = 0;
+			}
+			this.zpf=0;
+			log("without var: "+cycloa.probe.measure(function(){
+				for(var i=0;i<5000000000;++i){
+					self.zpf += i;
+				}
+			}));
+		}
+	</script>
+	<title>unit test</title>
+</head>
+<body>
+	<input id="start" onclick="new doBench();" type="button" value="start" />
+	<div id="console"></div>
+</body>
+</html>
