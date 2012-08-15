@@ -2,11 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed42b9b7-df62-4d1d-a09b-dbb9a90e439b" name="Default" comment="JSDoc追加">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_gen/fast_nes.erb" afterPath="$PROJECT_DIR$/_gen/fast_nes.erb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_gen/gen_interpreter.rb" afterPath="$PROJECT_DIR$/_gen/gen_interpreter.rb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_gen/opcode_info.rb" afterPath="$PROJECT_DIR$/_gen/opcode_info.rb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/cpu.rb" afterPath="$PROJECT_DIR$/gen/cpu.rb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/gen.rb" afterPath="$PROJECT_DIR$/gen/gen.rb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/fast.erb.js" afterPath="$PROJECT_DIR$/gen/fast.erb.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/fast_cpu_method.erb.js" afterPath="$PROJECT_DIR$/gen/fast_cpu_method.erb.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/fast_cpu_run.erb.js" afterPath="$PROJECT_DIR$/gen/fast_cpu_run.erb.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/fast_video_run.erb.js" afterPath="$PROJECT_DIR$/gen/fast_video_run.erb.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/cycloa/fast.js" afterPath="$PROJECT_DIR$/js/cycloa/fast.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/performance.html" afterPath="$PROJECT_DIR$/performance.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/cycloa/trace.js" afterPath="$PROJECT_DIR$/js/cycloa/trace.js" />
     </list>
     <ignored path="CycloaJS.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -32,55 +37,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="processor_debug_board.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/processor_debug_board.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="5" column="9" selection-start="72" selection-end="72" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="cycloa.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/js/cycloa/cycloa.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="13" column="0" selection-start="141" selection-end="141" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="performance.html" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/performance.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="35" column="9" selection-start="1193" selection-end="1193" vertical-scroll-proportion="-22.066668">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="fast.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/js/cycloa/fast.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="33" column="37" selection-start="637" selection-end="637" vertical-scroll-proportion="0.12512413">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="err.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/js/cycloa/err.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="11" column="0" selection-start="147" selection-end="147" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="util.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/js/cycloa/util.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="14" column="16" selection-start="260" selection-end="260" vertical-scroll-proportion="0.0">
+            <state line="7395" column="14" selection-start="207895" selection-end="207901" vertical-scroll-proportion="0.3329843">
               <folding />
             </state>
           </provider>
@@ -100,7 +60,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/test/asm_test.js" />
         <option value="$PROJECT_DIR$/js/cycloa.js" />
         <option value="$PROJECT_DIR$/test/ProcessorDebugBoard.js" />
         <option value="$PROJECT_DIR$/js/cycloa/processor.js" />
@@ -115,14 +74,16 @@
         <option value="$PROJECT_DIR$/js/cycloa/cycloa.js" />
         <option value="$PROJECT_DIR$/js/cycloa/core.js" />
         <option value="$PROJECT_DIR$/performance.html" />
+        <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/js/cycloa/fast.js" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-1" />
+    <option name="x" value="1919" />
+    <option name="y" value="27" />
     <option name="width" value="1922" />
-    <option name="height" value="1201" />
+    <option name="height" value="1174" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -196,20 +157,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="CycloaJS" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="CycloaJS" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="CycloaJS" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="test" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -383,13 +330,13 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1" y="0" width="1922" height="1201" extended-state="6" />
-    <editor active="false" />
+    <frame x="1919" y="27" width="1922" height="1174" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32875368" sideWeight="0.49786553" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32875368" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2678762" sideWeight="0.79085875" order="4" side_tool="true" content_ui="tabs" x="3638" y="177" width="153" height="328" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15368196" sideWeight="0.79085875" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2710779" sideWeight="0.79085875" order="4" side_tool="true" content_ui="tabs" x="3638" y="177" width="153" height="328" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15741728" sideWeight="0.79085875" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.12293144" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.08065366" sideWeight="0.3326791" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21000981" sideWeight="0.29082176" order="13" side_tool="true" content_ui="tabs" />
@@ -509,36 +456,40 @@
         <state line="1530" column="9" selection-start="27112" selection-end="27112" vertical-scroll-proportion="0.33333334" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/processor_debug_board.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="9" selection-start="72" selection-end="72" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/cycloa/cycloa.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="0" selection-start="141" selection-end="141" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/performance.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="35" column="9" selection-start="1193" selection-end="1193" vertical-scroll-proportion="-22.066668">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/cycloa/err.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="11" column="0" selection-start="147" selection-end="147" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/js/cycloa/util.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="14" column="16" selection-start="260" selection-end="260" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/js/cycloa/err.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="11" column="0" selection-start="131" selection-end="131" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/cycloa/cycloa.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="13" column="0" selection-start="170" selection-end="170" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="59" column="29" selection-start="2178" selection-end="2178" vertical-scroll-proportion="-20.3">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gen/fast_video_run.erb.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="17" column="31" selection-start="340" selection-end="340" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/js/cycloa/fast.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="33" column="37" selection-start="637" selection-end="637" vertical-scroll-proportion="0.12512413">
+        <state line="7395" column="14" selection-start="207895" selection-end="207901" vertical-scroll-proportion="0.3329843">
           <folding />
         </state>
       </provider>

@@ -32,7 +32,7 @@ cycloa.Tracer = function (machine) {
 	this.decode = function () {
 		var inst_repr = this[this.opcode_ = this.m.read(this.m.PC)]();
 		var inst = "$" + cycloa.util.formatHex(this.m.PC, 16) + ":";
-		for (var i = 0, max = this.MAX_INST_LENGTH; i < max; ++i) {
+		for (var i = 0, max = 3; i < max; ++i) {
 			inst += i < this.code_idx_ ? cycloa.util.formatHex(this.code_[i]) + " " : "   ";
 		}
 		inst += " " + inst_repr;

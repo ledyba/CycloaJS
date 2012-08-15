@@ -47,9 +47,7 @@ while(this.nowX >= 341){
 		// なお、$2002のレジスタがHIGHになった後にVBLANKを起こさないと「ソロモンの鍵」にてゲームが始まらない。
 		// (NMI割り込みがレジスタを読み込みフラグをリセットしてしまう上、NMI割り込みが非常に長く、クリアしなくてもすでにVBLANKが終わった後に返ってくる)
 		//nowOnVBlankフラグの立ち上がり後、数クロックでNMIが発生。
-		if(this.executeNMIonVBlank){
-			this.reserveNMI();
-		}
+		this.NMI = this.executeNMIonVBlank; /* reserve NMI if emabled */
 		this.onVBlank();
 	}else if(nowY <= 261){
 		//nowVBlank.

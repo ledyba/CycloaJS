@@ -4,6 +4,7 @@ require File.dirname(__FILE__)+"/opcode_info.rb";
 Target="this"
 
 module CPU
+	ClockFactor = 3;
 	def self.RunInit()
 """
 /**
@@ -15,8 +16,22 @@ var rom = this.rom; var ram = this.ram;
 	end
 	def self.Init()
 """
-clockDelta = 0;
+clockDelta = reservedClockDelta; reservedClockDelta = 0;
 """
+	end
+	module IRQ
+		FRAMECNT = 1;
+		DMC = 2;
+		CARTRIDGE = 4;
+	end
+	def self.ReserveIRQ(devID)
+		"this.IRQ |= #{(devID) & 0xff};"
+	end
+	def self.IsIRQPending(devID)
+		"(this.IRQ & #{(devID) & 0xff})"
+	end
+	def self.ReleaseIRQ(devID)
+		"this.IRQ &= #{(~devID) & 0xff};"
 	end
 	def self.MemWrite(addr, val)
 	end
@@ -34,7 +49,17 @@ switch((#{addrsym} & 0xE000) >> 13){
 		break;
 	}
 	case 2:{ /* 0x4000 -> 0x6000 */
-		#{store_sym} = 0;
+		if(#{addr} === 0x4015){
+			#{store_sym} = this.__audio__readReg(#{addr});
+		}else if(#{addr} === 0x4016){
+			#{store_sym} = this.pad1Fairy.isPressed((this.pad1Idx++) & 7) ? 1 : 0;
+		}else if(#{addr} === 0x4017){
+			#{store_sym} = this.pad2Fairy.isPressed((this.pad2Idx++) & 7) ? 1 : 0;
+		}else if(addr < 0x4018){
+			throw new cycloa.err.CoreException('[FIXME] Invalid addr: 0x'+#{addr}.toString(16));
+		}else{
+			#{store_sym} = this.readMapperRegisterArea(addr);
+		}
 		break;
 	}
 	case 3:{ /* 0x6000 -> 0x8000 */
@@ -73,7 +98,89 @@ switch((#{addr} & 0xE000) >> 13) {
 		break;
 	}
 	case 2:{ /* 0x4000 -> 0x6000 */
-		if(#{addr} === 0x4014){
+		switch(#{addr} & 0x1f) {
+		case 0x0: { /* 4000h - APU Volume/Decay Channel 1 (Rectangle) */
+			this.__rectangle0__analyzeVolumeRegister(#{val});
+			break;
+		}
+		case 0x1: { /* 4001h - APU Sweep Channel 1 (Rectangle) */
+			this.__rectangle0__analyzeSweepRegister(#{val});
+			break;
+		}
+		case 0x2: { /* 4002h - APU Frequency Channel 1 (Rectangle) */
+			this.__rectangle0__analyzeFrequencyRegister(#{val});
+			break;
+		}
+		case 0x3: { /* 4003h - APU Length Channel 1 (Rectangle) */
+			this.__rectangle0__analyzeLengthRegister(#{val});
+			break;
+		}
+		case 0x4: { /* 4004h - APU Volume/Decay Channel 2 (Rectangle) */
+			this.__rectangle1__analyzeVolumeRegister(#{val});
+			break;
+		}
+		case 0x5: { /* 4005h - APU Sweep Channel 2 (Rectangle) */
+			this.__rectangle1__analyzeSweepRegister(#{val});
+			break;
+		}
+		case 0x6: { /* 4006h - APU Frequency Channel 2 (Rectangle) */
+			this.__rectangle1__analyzeFrequencyRegister(#{val});
+			break;
+		}
+		case 0x7: { /* 4007h - APU Length Channel 2 (Rectangle) */
+			this.__rectangle1__analyzeLengthRegister(#{val});
+			break;
+		}
+		case 0x8: { /* 4008h - APU Linear Counter Channel 3 (Triangle) */
+			this.__triangle__analyzeLinearCounterRegister(#{val});
+			break;
+		}
+		case 0x9: { /* 4009h - APU N/A Channel 3 (Triangle) */
+			/* unused */
+			break;
+		}
+		case 0xA: { /* 400Ah - APU Frequency Channel 3 (Triangle) */
+			this.__triangle__analyzeFrequencyRegister(#{val});
+			break;
+		}
+		case 0xB: { /* 400Bh - APU Length Channel 3 (Triangle) */
+			this.__triangle__analyzeLengthCounter(#{val});
+			break;
+		}
+		case 0xC: { /* 400Ch - APU Volume/Decay Channel 4 (Noise) */
+			this.__noize__analyzeVolumeRegister(#{val});
+			break;
+		}
+		case 0xd: { /* 400Dh - APU N/A Channel 4 (Noise) */
+			/* unused */
+			break;
+		}
+		case 0xe: { /* 400Eh - APU Frequency Channel 4 (Noise) */
+			this.__noize__analyzeFrequencyRegister(#{val});
+			break;
+		}
+		case 0xF: { /* 400Fh - APU Length Channel 4 (Noise) */
+			this.__noize__analyzeLengthRegister(#{val});
+			break;
+		}
+		/* ------------------------------------ DMC ----------------------------------------------------- */
+		case 0x10: { /* 4010h - DMC Play mode and DMA frequency */
+			this.__digital__analyzeFrequencyRegister(#{val});
+			break;
+		}
+		case 0x11: { /* 4011h - DMC Delta counter load register */
+			this.__digital__analyzeDeltaCounterRegister(#{val});
+			break;
+		}
+		case 0x12: { /* 4012h - DMC address load register */
+			this.__digital__analyzeSampleAddrRegister(#{val});
+			break;
+		}
+		case 0x13: { /* 4013h - DMC length register */
+			this.__digital__analyzeSampleLengthRegister(#{val});
+			break;
+		}
+		case 0x14: { /* 4014h execute Sprite DMA */
 			/** @type {number} uint16_t */
 			var addrMask = #{val} << 8;
 			var spRam = this.spRam;
@@ -84,13 +191,29 @@ switch((#{addr} & 0xE000) >> 13) {
 				#{CPU::MemRead("__addr__", "__val__")}
 				spRam[(spriteAddr+i) & 0xff] = __val__;
 			}
-			clockDelta += 512;
-		}else if(#{addr} === 0x4016){
-			/* ioPort.writeOutReg(#{val}); */
-		}else if(#{addr} < 0x4018){
-			/* audio.writeReg(#{addr}, #{val}); */
-		}else{
-			/* cartridge->writeRegisterArea(#{addr}, #{val}); */
+			clockDelta += #{512 * CPU::ClockFactor};
+			break;
+		}
+		/* ------------------------------ CTRL -------------------------------------------------- */
+		case 0x15: {
+			this.__audio__analyzeStatusRegister(#{val});
+			break;
+		}
+		case 0x16: {
+			if((#{val} & 1) === 1){
+				this.pad1Idx = 0;
+				this.pad2Idx = 0;
+			}
+			break;
+		}
+		case 0x17: {
+			this.__audio__analyzeLowFrequentryRegister(#{val});
+			break;
+		}
+		default: {
+			/* this.writeMapperRegisterArea(#{addr}, #{val}); */
+			break;
+		}
 		}
 		break;
 	}
@@ -210,7 +333,10 @@ switch((#{addr} & 0xE000) >> 13) {
 	end
 	
 	def self.ConsumeClock(clk)
-		"clockDelta += (#{clk});"
+		"clockDelta += ((#{clk}) * #{CPU::ClockFactor});"
+	end
+	def self.ConsumeReservedClock(clk)
+		"clockDelta += ((#{clk}) * #{CPU::ClockFactor});"
 	end
 
 	module AddrMode

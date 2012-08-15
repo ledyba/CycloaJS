@@ -21,17 +21,16 @@ if(this.NMI){
 	this.onIRQ();
 	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
 	//from http://nesdev.parodius.com/6502_cpu.txt
-	if((this.P & <%= Opcode::Flag[:I] %>) === <%= Opcode::Flag[:I] %>){
-		return;
+	if((this.P & <%= Opcode::Flag[:I] %>) !== <%= Opcode::Flag[:I] %>){
+		<%= CPU::ConsumeClock '7' %>;
+		this.P &= <%= ((~Opcode::Flag[:B]) & 0xff).to_s %>;
+		<%= CPU::Push "(this.PC >> 8) & 0xFF" %>
+		<%= CPU::Push "this.PC & 0xFF" %>
+		<%= CPU::Push "this.P" %>
+		this.P |= <%= Opcode::Flag[:I] %>;
+		//this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
+		this.PC = (this.rom[31][0x3FE] | (this.rom[31][0x3FF] << 8));
 	}
-	<%= CPU::ConsumeClock '7' %>;
-	this.P &= <%= ((~Opcode::Flag[:B]) & 0xff).to_s %>;
-	<%= CPU::Push "(this.PC >> 8) & 0xFF" %>
-	<%= CPU::Push "this.PC & 0xFF" %>
-	<%= CPU::Push "this.P" %>
-	this.P |= <%= Opcode::Flag[:I] %>;
-	//this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
-	this.PC = (this.rom[31][0x3FE] | (this.rom[31][0x3FF] << 8));
 }
 
 if(this.needStatusRewrite){

@@ -1,43 +1,111 @@
 %# -*- encoding: utf-8 -*-
 %require File.expand_path File.dirname(__FILE__)+"/gen.rb";
 
+cycloa.AbstractPadFairy = function(){
+	this.A=0;
+	this.B=1;
+	this.SELECT=2;
+	this.START=3;
+	this.UP=4;
+	this.DOWN=5;
+	this.LEFT=6;
+	this.RIGHT=7;
+	this.TOTAL=8;
+	this.MASK_A=1;
+	this.MASK_B=2;
+	this.MASK_SELECT=4;
+	this.MASK_START=8;
+	this.MASK_UP=16;
+	this.MASK_DOWN=32;
+	this.MASK_LEFT=64;
+	this.MASK_RIGHT=128;
+	this.MASK_ALL=255;
+	this.isPressed = function(keyIdx){
+		return false;
+	}
+};
+
 /**
  * @constructor
  */
-cycloa.FastMachine = function(rom, videoFairy) {
+cycloa.FastMachine = function(rom, videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
+	this.tracer = new cycloa.Tracer(this);
 	this.videoFairy = videoFairy;
+	this.audioFairy = audioFairy;
+	this.pad1Fairy = pad1Fairy || new cycloa.AbstractPadFairy();
+	this.pad2Fairy = pad2Fairy || new cycloa.AbstractPadFairy();
+	
+	this.pad1Idx = 0;
+	this.pad2Idx = 0;
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_cpu_init.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_video_init.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_init.erb.js" %>
+<%= render (File.expand_path (File.dirname(__FILE__)+"/fast_audio_rectangle_init.erb.js")), :isFirstChannel=>false %>
+<%= render (File.expand_path (File.dirname(__FILE__)+"/fast_audio_rectangle_init.erb.js")), :isFirstChannel=>false %>
+<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_triangle_init.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_noize_init.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_digital_init.erb.js" %>
 
+	this.reservedClockDelta = 0;
 	this.run = function () {
 		<%= CPU::RunInit() %>
 		<%= Video::RunInit() %>
 		var _run = true;
+		var reservedClockDelta = this.reservedClockDelta;
 		while(_run) {
+			//console.log(this.tracer.decode());
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_cpu_run.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_video_run.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_run.erb.js" %>
 		}
+		this.reservedClockDelta = reservedClockDelta;
 		return _run;
 	};
 
 
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_cpu_method.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/fast_video_method.erb.js" %>
-	
+<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_method.erb.js" %>
+<%= render (File.expand_path (File.dirname(__FILE__)+"/fast_audio_rectangle_method.erb.js")), :isFirstChannel=>false %>
+<%= render (File.expand_path (File.dirname(__FILE__)+"/fast_audio_rectangle_method.erb.js")), :isFirstChannel=>true %>
+<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_triangle_method.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_noize_method.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_digital_method.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/fast_ioport_method.erb.js" %>
+
 	/**
 	 * @function
 	 */
 	this.onHardReset = function () {
 		this.onHardResetCPU();
 		this.onHardResetVideo();
+		this.__audio__onHardReset();
+		this.__rectangle0__onHardReset();
+		this.__rectangle1__onHardReset();
+		this.__triangle__onHardReset();
+		this.__noize__onHardReset();
+		this.__digital__onHardReset();
 	};
 	this.onReset = function () {
 		this.onResetCPU();
 		this.onResetVideo();
+		this.__audio__onReset();
+		this.__rectangle0__onReset();
+		this.__rectangle1__onReset();
+		this.__triangle__onReset();
+		this.__noize__onReset();
+		this.__digital__onReset();
 	};
 	this.onVBlank = function(){
 	};
-	
+	this.onIRQ = function(){
+	};
+	this.read = function(addr) { 
+		var __val__;
+		var rom = this.rom; var ram = this.ram;
+		<%= CPU::MemRead("addr", "__val__") %>;
+		return __val__;
+	};
 	cycloa.FastMachine.Mappter.init(this, rom);
 };
 
@@ -183,4 +251,10 @@ cycloa.FastMachine.ZNFlagCache = new Uint8Array([
 
 cycloa.FastMachine.TransTable = new Uint32Array(<%= CPU::Middle::TransTable %>);
 
+cycloa.FastMachine.LengthCounterConst = [
+		0x0A,0xFE,0x14,0x02,0x28,0x04,0x50,0x06,
+		0xA0,0x08,0x3C,0x0A,0x0E,0x0C,0x1A,0x0E,
+		0x0C,0x10,0x18,0x12,0x30,0x14,0x60,0x16,
+		0xC0,0x18,0x48,0x1A,0x10,0x1C,0x20,0x1E,
+];
 	

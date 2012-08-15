@@ -1,18 +1,5 @@
 %# -*- encoding: utf-8 -*-
 
-this.reserveNMI = function () {
-	this.NMI = true;
-};
-this.reserveIRQ = function () {
-	this.IRQ = true;
-};
-this.releaseNMI = function () {
-	this.NMI = false;
-};
-this.releaseIRQ = function () {
-	this.IRQ = false;
-};
-
 this.onHardResetCPU = function(){
 		//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
 		this.P = 0x24;
@@ -26,7 +13,7 @@ this.onHardResetCPU = function(){
 		this.PC = (this.rom[31][0x3FC]| (this.rom[31][0x3FD] << 8));
 
 		this.NMI = false;
-		this.IRQ = false;
+		this.IRQ = 0;
 };
 
 this.onResetCPU = function () {
@@ -40,7 +27,7 @@ this.onResetCPU = function () {
 	this.PC = (this.rom[31][0x3FC]| (this.rom[31][0x3FD] << 8));
 
 	this.NMI = false;
-	this.IRQ = false;
+	this.IRQ = 0;
 };
 
 
