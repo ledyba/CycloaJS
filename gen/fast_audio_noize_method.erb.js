@@ -1,24 +1,5 @@
 %# -*- encoding: utf-8 -*-
 
-this.__noize__analyzeVolumeRegister = function(/*uint8_t*/ reg) {
-	this.__noize__decayCounter = this.__noize__volumeOrDecayRate = reg & 15;
-	this.__noize__decayEnabled = (reg & 16) == 0;
-	this.__noize__loopEnabled = (reg & 32) == 32;
-};
-this.__noize__analyzeFrequencyRegister = function(/*uint8_t*/ reg)
-{
-	this.__noize__modeFlag = (reg & 128) == 128;
-	this.__noize__frequency = this.__noize__FrequencyTable[reg & 15];
-};
-this.__noize__analyzeLengthRegister = function(/* uint8_t */ reg) {
-	//Writing to the length registers restarts the length (obviously),
-	this.__noize__lengthCounter = this.LengthCounterConst[reg >> 3];
-	//and restarts the decay volume (channel 1,2,4 only).
-	this.__noize__decayReloaded = true;
-};
-this.__noize__isEnabled = function() {
-	return this.__noize__lengthCounter != 0;
-};
 this.__noize__onHardReset = function() {
 	//rand
 	this.__noize__shiftRegister = 1<<14;
