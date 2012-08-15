@@ -1,5 +1,5 @@
 %# -*- encoding: utf-8 -*-
-this.__audio__frameCnt += (clockDelta * <%= Audio::FRAME_IRQ_RATE/CPU::ClockFactor %>);
+this.__audio__frameCnt += (clockDelta * <%= Audio::FRAME_IRQ_RATE %>);
 while(this.__audio__frameCnt >= <%= Audio::AUDIO_CLOCK %>){
 	this.__audio__frameCnt -= <%= Audio::AUDIO_CLOCK %>;
 	if(this.__audio__isNTSCmode){
@@ -99,7 +99,7 @@ while(this.__audio__frameCnt >= <%= Audio::AUDIO_CLOCK %>){
 		}
 	}
 }
-this.__audio__clockCnt += (clockDelta * <%= Audio::SAMPLE_RATE/CPU::ClockFactor %>);
+this.__audio__clockCnt += (clockDelta * <%= Audio::SAMPLE_RATE %>);
 while(this.__audio__clockCnt >= <%= Audio::AUDIO_CLOCK %>){
 	/*unsigned int*/var processClock = <%= Audio::AUDIO_CLOCK %> + this.__audio__leftClock;
 	/*unsigned int*/var delta = (processClock / <%= Audio::SAMPLE_RATE %>) | 0;

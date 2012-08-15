@@ -3,6 +3,8 @@ require 'erb'
 require File.expand_path( File.dirname(__FILE__)+"/gen.rb" );
 
 module Video
+	ClockFactor = 3;
+
 	ScreenWidth = 256;
 	ScreenWidthShift = 8;
 	ScreenHeight = 240;

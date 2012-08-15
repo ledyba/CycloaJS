@@ -2,16 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed42b9b7-df62-4d1d-a09b-dbb9a90e439b" name="Default" comment="JSDoc追加">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/cpu.rb" afterPath="$PROJECT_DIR$/gen/cpu.rb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/gen.rb" afterPath="$PROJECT_DIR$/gen/gen.rb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/fast.erb.js" afterPath="$PROJECT_DIR$/gen/fast.erb.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/fast_cpu_method.erb.js" afterPath="$PROJECT_DIR$/gen/fast_cpu_method.erb.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/fast_cpu_run.erb.js" afterPath="$PROJECT_DIR$/gen/fast_cpu_run.erb.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/fast_video_run.erb.js" afterPath="$PROJECT_DIR$/gen/fast_video_run.erb.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/cycloa/fast.js" afterPath="$PROJECT_DIR$/js/cycloa/fast.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/cycloa/trace.js" afterPath="$PROJECT_DIR$/js/cycloa/trace.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/cpu.rb" afterPath="$PROJECT_DIR$/gen/cpu.rb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/fast_audio_run.erb.js" afterPath="$PROJECT_DIR$/gen/fast_audio_run.erb.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/video.rb" afterPath="$PROJECT_DIR$/gen/video.rb" />
     </list>
     <ignored path="CycloaJS.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -40,7 +34,7 @@
       <file leaf-file-name="fast.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/js/cycloa/fast.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="7395" column="14" selection-start="207895" selection-end="207901" vertical-scroll-proportion="0.3329843">
+            <state line="151" column="13" selection-start="3574" selection-end="3592" vertical-scroll-proportion="0.20314136">
               <folding />
             </state>
           </provider>
@@ -220,16 +214,16 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="192" />
-    <property name="DefaultHtmlFileTemplate" value="Html5" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="984" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="984" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="984" />
+    <property name="DefaultHtmlFileTemplate" value="Html5" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="192" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="188" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
-    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
+    <property name="options.splitter.details.proportions" value="0.2" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -336,7 +330,7 @@
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32875368" sideWeight="0.49786553" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32875368" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2710779" sideWeight="0.79085875" order="4" side_tool="true" content_ui="tabs" x="3638" y="177" width="153" height="328" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15741728" sideWeight="0.79085875" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15901814" sideWeight="0.79085875" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.12293144" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.08065366" sideWeight="0.3326791" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21000981" sideWeight="0.29082176" order="13" side_tool="true" content_ui="tabs" />
@@ -352,8 +346,8 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25133404" sideWeight="0.38665357" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Thumbnails" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32973504" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Command Line Tools Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32978722" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Thumbnails" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32973504" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -489,7 +483,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/js/cycloa/fast.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7395" column="14" selection-start="207895" selection-end="207901" vertical-scroll-proportion="0.3329843">
+        <state line="151" column="13" selection-start="3574" selection-end="3592" vertical-scroll-proportion="0.20314136">
           <folding />
         </state>
       </provider>

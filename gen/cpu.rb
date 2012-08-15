@@ -4,7 +4,6 @@ require File.dirname(__FILE__)+"/opcode_info.rb";
 Target="this"
 
 module CPU
-	ClockFactor = 3;
 	def self.RunInit()
 """
 /**
@@ -191,7 +190,7 @@ switch((#{addr} & 0xE000) >> 13) {
 				#{CPU::MemRead("__addr__", "__val__")}
 				spRam[(spriteAddr+i) & 0xff] = __val__;
 			}
-			clockDelta += #{512 * CPU::ClockFactor};
+			clockDelta += 512;
 			break;
 		}
 		/* ------------------------------ CTRL -------------------------------------------------- */
@@ -333,10 +332,10 @@ switch((#{addr} & 0xE000) >> 13) {
 	end
 	
 	def self.ConsumeClock(clk)
-		"clockDelta += ((#{clk}) * #{CPU::ClockFactor});"
+		"clockDelta += (#{clk});"
 	end
 	def self.ConsumeReservedClock(clk)
-		"clockDelta += ((#{clk}) * #{CPU::ClockFactor});"
+		"reservedClockDelta += (#{clk});"
 	end
 
 	module AddrMode
