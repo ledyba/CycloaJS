@@ -158,22 +158,30 @@
 		function start(arrayBuffer) {
 			var machine = new cycloa.FastMachine(arrayBuffer, new VideoFairy(), new AudioFairy(), new PadFairy());
 			machine.onHardReset();
-			var beg = new Date();
 			var cnt = 0;
 			var fps = document.getElementById("fps");
 			var loop = function () {
 				//window.requestAnimFrame(loop);
+				window.setTimeout(loop,  16);
 				machine.run();
 				cnt++;
-				if (cnt == 30) {
+				if (cnt >= 30) {
 					var now = new Date();
-					fps.innerHTML = "fps: " + (30000 / (now - beg));
+					fps.innerHTML = "fps: " + (cnt * 1000 / (now - beg));
 					beg = now;
 					cnt = 0;
 				}
 			};
-			//loop();
-			window.setInterval(loop, 1000/60);
+			var beg = new Date();
+			loop();
+			/*
+			var beg = new Date();
+			for(var i=0;i<600;++i){
+				machine.run();
+			}
+			var now = new Date();
+			fps.innerHTML = "fps: " + (i * 1000 / (now - beg));
+			*/
 		}
 		function loadFile(file) {
 			var reader = new FileReader();

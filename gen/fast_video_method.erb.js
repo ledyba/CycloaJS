@@ -152,10 +152,13 @@ this.spriteEval = function() {
 };
 
 this.buildBgLine = function(){
-	if(!this.backgroundVisibility){
+	<%= Video::UseVideoAccess() %>
+	var _color = <%= Video::EmptyBit %> | <%= Video::Palette(8, 0) %>;
+	if(!this.backgroundVisibility) {
+		var _color32 = _color << 24 | _color << 16 | _color << 8 | _color;
+		for(var i=((nowY-1) << <%= Video::ScreenWidthShift-2 %>), max=i+<%= Video::ScreenWidth/4 %>; i<max; ++i) screenBuffer32[i] = _color32;
 		return;
 	}
-	<%= Video::UseVideoAccess() %>
 	/**
 	 * @type {number} uint8_t
 	 * @const
@@ -180,8 +183,10 @@ this.buildBgLine = function(){
 	 * @const
 	 */
 	var bgTileAddrBase = this.patternTableAddressBackground;
+	
+	var renderX=0;
 
-	for(var /* uint16_t */ renderX=0;;){
+	while(true){
 		/**
 		 * @type {number} uint16_t
 		 * @const
@@ -240,9 +245,7 @@ this.buildBgLine = function(){
 			 * @const
 			 */
 			var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1);
-			if(color != 0){
-				screenBuffer8[buffOffset+renderX] = palette[paletteOffset+color] | <%= Video::BackgroundBit %>;
-			}
+			screenBuffer8[buffOffset+renderX] = color != 0 ? palette[paletteOffset+color] | <%= Video::BackgroundBit %> : _color;
 			renderX++;
 			if(renderX >= <%= Video::ScreenWidth %>){
 				return;

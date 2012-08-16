@@ -10,8 +10,8 @@ if(this.NMI){
 	//from http://nesdev.parodius.com/6502_cpu.txt
 	<%= CPU::ConsumeClock '7' %>;
 	this.P &= <%= ((~Opcode::Flag[:B]) & 0xff).to_s %>;
-	<%= CPU::Push "(this.PC >> 8) & 0xFF" %>
-	<%= CPU::Push "this.PC & 0xFF" %>
+	<%= CPU::Push "this.PC >> 8" %>
+	<%= CPU::Push "this.PC" %>
 	<%= CPU::Push "this.P" %>;
 	this.P |= <%= Opcode::Flag[:I] %>;
 	//this.PC = (this.read(0xFFFA) | (this.read(0xFFFB) << 8));
@@ -24,8 +24,8 @@ if(this.NMI){
 	if((this.P & <%= Opcode::Flag[:I] %>) !== <%= Opcode::Flag[:I] %>){
 		<%= CPU::ConsumeClock '7' %>;
 		this.P &= <%= ((~Opcode::Flag[:B]) & 0xff).to_s %>;
-		<%= CPU::Push "(this.PC >> 8) & 0xFF" %>
-		<%= CPU::Push "this.PC & 0xFF" %>
+		<%= CPU::Push "this.PC >> 8" %>
+		<%= CPU::Push "this.PC" %>
 		<%= CPU::Push "this.P" %>
 		this.P |= <%= Opcode::Flag[:I] %>;
 		//this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
