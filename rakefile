@@ -1,9 +1,9 @@
 require 'erb'
 
-generated = ["js/fast.js"];
+generated = ["js/cycloa/fast.js"];
 
 task :default => generated;
-file "js/fast.js" => FileList["src/fast*.erb.js", "src/*.rb"] do |t|
+file "js/cycloa/fast.js" => FileList["src/fast*.erb.js", "src/*.rb"] do |t|
 	puts "generating fast"
 	sh "erb src/fast.erb.js > #{t.name}" 
 end
