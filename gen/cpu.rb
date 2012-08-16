@@ -9,9 +9,11 @@ module CPU
 /**
  * @type {Number}
  */
-var clockDelta;
-var rom = this.rom; var ram = this.ram;
+var clockDelta;#{UseMemory()}
 """
+	end
+	def self.UseMemory()
+	"var rom = this.rom; var ram = this.ram;"
 	end
 	def self.Init()
 """
@@ -1052,8 +1054,8 @@ var mem; #{CPU::MemRead("addr", "mem")};
 				return;
 			}*/
 			#{Target}.PC++;
-			#{::CPU::Push "((#{Target}.PC >> 8) & 0xFF)"}
-			#{::CPU::Push "(#{Target}.PC & 0xFF)"}
+			#{::CPU::Push "#{Target}.PC >> 8"}
+			#{::CPU::Push "#{Target}.PC"}
 			#{Target}.P |= 0x#{Opcode::Flag[:B].to_s(16)};
 			#{::CPU::Push "(#{Target}.P)"}
 			#{Target}.P |= 0x#{Opcode::Flag[:I].to_s(16)};
@@ -1135,8 +1137,8 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			 * @type {Number}
 			 */
 			var stored_pc = #{Target}.PC-1;
-			#{::CPU::Push "((stored_pc >> 8) & 0xFF)"}
-			#{::CPU::Push "(stored_pc & 0xFF)"}
+			#{::CPU::Push "stored_pc >> 8"}
+			#{::CPU::Push "stored_pc"}
 			#{Target}.PC = addr;
 """
 		end
