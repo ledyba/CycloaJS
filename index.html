@@ -5,12 +5,12 @@
 	<title></title>
 	<meta name="description" content="">
 	<link rel="stylesheet" href="css/style.css">
-	<script type="text/javascript" src="js/cycloa/cycloa.js"></script>
-	<script type="text/javascript" src="js/cycloa/trace.js"></script>
-	<script type="text/javascript" src="js/cycloa/err.js"></script>
-	<script type="text/javascript" src="js/cycloa/util.js"></script>
-	<script type="text/javascript" src="js/cycloa/fast.js"></script>
-	<script type="text/javascript" src="test/test_rom.js"></script>
+	<script type="text/javascript" src="js/cycloa.js"></script>
+	<script type="text/javascript" src="js/trace.js"></script>
+	<script type="text/javascript" src="js/err.js"></script>
+	<script type="text/javascript" src="js/util.js"></script>
+	<script type="text/javascript" src="js/default_fairy.js"></script>
+	<script type="text/javascript" src="js/fast.js"></script>
 	<script>
 		// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 		window.requestAnimFrame = (function () {
@@ -24,18 +24,18 @@
 					};
 		})();
 		function VideoFairy() {
-			this.screen = document.getElementById('nes_screen');
-			this.ctx = this.screen.getContext('2d');
-			this.image = this.ctx.createImageData(256, 240);
-			this.palette = cycloa.NesPalette;
-			this.prevBuffer = new Uint8Array(256*240);
+			this.screen_ = document.getElementById('nes_screen');
+			this.ctx_ = this.screen_.getContext('2d');
+			this.image_ = this.ctx_.createImageData(256, 240);
+			this.palette_ = cycloa.NesPalette;
+			this.prevBuffer_ = new Uint8Array(256*240);
 			for (var i = 0; i < 256 * 240; ++i) {
-				this.image.data[(i << 2) + 3] = 0xff;
+				this.image_.data[(i << 2) + 3] = 0xff;
 			}
 			this.dispatchRendering = function (/* const uint8_t*/ nesBuffer, /* const uint8_t */ paletteMask) {
-				var dat = this.image.data;
-				var palette = this.palette;
-				var prevBuffer = this.prevBuffer;
+				var dat = this.image_.data;
+				var palette = this.palette_;
+				var prevBuffer = this.prevBuffer_;
 				var pixel;
 				for (var i = 0; i < 61440 /* = 256*240 */; ++i) {
 					//TODO: 最適化
@@ -48,7 +48,7 @@
 						prevBuffer[i] = pixel;
 					}
 				}
-				this.ctx.putImageData(this.image, 0, 0);
+				this.ctx_.putImageData(this.image_, 0, 0);
 			};
 		}
 		function AudioFairy() {
