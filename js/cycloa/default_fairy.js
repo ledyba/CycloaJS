@@ -3,7 +3,7 @@ if(!cycloa) cycloa = {};
 
 cycloa.AbstractAudioFairy = function(){
 	this.enabled = false;//supported or not.
-	this.data = undefind;//audio data buffer to fill
+	this.data = undefined;//audio data buffer to fill
 	this.dataLength = 0;//length of the buffer
 	this.dataIndex = undefined;// the index of the buffer
 	this.onDataFilled = function(){};//called when all data buffer has been filled.

@@ -58,6 +58,11 @@ cycloa.err.NotImplementedException = function (message) {
 cycloa.err.NotImplementedException.prototype = {
 	__proto__: cycloa.err.Exception.prototype
 };
+/**
+ * サポートしてない事を示す例外です
+ * @param {String} message
+ * @constructor
+ */
 cycloa.err.NotSupportedException = function ( message ) {
 	cycloa.err.Exception.call(this, "NotSupportedException", message);
 };
