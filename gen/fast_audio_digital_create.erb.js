@@ -6,8 +6,6 @@ if(this.__digital__sampleLength != 0){
 		nowCounter -= divFreq;
 			if(this.__digital__sampleBufferLeft == 0){
 				this.__digital__sampleLength--;
-				var ram = this.ram;
-				var rom = this.rom;
 				var __val__;
 				var addr = this.__digital__sampleAddr;
 				<%= CPU::MemRead("addr", "__val__") %>
