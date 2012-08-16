@@ -13,14 +13,11 @@ while(this.nowX >= 341){
 		 * @const
 		 * @type {Uint8Array}
 		 */
-		var screenBuffer8 = this.screenBuffer8;
-		var screenBuffer32 = this.screenBuffer32
-		var palette = this.palette;
 		var _color = <%= Video::EmptyBit %> | <%= Video::Palette(8, 0) %>;
 		var _color32 = _color << 24 | _color << 16 | _color << 8 | _color;
 		for(var i=((nowY-1) << <%= Video::ScreenWidthShift-2 %>), max=i+<%= Video::ScreenWidth/4 %>; i<max; ++i) screenBuffer32[i] = _color32;
 		this.spriteEval();
-		if(this.backgroundVisibility || this.spriteVisibility){
+		if(this.backgroundVisibility || this.spriteVisibility) {
 			// from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
 			this.vramAddrRegister = (this.vramAddrRegister & 0x7BE0) | (this.vramAddrReloadRegister & 0x041F);
 			this.buildBgLine();
@@ -36,7 +33,7 @@ while(this.nowX >= 341){
 		}
 	}else if(nowY === 241){
 		//241: The PPU just idles during this scanline. Despite this, this scanline still occurs before the VBlank flag is set.
-		this.videoFairy.dispatchRendering(this.screenBuffer8, this.paletteMask);
+		this.videoFairy.dispatchRendering(screenBuffer8, this.paletteMask);
 		_run = false;
 		this.nowOnVBnank = true;
 		this.spriteAddr = 0;//and typically contains 00h at the begin of the VBlank periods

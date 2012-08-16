@@ -62,9 +62,9 @@ switch((#{addrsym} & 0xE000) >> 13){
 			#{ CPU::ReleaseIRQ(CPU::IRQ::FRAMECNT) }
 			#{ CPU::ReleaseIRQ(CPU::IRQ::DMC) }
 		}else if(#{addr} === 0x4016){
-			#{store_sym} = this.pad1Fairy.status >> ((this.pad1Idx++) & 7) & 0x1;
+			#{store_sym} = (this.pad1Fairy.state >> ((this.pad1Idx++) & 7)) & 0x1;
 		}else if(#{addr} === 0x4017){
-			#{store_sym} = this.pad2Fairy.status >> ((this.pad1Idx++) & 7) & 0x1;
+			#{store_sym} = (this.pad2Fairy.state >> ((this.pad2Idx++) & 7)) & 0x1;
 		}else if(addr < 0x4018){
 			throw new cycloa.err.CoreException('[FIXME] Invalid addr: 0x'+#{addr}.toString(16));
 		}else{
@@ -93,7 +93,7 @@ switch((#{addrsym} & 0xE000) >> 13){
 		break;
 	}
 }
-""".gsub(/[\r\n]/, '');
+"""
 	end
 	def self.MemWrite(addr, val)
 #	return "this.write(#{addr}, #{val});";
