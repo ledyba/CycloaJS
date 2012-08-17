@@ -40,6 +40,7 @@ publish
 
 # build script local files
 build/
+js/cycloa/fast.js
 
 #NES
 *.bak

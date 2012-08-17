@@ -1,10 +1,16 @@
 require 'erb'
 
-generated = ["js/cycloa/fast.js"];
+generated = ["build/cycloajs-src.js"];
+
 
 task :default => generated;
+
+file "build/cycloajs-src.js" => "js/cycloa/fast.js" do |t|
+	sh "jake"
+end
+
 file "js/cycloa/fast.js" => FileList["src/fast*.erb.js", "src/*.rb"] do |t|
-	puts "generating fast"
+	puts "generating emulation core"
 	sh "erb src/fast.erb.js > #{t.name}" 
 end
 
