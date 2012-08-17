@@ -111,7 +111,6 @@ var nesController;
 				xhr.send();
 			}
 		});
-		$("#rom_sel")[0].selectedIndex  = 0;
 
 		$("#nes_hardreset").bind("click", function(){nesController.hardReset();});
 		$("#nes_reset").bind("click", function(){nesController.reset();});
@@ -127,6 +126,9 @@ var nesController;
 				$("#nes_start").addClass("disable");
 			}
 		});
+
+		$("#rom_sel")[0].selectedIndex  = 0;
+		$("#nes_stop").removeClass("disable");
 		$("#nes_start").addClass("disable");
 
 		nesController = new NesController();
