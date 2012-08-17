@@ -37,7 +37,7 @@ module Video
 		"(#{addr} < 0x2000 ? pattern[(#{addr} >> 9) & 0xf][#{addr} & 0x1ff] : vramMirroring[(#{addr} >> 10) & 0x3][#{addr} & 0x3ff])"
 	end
 	def self.ReadPalette(addr)
-		"((#{addr} & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[#{addr} & 31])"
+		"((#{addr} & 0x3 === 0) ? palette[32 | ((addr >> 2) & 3)] : palette[#{addr} & 31])"
 	end
 	def self.ReadVram(addr, with_this = false)
 		"(((#{addr} & 0x3f00) !== 0x3f00) ? #{ReadVramExternal(addr)} : #{ReadPalette(addr)} )"

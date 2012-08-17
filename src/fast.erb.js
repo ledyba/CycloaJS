@@ -4,7 +4,7 @@
 /**
  * @constructor
  */
-cycloa.FastMachine = function(rom, videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
+cycloa.FastMachine = function(videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
 	this.tracer = new cycloa.Tracer(this);
 	this.videoFairy = videoFairy;
 	this.audioFairy = audioFairy;
@@ -83,10 +83,14 @@ cycloa.FastMachine = function(rom, videoFairy, audioFairy, pad1Fairy, pad2Fairy)
 		<%= CPU::MemRead("addr", "__val__") %>;
 		return __val__;
 	};
-	cycloa.FastMachine.Mappter.init(this, rom);
+
+	this.load = function(rom){
+		cycloa.FastMachine.Mapper.init(this, rom);
+		this.onHardReset();
+	};
 };
 
-cycloa.FastMachine.Mappter = [
+cycloa.FastMachine.Mapper = [
 	/* mapper 0 */
 	function(self){
 		self.writeMapperCPU = function(/* uint8_t */ addr){
@@ -106,18 +110,18 @@ cycloa.FastMachine.Mappter = [
 	}
 ];
 
-cycloa.FastMachine.Mappter.init = function(self, data) {
+cycloa.FastMachine.Mapper.init = function(self, data) {
 	// カートリッジの解釈
-	cycloa.FastMachine.Mappter.load(self, data);
+	cycloa.FastMachine.Mapper.load(self, data);
 	// デフォルト関数のインジェクション
-	cycloa.FastMachine.Mappter.initDefault(self);
+	cycloa.FastMachine.Mapper.initDefault(self);
 	// マッパー関数のインジェクション
-	cycloa.FastMachine.Mappter[self.mapperNo](self);
+	cycloa.FastMachine.Mapper[self.mapperNo](self);
 	
 	self.changeMirrorType(self.mirrorType);
 };
 
-cycloa.FastMachine.Mappter.initDefault = function(self){
+cycloa.FastMachine.Mapper.initDefault = function(self){
 	self.vramMirroring = new Array(4);
 	self.internalVram = new Array(4);
 	for(var i=0;i<4;++i){
@@ -169,7 +173,7 @@ cycloa.FastMachine.Mappter.initDefault = function(self){
 	};
 };
 
-cycloa.FastMachine.Mappter.load = function(self, data){
+cycloa.FastMachine.Mapper.load = function(self, data){
 	var data8 = new Uint8Array(data);
 	/* check NES data8 */
 	if(!(data8[0] === 0x4e && data8[1]===0x45 && data8[2]===0x53 && data8[3] == 0x1a)){

@@ -19,7 +19,7 @@ this.onHardResetCPU = function(){
 this.onResetCPU = function () {
 	//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
 	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-	this.consumeClock(cycloa.core.RESET_CLOCK);
+	this.reservedClockDelta += <%= CPU::ResetClock %>;
 	this.SP -= 0x03;
 	this.P |= <%= Opcode::Flag[:I] %>;
 	<%= CPU::MemWrite("0x4015", "0x00") %>

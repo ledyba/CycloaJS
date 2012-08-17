@@ -5,73 +5,50 @@
 	<title></title>
 	<meta name="description" content="">
 	<link rel="stylesheet" href="css/style.css">
-	<script type="text/javascript" src="js/cycloa.js"></script>
-	<script type="text/javascript" src="js/trace.js"></script>
-	<script type="text/javascript" src="js/err.js"></script>
-	<script type="text/javascript" src="js/util.js"></script>
-	<script type="text/javascript" src="js/default_fairy.js"></script>
-	<script type="text/javascript" src="js/fast.js"></script>
-	<script type="text/javascript" src="js/fast.js"></script>
-	<script type="text/javascript">
-		function start(arrayBuffer) {
-			var machine = new cycloa.FastMachine(arrayBuffer, new VideoFairy(), new AudioFairy(), new PadFairy());
-			machine.onHardReset();
-			var cnt = 0;
-			var fps = document.getElementById("fps");
-			var loop = function () {
-				//window.requestAnimFrame(loop);
-				window.setTimeout(loop,  16);
-				machine.run();
-				cnt++;
-				if (cnt >= 30) {
-					var now = new Date();
-					fps.innerHTML = "fps: " + (cnt * 1000 / (now - beg));
-					beg = now;
-					cnt = 0;
-				}
-			};
-			var beg = new Date();
-			loop();
-			/*
-			var beg = new Date();
-			for(var i=0;i<600;++i){
-				machine.run();
-			}
-			var now = new Date();
-			fps.innerHTML = "fps: " + (i * 1000 / (now - beg));
-			*/
-		}
-		function loadFile(file) {
-			var reader = new FileReader();
-			reader.onload = function (rom) {
-				start(rom.target.result);
-			};
-			reader.readAsArrayBuffer(file);
-		}
-		function load() {
-			window.addEventListener("dragenter", function (e) {
-				e.preventDefault();
-			}, false);
-			window.addEventListener("dragover", function (e) {
-				e.preventDefault();
-			}, false);
-			window.addEventListener("drop", function (e) {
-				e.preventDefault();
-				loadFile(e.dataTransfer.files[0]);
-			}, false);
-		}
-	</script>
+	<script type="text/javascript" src="js/lib/jquery-1.8.0.js"></script>
+	<script type="text/javascript" src="js/cycloa/cycloa.js"></script>
+	<script type="text/javascript" src="js/cycloa/trace.js"></script>
+	<script type="text/javascript" src="js/cycloa/err.js"></script>
+	<script type="text/javascript" src="js/cycloa/util.js"></script>
+	<script type="text/javascript" src="js/cycloa/default_fairy.js"></script>
+	<script type="text/javascript" src="js/cycloa/fast.js"></script>
+	<script type="text/javascript" src="js/fairy.js"></script>
+	<script type="text/javascript" src="js/interface.js"></script>
 </head>
-<body onload="load()">
+<body>
+<div id="background">
+	<h1 class="title">JavaScript NES Emulator: CycloaJS</h1>
+</div>
 <div id="wrapper">
 	<div id="header">
 	</div>
 	<div id="content">
 		<div>
-			<canvas id="nes_screen" width="256" height="240"></canvas>
-			<div id="fps"></div>
+			<p>Please drag & drop your .NES game or select opensource game below.</p>
+			<p>.NESファイルをドラッグ・アンド・ドロップするか、以下からフリーなゲームを選択すると遊ぶことができます。</p>
 		</div>
-		<input type="button" onclick="start(TestROM.buffer)" value="Load TEST ROM"/>
+		<div class="nes_screen_wrapper">
+			<canvas id="nes_screen" width="256" height="240"></canvas>
+		</div>
+		<label for="rom_sel"></label>
+		<select id="rom_sel">
+			<option value="">Select...</option>
+			<option value="roms/alter_ego/Alter_Ego.nes">Alter Ego (by Shiru, Kulor, Denis Grachev)</option>
+			<option value="roms/croom/croom.nes">Concentration Room (by Damian Yerrick)</option>
+			<option value="roms/lj65/lj65.nes">LJ65(by Damian Yerrick)</option>
+		</select>
+		<div id="control_box">
+			<input id="nes_hardreset" type="button" value="HardReset"/>
+			<input id="nes_reset" type="button" value="Reset"/>
+			<input id="nes_stop" type="button" value="Stop"/>
+			<input id="nes_start" type="button" value="Start"/>
+		</div>
+		<div id="state"></div>
+		<hr>
+		<div>
+			<p>This emulator is a port of Cycloa, a NES emulator written in C++, to JavaScript. The main purpose of this development is survey JavaScript performance.</p>
+			<p>このエミュレータは、C++で書かれたCycloaというエミュレータのJavaScriptへの移植です。開発の主目的はJavaScriptのパフォーマンスの調査です。PC上においては概ね実用的なスピードが出せるものの、、サウンドの同期機構やFPSの制御が難しく、</p>
+		</div>
 	</div>
 	<div id="footer">
 		2012 (C)PSI GPLv3 or later

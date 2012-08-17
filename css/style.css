@@ -291,3 +291,58 @@ td { vertical-align: top; }
   p, h2, h3 { orphans: 3; widows: 3; }
   h2, h3 { page-break-after: avoid; }
 }
+
+
+/**********************************************************************************************************************/
+
+body {
+	background-color: #333333;
+}
+
+.title {
+	color: #ffffff;
+}
+
+#wrapper {
+	margin-left: auto;
+	margin-right: auto;
+	width: 600px;
+	padding: 1em 50px 1em 50px;
+	background-color: #ffffff;
+}
+
+#rom_sel {
+	margin: 1em auto 1em auto;
+	width: 280px;
+	display: block;
+}
+
+#content{
+	width: 100%;
+}
+
+#control_box{
+	text-align: center;
+	margin: 1em auto 1em auto;
+	width: 320px;
+}
+
+#control_box input{
+	width: 30%;
+}
+
+.disable {
+    display: none;
+}
+
+hr {
+    border-top: #999999 dotted medium;
+}
+
+.nes_screen_wrapper {
+	margin: 2em auto 2em auto;
+	width: 256px;
+	height: 240px;
+	padding: 0;
+	border: #999999 dotted thick;
+}

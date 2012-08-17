@@ -2,7 +2,7 @@
 /**
  * @constructor
  */
-cycloa.FastMachine = function(rom, videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
+cycloa.FastMachine = function(videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
 	this.tracer = new cycloa.Tracer(this);
 	this.videoFairy = videoFairy;
 	this.audioFairy = audioFairy;
@@ -37,7 +37,6 @@ this.rom = new Array(32);
 
 this.ZNFlagCache = cycloa.FastMachine.ZNFlagCache;
 this.TransTable = cycloa.FastMachine.TransTable;
-this.RESET_CLOCK = 6;
 this.MAX_INST_LENGTH = 3;
 
 
@@ -3852,7 +3851,7 @@ this.onHardResetCPU = function(){
 this.onResetCPU = function () {
 	//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
 	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
-	this.consumeClock(cycloa.core.RESET_CLOCK);
+	this.reservedClockDelta += 6;
 	this.SP -= 0x03;
 	this.P |= 4;
 	switch((0x4015 & 0xE000) >> 13) {	case 0:{ /* 0x0000 -> 0x2000 */		ram[0x4015 & 0x1fff] = 0x00;		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		this.writeVideoReg(0x4015, 0x00);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		switch(0x4015 & 0x1f) {		case 0x0: { /* 4000h - APU Volume/Decay Channel 1 (Rectangle) */			this.__rectangle0__decayCounter = this.__rectangle0__volumeOrDecayRate = 0x00 & 15;			this.__rectangle0__decayEnabled = (0x00 & 16) == 0;			this.__rectangle0__loopEnabled = (0x00 & 32) == 32;			switch(0x00 >> 6)			{			case 0:				this.__rectangle0__dutyRatio = 2;				break;			case 1:				this.__rectangle0__dutyRatio = 4;				break;			case 2:				this.__rectangle0__dutyRatio = 8;				break;			case 3:				this.__rectangle0__dutyRatio = 12;				break;			}			break;		}		case 0x1: { /* 4001h - APU Sweep Channel 1 (Rectangle) */			this.__rectangle0__sweepShiftAmount = 0x00 & 7;			this.__rectangle0__sweepIncreased = (0x00 & 0x8) === 0x0;			this.__rectangle0__sweepCounter = this.__rectangle0__sweepUpdateRatio = (0x00 >> 4) & 3;			this.__rectangle0__sweepEnabled = (0x00&0x80) === 0x80;			break;		}		case 0x2: { /* 4002h - APU Frequency Channel 1 (Rectangle) */			this.__rectangle0__frequency = (this.__rectangle0__frequency & 0x0700) | (0x00);			break;		}		case 0x3: { /* 4003h - APU Length Channel 1 (Rectangle) */			this.__rectangle0__frequency = (this.__rectangle0__frequency & 0x00ff) | ((0x00 & 7) << 8);			this.__rectangle0__lengthCounter = this.LengthCounterConst[0x00 >> 3];			/* Writing to the length registers restarts the length (obviously),			and also restarts the duty cycle (channel 1,2 only), */			this.__rectangle0__dutyCounter = 0;			/* and restarts the decay volume (channel 1,2,4 only). */			this.__rectangle0__decayReloaded = true;			break;		}		case 0x4: { /* 4004h - APU Volume/Decay Channel 2 (Rectangle) */			this.__rectangle1__decayCounter = this.__rectangle1__volumeOrDecayRate = 0x00 & 15;			this.__rectangle1__decayEnabled = (0x00 & 16) == 0;			this.__rectangle1__loopEnabled = (0x00 & 32) == 32;			switch(0x00 >> 6)			{			case 0:				this.__rectangle1__dutyRatio = 2;				break;			case 1:				this.__rectangle1__dutyRatio = 4;				break;			case 2:				this.__rectangle1__dutyRatio = 8;				break;			case 3:				this.__rectangle1__dutyRatio = 12;				break;			}			break;		}		case 0x5: { /* 4005h - APU Sweep Channel 2 (Rectangle) */			this.__rectangle1__sweepShiftAmount = 0x00 & 7;			this.__rectangle1__sweepIncreased = (0x00 & 0x8) === 0x0;			this.__rectangle1__sweepCounter = this.__rectangle1__sweepUpdateRatio = (0x00 >> 4) & 3;			this.__rectangle1__sweepEnabled = (0x00&0x80) === 0x80;			break;		}		case 0x6: { /* 4006h - APU Frequency Channel 2 (Rectangle) */			this.__rectangle1__frequency = (this.__rectangle1__frequency & 0x0700) | (0x00);			break;		}		case 0x7: { /* 4007h - APU Length Channel 2 (Rectangle) */			this.__rectangle1__frequency = (this.__rectangle1__frequency & 0x00ff) | ((0x00 & 7) << 8);			this.__rectangle1__lengthCounter = this.LengthCounterConst[0x00 >> 3];			/* Writing to the length registers restarts the length (obviously),			and also restarts the duty cycle (channel 1,2 only), */			this.__rectangle1__dutyCounter = 0;			/* and restarts the decay volume (channel 1,2,4 only). */			this.__rectangle1__decayReloaded = true;			break;		}		case 0x8: { /* 4008h - APU Linear Counter Channel 3 (Triangle) */			this.__triangle__enableLinearCounter = ((0x00 & 128) == 128);			this.__triangle__linearCounterBuffer = 0x00 & 127;			break;		}		case 0x9: { /* 4009h - APU N/A Channel 3 (Triangle) */			/* unused */			break;		}		case 0xA: { /* 400Ah - APU Frequency Channel 3 (Triangle) */			this.__triangle__frequency = (this.__triangle__frequency & 0x0700) | 0x00;			break;		}		case 0xB: { /* 400Bh - APU Length Channel 3 (Triangle) */			this.__triangle__frequency = (this.__triangle__frequency & 0x00ff) | ((0x00 & 7) << 8);			this.__triangle__lengthCounter = this.LengthCounterConst[0x00 >> 3];			/* Side effects 	Sets the halt flag */			this.__triangle__haltFlag = true;			break;		}		case 0xC: { /* 400Ch - APU Volume/Decay Channel 4 (Noise) */			this.__noize__decayCounter = this.__noize__volumeOrDecayRate = 0x00 & 15;			this.__noize__decayEnabled = (0x00 & 16) == 0;			this.__noize__loopEnabled = (0x00 & 32) == 32;			break;		}		case 0xd: { /* 400Dh - APU N/A Channel 4 (Noise) */			/* unused */			break;		}		case 0xe: { /* 400Eh - APU Frequency Channel 4 (Noise) */			this.__noize__modeFlag = (0x00 & 128) == 128;			this.__noize__frequency = this.__noize__FrequencyTable[0x00 & 15];			break;		}		case 0xF: { /* 400Fh - APU Length Channel 4 (Noise) */			/* Writing to the length registers restarts the length (obviously), */			this.__noize__lengthCounter = this.LengthCounterConst[0x00 >> 3];			/* and restarts the decay volume (channel 1,2,4 only). */			this.__noize__decayReloaded = true;			break;		}		/* ------------------------------------ DMC ----------------------------------------------------- */		case 0x10: { /* 4010h - DMC Play mode and DMA frequency */			this.__digital__irqEnabled = (0x00 & 128) == 128;			if(!this.__digital__irqEnabled){				this.IRQ &= 253;			}			this.__digital__loopEnabled = (0x00 & 64) == 64;			this.__digital__frequency = this.__digital__FrequencyTable[0x00 & 0xf];			break;		}		case 0x11: { /* 4011h - DMC Delta counter load register */			this.__digital__deltaCounter = 0x00 & 0x7f;			break;		}		case 0x12: { /* 4012h - DMC address load register */			this.__digital__sampleAddr = 0xc000 | (0x00 << 6);			break;		}		case 0x13: { /* 4013h - DMC length register */			this.__digital__sampleLength = this.__digital__sampleLengthBuffer = (0x00 << 4) | 1;			break;		}		case 0x14: { /* 4014h execute Sprite DMA */			/** @type {number} uint16_t */			var addrMask = 0x00 << 8;			var spRam = this.spRam;			var spriteAddr = this.spriteAddr;			for(var i=0;i<256;++i){				var __addr__ = addrMask | i;				var __val__;				switch((__addr__ & 0xE000) >> 13){	case 0:{ /* 0x0000 -> 0x2000 */		__val__ = ram[__addr__ & 0x7ff];		break;	}	case 1:{ /* 0x2000 -> 0x4000 */		__val__ = this.readVideoReg(__addr__);		break;	}	case 2:{ /* 0x4000 -> 0x6000 */		if(__addr__ === 0x4015){		 	/* Clears the frame interrupt flag after being read (but not the DMC interrupt flag).			   If an interrupt flag was set at the same moment of the read, it will read back as 1 but it will not be cleared. */			__val__ =					( (this.__rectangle0__lengthCounter != 0 && this.__rectangle0__frequency >= 0x8 && this.__rectangle0__frequency  < 0x800)	? 1 : 0)					|((this.__rectangle1__lengthCounter != 0 && this.__rectangle1__frequency >= 0x8 && this.__rectangle1__frequency  < 0x800) ? 2 : 0)					|((this.__triangle__lengthCounter != 0 && this.__triangle__linearCounter != 0) ? 4 : 0)					|((this.__noize__lengthCounter != 0) ? 8 : 0)					|((this.__digital__sampleLength != 0) ? 16 : 0)					|(((this.IRQ & 1)) ? 64 : 0)					|((this.IRQ & 2) ? 128 : 0);			this.IRQ &= 254;			this.IRQ &= 253;		}else if(__addr__ === 0x4016){			__val__ = (this.pad1Fairy.state >> ((this.pad1Idx++) & 7)) & 0x1;		}else if(__addr__ === 0x4017){			__val__ = (this.pad2Fairy.state >> ((this.pad2Idx++) & 7)) & 0x1;		}else if(addr < 0x4018){			throw new cycloa.err.CoreException('[FIXME] Invalid addr: 0x'+__addr__.toString(16));		}else{			__val__ = this.readMapperRegisterArea(addr);		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		__val__ = 0;		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}	case 7:{ /* 0xE000 -> 0xffff */		__val__ = rom[(__addr__>>10) & 31][__addr__ & 0x3ff];		break;	}}				spRam[(spriteAddr+i) & 0xff] = __val__;			}			clockDelta += 512;			break;		}		/* ------------------------------ CTRL -------------------------------------------------- */		case 0x15: { /* __audio__analyzeStatusRegister */			if(!(0x00 & 1)) this.__rectangle0__lengthCounter = 0;			if(!(0x00 & 2)) this.__rectangle1__lengthCounter = 0;			if(!(0x00 & 4)) { this.__triangle__lengthCounter = 0; this.__triangle__linearCounter = this.__triangle__linearCounterBuffer = 0; }			if(!(0x00 & 8)) this.__noize__lengthCounter = 0;			if(!(0x00 & 16)) { this.__digital__sampleLength = 0; }else if(this.__digital__sampleLength == 0){ this.__digital__sampleLength = this.__digital__sampleLengthBuffer;}			break;		}		case 0x16: {			if((0x00 & 1) === 1){				this.pad1Idx = 0;				this.pad2Idx = 0;			}			break;		}		case 0x17: { /* __audio__analyzeLowFrequentryRegister */			/* Any write to $4017 resets both the frame counter, and the clock divider. */			if(0x00 & 0x80) {				this.__audio__isNTSCmode = false;				this.__audio__frameCnt = 1786360;				this.__audio__frameIRQCnt = 4;			}else{				this.__audio__isNTSCmode = true;				this.__audio__frameIRQenabled = true;				this.__audio__frameCnt = 1786360;				this.__audio__frameIRQCnt = 3;			}			if((0x00 & 0x40) === 0x40){				this.__audio__frameIRQenabled = false;				this.IRQ &= 254;			}			break;		}		default: {			/* this.writeMapperRegisterArea(0x4015, 0x00); */			break;		}		}		break;	}	case 3:{ /* 0x6000 -> 0x8000 */		break;	}	case 4:{ /* 0x8000 -> 0xA000 */		this.writeMapperCPU(0x4015, 0x00);		break;	}	case 5:{ /* 0xA000 -> 0xC000 */		this.writeMapperCPU(0x4015, 0x00);		break;	}	case 6:{ /* 0xC000 -> 0xE000 */		this.writeMapperCPU(0x4015, 0x00);		break;	}	case 7:{ /* 0xE000 -> 0xffff */		this.writeMapperCPU(0x4015, 0x00);		break;	}}	//this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
@@ -4055,7 +4054,7 @@ this.buildBgLine = function(){
 		 * @type {number} uint16_t
 		 * @const
 		 */
-		var tileNo = (((nameTableAddr & 0x3f00) !== 0x3f00) ? (nameTableAddr < 0x2000 ? pattern[(nameTableAddr >> 9) & 0xf][nameTableAddr & 0x1ff] : vramMirroring[(nameTableAddr >> 10) & 0x3][nameTableAddr & 0x3ff]) : ((nameTableAddr & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[nameTableAddr & 31]) );
+		var tileNo = (((nameTableAddr & 0x3f00) !== 0x3f00) ? (nameTableAddr < 0x2000 ? pattern[(nameTableAddr >> 9) & 0xf][nameTableAddr & 0x1ff] : vramMirroring[(nameTableAddr >> 10) & 0x3][nameTableAddr & 0x3ff]) : ((nameTableAddr & 0x3 === 0) ? palette[32 | ((addr >> 2) & 3)] : palette[nameTableAddr & 31]) );
 		/**
 		 * @type {number} uint16_t
 		 * @const
@@ -4072,7 +4071,7 @@ this.buildBgLine = function(){
 		 */
 		var palNo =
 				(
-					(((palAddr & 0x3f00) !== 0x3f00) ? (palAddr < 0x2000 ? pattern[(palAddr >> 9) & 0xf][palAddr & 0x1ff] : vramMirroring[(palAddr >> 10) & 0x3][palAddr & 0x3ff]) : ((palAddr & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[palAddr & 31]) )								>> (((tileYofScreen & 2) << 1) | (nameTableAddr & 2))
+					(((palAddr & 0x3f00) !== 0x3f00) ? (palAddr < 0x2000 ? pattern[(palAddr >> 9) & 0xf][palAddr & 0x1ff] : vramMirroring[(palAddr >> 10) & 0x3][palAddr & 0x3ff]) : ((palAddr & 0x3 === 0) ? palette[32 | ((addr >> 2) & 3)] : palette[palAddr & 31]) )								>> (((tileYofScreen & 2) << 1) | (nameTableAddr & 2))
 				) & 0x3;
 
 		//タイルのサーフェイスデータを取得
@@ -4085,7 +4084,7 @@ this.buildBgLine = function(){
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var firstPlane = (((off & 0x3f00) !== 0x3f00) ? (off < 0x2000 ? pattern[(off >> 9) & 0xf][off & 0x1ff] : vramMirroring[(off >> 10) & 0x3][off & 0x3ff]) : ((off & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[off & 31]) );
+		var firstPlane = (((off & 0x3f00) !== 0x3f00) ? (off < 0x2000 ? pattern[(off >> 9) & 0xf][off & 0x1ff] : vramMirroring[(off >> 10) & 0x3][off & 0x3ff]) : ((off & 0x3 === 0) ? palette[32 | ((addr >> 2) & 3)] : palette[off & 31]) );
 		/**
 		 * @type {number} uint8_t
 		 * @const
@@ -4095,7 +4094,7 @@ this.buildBgLine = function(){
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var secondPlane = (((secondPlaneAddr & 0x3f00) !== 0x3f00) ? (secondPlaneAddr < 0x2000 ? pattern[(secondPlaneAddr >> 9) & 0xf][secondPlaneAddr & 0x1ff] : vramMirroring[(secondPlaneAddr >> 10) & 0x3][secondPlaneAddr & 0x3ff]) : ((secondPlaneAddr & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[secondPlaneAddr & 31]) );
+		var secondPlane = (((secondPlaneAddr & 0x3f00) !== 0x3f00) ? (secondPlaneAddr < 0x2000 ? pattern[(secondPlaneAddr >> 9) & 0xf][secondPlaneAddr & 0x1ff] : vramMirroring[(secondPlaneAddr >> 10) & 0x3][secondPlaneAddr & 0x3ff]) : ((secondPlaneAddr & 0x3 === 0) ? palette[32 | ((addr >> 2) & 3)] : palette[secondPlaneAddr & 31]) );
 		/**
 		 * @type {number} uint8_t
 		 * @const
@@ -4108,7 +4107,11 @@ this.buildBgLine = function(){
 			 * @const
 			 */
 			var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1);
-			screenBuffer8[buffOffset+renderX] = color != 0 ? palette[paletteOffset+color] | 128 : _color;
+			if(color !== 0){
+				screenBuffer8[buffOffset+renderX] = palette[paletteOffset+color] | 128;
+			}else{
+				screenBuffer8[buffOffset+renderX] = _color;
+			}
 			renderX++;
 			if(renderX >= 256){
 				return;
@@ -4180,7 +4183,7 @@ this.buildSpriteLine = function(){
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var firstPlane = (((off & 0x3f00) !== 0x3f00) ? (off < 0x2000 ? pattern[(off >> 9) & 0xf][off & 0x1ff] : vramMirroring[(off >> 10) & 0x3][off & 0x3ff]) : ((off & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[off & 31]) );
+		var firstPlane = (((off & 0x3f00) !== 0x3f00) ? (off < 0x2000 ? pattern[(off >> 9) & 0xf][off & 0x1ff] : vramMirroring[(off >> 10) & 0x3][off & 0x3ff]) : ((off & 0x3 === 0) ? palette[32 | ((addr >> 2) & 3)] : palette[off & 31]) );
 		/**
 		 * @type {number} uint8_t
 		 * @const
@@ -4190,7 +4193,7 @@ this.buildSpriteLine = function(){
 		 * @type {number} uint8_t
 		 * @const
 		 */
-		var secondPlane = (((secondPlaneAddr & 0x3f00) !== 0x3f00) ? (secondPlaneAddr < 0x2000 ? pattern[(secondPlaneAddr >> 9) & 0xf][secondPlaneAddr & 0x1ff] : vramMirroring[(secondPlaneAddr >> 10) & 0x3][secondPlaneAddr & 0x3ff]) : ((secondPlaneAddr & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[secondPlaneAddr & 31]) );
+		var secondPlane = (((secondPlaneAddr & 0x3f00) !== 0x3f00) ? (secondPlaneAddr < 0x2000 ? pattern[(secondPlaneAddr >> 9) & 0xf][secondPlaneAddr & 0x1ff] : vramMirroring[(secondPlaneAddr >> 10) & 0x3][secondPlaneAddr & 0x3ff]) : ((secondPlaneAddr & 0x3 === 0) ? palette[32 | ((addr >> 2) & 3)] : palette[secondPlaneAddr & 31]) );
 		/**
 		 * @type {number} uint16_t
 		 * @const
@@ -4390,7 +4393,7 @@ this.readVideoReg = function(/* uint16_t */ addr)
 				/**
 				 * @const
 				 * @type {number} uint8_t */
-				var ret = ((vramAddrRegister & 0x3 == 0) ? palette[32 | ((addr >> 2) & 3)] : palette[vramAddrRegister & 31]);
+				var ret = ((vramAddrRegister & 0x3 === 0) ? palette[32 | ((addr >> 2) & 3)] : palette[vramAddrRegister & 31]);
 				this.vramBuffer = (vramAddrRegister < 0x2000 ? pattern[(vramAddrRegister >> 9) & 0xf][vramAddrRegister & 0x1ff] : vramMirroring[(vramAddrRegister >> 10) & 0x3][vramAddrRegister & 0x3ff]); //ミラーされてるVRAMにも同時にアクセスしなければならない。
 				this.vramAddrRegister = (vramAddrRegister + this.vramIncrementSize) & 0x3fff;
 				return ret;
@@ -4407,7 +4410,7 @@ this.readVideoReg = function(/* uint16_t */ addr)
 this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
 	if(addr < 0x2000) {
-		this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
+		//this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
 	} else {
 		this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
 	}
@@ -4435,7 +4438,6 @@ this.__audio__onHardReset = function() {
 
 	this.__audio__frameIRQenabled = true;
 	this.IRQ &= 254;
-
 	this.__audio__isNTSCmode = true;
 	this.__audio__frameIRQCnt = 0;
 	this.__audio__frameCnt = 0;
@@ -4455,9 +4457,7 @@ this.readAudioReg = function(addr){
 				|((this.__digital__sampleLength != 0) ? 16 : 0)
 				|(((this.IRQ & 1)) ? 64 : 0)
 				|((this.IRQ & 2) ? 128 : 0);
-		this.IRQ &= 254;
-		this.IRQ &= 253;
-	}else if(addr === 0x4016){
+		this.IRQ &= 254;		this.IRQ &= 253;	}else if(addr === 0x4016){
 		return (this.pad1Fairy.state >> ((this.pad1Idx++) & 7)) & 0x1;
 	}else if(addr === 0x4017){
 		return (this.pad2Fairy.state >> ((this.pad2Idx++) & 7)) & 0x1;
@@ -4600,8 +4600,7 @@ this.writeAudioReg = function(addr, val){
 		case 0x10: { /* 4010h - DMC Play mode and DMA frequency */
 			this.__digital__irqEnabled = (val & 128) == 128;
 			if(!this.__digital__irqEnabled){
-				 this.IRQ &= 253;
-			}
+				 this.IRQ &= 253;			}
 			this.__digital__loopEnabled = (val & 64) == 64;
 			this.__digital__frequency = this.__digital__FrequencyTable[val & 0xf];
 			break;
@@ -4620,8 +4619,7 @@ this.writeAudioReg = function(addr, val){
 		}
 		case 0x14: { /* 4014h execute Sprite DMA */
 			/** @type {number} uint16_t */
-			var rom = this.rom; var ram = this.ram;
-			var addrMask = val << 8;
+			var rom = this.rom; var ram = this.ram;			var addrMask = val << 8;
 			var spRam = this.spRam;
 			var spriteAddr = this.spriteAddr;
 			for(var i=0;i<256;++i){
@@ -4683,7 +4681,6 @@ switch((__addr__ & 0xE000) >> 13){
 		break;
 	}
 }
-
 				spRam[(spriteAddr+i) & 0xff] = __val__;
 			}
 			clockDelta += 512;
@@ -4719,8 +4716,7 @@ switch((__addr__ & 0xE000) >> 13){
 			}
 			if((val & 0x40) === 0x40){
 				this.__audio__frameIRQenabled = false;
-				this.IRQ &= 254;
-			}
+				this.IRQ &= 254;			}
 			break;
 		}
 		default: {
@@ -4825,8 +4821,7 @@ this.__digital__isIRQEnabled = function()
 }
 this.__digital__onHardReset = function() {
 	this.__digital__irqEnabled = false;
-	this.IRQ &= 253;
-	this.__digital__loopEnabled = false;
+	this.IRQ &= 253;	this.__digital__loopEnabled = false;
 	this.__digital__frequency = 0;
 	this.__digital__deltaCounter = 0;
 	this.__digital__sampleAddr = 0xc000;
@@ -4944,10 +4939,14 @@ switch((addr & 0xE000) >> 13){
 ;
 		return __val__;
 	};
-	cycloa.FastMachine.Mappter.init(this, rom);
+
+	this.load = function(rom){
+		cycloa.FastMachine.Mapper.init(this, rom);
+		this.onHardReset();
+	};
 };
 
-cycloa.FastMachine.Mappter = [
+cycloa.FastMachine.Mapper = [
 	/* mapper 0 */
 	function(self){
 		self.writeMapperCPU = function(/* uint8_t */ addr){
@@ -4967,18 +4966,18 @@ cycloa.FastMachine.Mappter = [
 	}
 ];
 
-cycloa.FastMachine.Mappter.init = function(self, data) {
+cycloa.FastMachine.Mapper.init = function(self, data) {
 	// カートリッジの解釈
-	cycloa.FastMachine.Mappter.load(self, data);
+	cycloa.FastMachine.Mapper.load(self, data);
 	// デフォルト関数のインジェクション
-	cycloa.FastMachine.Mappter.initDefault(self);
+	cycloa.FastMachine.Mapper.initDefault(self);
 	// マッパー関数のインジェクション
-	cycloa.FastMachine.Mappter[self.mapperNo](self);
+	cycloa.FastMachine.Mapper[self.mapperNo](self);
 	
 	self.changeMirrorType(self.mirrorType);
 };
 
-cycloa.FastMachine.Mappter.initDefault = function(self){
+cycloa.FastMachine.Mapper.initDefault = function(self){
 	self.vramMirroring = new Array(4);
 	self.internalVram = new Array(4);
 	for(var i=0;i<4;++i){
@@ -5030,7 +5029,7 @@ cycloa.FastMachine.Mappter.initDefault = function(self){
 	};
 };
 
-cycloa.FastMachine.Mappter.load = function(self, data){
+cycloa.FastMachine.Mapper.load = function(self, data){
 	var data8 = new Uint8Array(data);
 	/* check NES data8 */
 	if(!(data8[0] === 0x4e && data8[1]===0x45 && data8[2]===0x53 && data8[3] == 0x1a)){

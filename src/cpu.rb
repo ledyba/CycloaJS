@@ -4,6 +4,7 @@ require File.dirname(__FILE__)+"/opcode_info.rb";
 Target="this"
 
 module CPU
+	ResetClock = 6;
 	def self.RunInit()
 """
 /**

@@ -25,6 +25,5 @@ this.rom = new Array(32);
 
 this.ZNFlagCache = cycloa.FastMachine.ZNFlagCache;
 this.TransTable = cycloa.FastMachine.TransTable;
-this.RESET_CLOCK = 6;
 this.MAX_INST_LENGTH = 3;
 

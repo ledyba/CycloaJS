@@ -245,7 +245,11 @@ this.buildBgLine = function(){
 			 * @const
 			 */
 			var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1);
-			screenBuffer8[buffOffset+renderX] = color != 0 ? palette[paletteOffset+color] | <%= Video::BackgroundBit %> : _color;
+			if(color !== 0){
+				screenBuffer8[buffOffset+renderX] = palette[paletteOffset+color] | <%= Video::BackgroundBit %>;
+			}else{
+				screenBuffer8[buffOffset+renderX] = _color;
+			}
 			renderX++;
 			if(renderX >= <%= Video::ScreenWidth %>){
 				return;
@@ -547,7 +551,7 @@ this.readVideoReg = function(/* uint16_t */ addr)
 this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
 	if(addr < 0x2000) {
-		this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
+		//this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
 	} else {
 		this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
 	}
