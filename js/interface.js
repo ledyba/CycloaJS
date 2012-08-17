@@ -85,6 +85,27 @@ var nesController;
 			reader.readAsArrayBuffer(file);
 		});
 		$("html").bind("dragenter dragover", false);
+
+		$("#rom_sel").bind("change", function(e){
+			var val = e.currentTarget.value;
+			if(val){
+				$("#state").text("Now loading...");
+				var xhr = jQuery.ajaxSettings.xhr();
+				xhr.open('GET', val, true);
+				xhr.responseType = 'arraybuffer';
+				xhr.onreadystatechange = function() {
+					if (this.readyState === this.DONE) {
+						if(this.status === 200){
+							nesController.load(this.response);
+						}else{
+							$("#state").text("oops. Failed to load game... Status: "+this.status);
+						}
+					}
+				};
+				xhr.send();
+			}
+		});
+
 		$("#nes_hardreset").bind("click", function(){nesController.hardReset();});
 		$("#nes_reset").bind("click", function(){nesController.reset();});
 		$("#nes_stop").bind("click", function(){

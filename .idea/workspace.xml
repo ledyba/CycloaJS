@@ -2,19 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed42b9b7-df62-4d1d-a09b-dbb9a90e439b" name="Default" comment="JSDoc追加">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/CycloaJS.iml" afterPath="$PROJECT_DIR$/.idea/CycloaJS.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/cpu.rb" afterPath="$PROJECT_DIR$/src/cpu.rb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/video.rb" afterPath="$PROJECT_DIR$/src/video.rb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/css/style.css" afterPath="$PROJECT_DIR$/css/style.css" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/cycloa/fast.js" afterPath="$PROJECT_DIR$/js/cycloa/fast.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/fairy.js" afterPath="$PROJECT_DIR$/js/fairy.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/interface.js" afterPath="$PROJECT_DIR$/js/interface.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/fast.erb.js" afterPath="$PROJECT_DIR$/src/fast.erb.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/fast_cpu_init.erb.js" afterPath="$PROJECT_DIR$/src/fast_cpu_init.erb.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/fast_cpu_method.erb.js" afterPath="$PROJECT_DIR$/src/fast_cpu_method.erb.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/fast_video_method.erb.js" afterPath="$PROJECT_DIR$/src/fast_video_method.erb.js" />
     </list>
     <ignored path="CycloaJS.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -40,10 +29,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="interface.js" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="interface.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/js/interface.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="76" column="12" selection-start="1838" selection-end="1838" vertical-scroll-proportion="0.0">
+            <state line="96" column="53" selection-start="2468" selection-end="2468" vertical-scroll-proportion="0.56958395">
               <folding />
             </state>
           </provider>
@@ -52,16 +41,16 @@
       <file leaf-file-name="index.html" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="46" column="12" selection-start="1856" selection-end="1856" vertical-scroll-proportion="-12.24138">
+            <state line="4" column="44" selection-start="105" selection-end="105" vertical-scroll-proportion="-2.7586207">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="style.css" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="style.css" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/css/style.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="338" column="14" selection-start="10747" selection-end="10747" vertical-scroll-proportion="0.7368421">
+            <state line="338" column="14" selection-start="10747" selection-end="10747" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -169,9 +158,9 @@
         <option value="$PROJECT_DIR$/js/cycloa/err.js" />
         <option value="$PROJECT_DIR$/js/cycloa/fast.js" />
         <option value="$PROJECT_DIR$/js/fairy.js" />
-        <option value="$PROJECT_DIR$/js/interface.js" />
-        <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/css/style.css" />
+        <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/js/interface.js" />
       </list>
     </option>
   </component>
@@ -593,23 +582,23 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/interface.js">
+    <entry file="file://$PROJECT_DIR$/css/style.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="76" column="12" selection-start="1838" selection-end="1838" vertical-scroll-proportion="0.0">
+        <state line="338" column="14" selection-start="10747" selection-end="10747" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="46" column="12" selection-start="1856" selection-end="1856" vertical-scroll-proportion="-12.24138">
+        <state line="4" column="44" selection-start="105" selection-end="105" vertical-scroll-proportion="-2.7586207">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/css/style.css">
+    <entry file="file://$PROJECT_DIR$/js/interface.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="338" column="14" selection-start="10747" selection-end="10747" vertical-scroll-proportion="0.7368421">
+        <state line="96" column="53" selection-start="2468" selection-end="2468" vertical-scroll-proportion="0.56958395">
           <folding />
         </state>
       </provider>
