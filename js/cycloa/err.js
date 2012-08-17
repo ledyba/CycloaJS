@@ -1,15 +1,4 @@
 "use strict";
-var cycloa;
-if(!cycloa) cycloa = {};
-
-/**
- * 例外用の名前空間
- * @type {Object}
- * @const
- * @namespace
- */
-cycloa.err = {};
-
 /**
  * 例外のベースクラスです
  * @param {String} name 例外クラス名

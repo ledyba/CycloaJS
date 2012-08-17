@@ -228,7 +228,6 @@ switch( inst & 15 ){
 		case 0: { /* Immediate */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr = (pc+1);
@@ -240,7 +239,6 @@ switch( inst & 15 ){
 		case 1: { /* Zeropage */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr_base = pc+1;
@@ -368,7 +366,6 @@ switch((addr_base & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr = (addr_base + this.X) & 0xff;
@@ -438,7 +435,6 @@ switch((addr_base & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr = (addr_base + this.Y) & 0xff;
@@ -566,7 +562,6 @@ switch((addr_base2 & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr = (addr_base1 | (addr_base2 << 8));
@@ -694,7 +689,6 @@ switch((addr_base2 & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr = (addr_base1 | (addr_base2 << 8)) + this.X;
@@ -823,7 +817,6 @@ switch((addr_base2 & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr = (addr_base1 | (addr_base2 << 8)) + this.Y;
@@ -1070,7 +1063,6 @@ switch((addr_base5 & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr = addr_base4 | (addr_base5 << 8); 
@@ -1082,7 +1074,6 @@ switch((addr_base5 & 0xE000) >> 13){
 		case 8: { /* IndirectX */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr_base = pc+1;
@@ -1145,7 +1136,6 @@ switch((addr_base & 0xE000) >> 13){
 
 			addr_base = (addr_base + this.X) & 0xff;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr = ram[addr_base] | (ram[(addr_base + 1) & 0xff] << 8);
@@ -1157,7 +1147,6 @@ switch((addr_base & 0xE000) >> 13){
 		case 9: { /* IndirectY */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr_base = pc+1;
@@ -1219,7 +1208,6 @@ switch((addr_base & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr = (ram[addr_base] | (ram[(addr_base + 1) & 0xff] << 8)) + this.Y;
@@ -1231,7 +1219,6 @@ switch((addr_base & 0xE000) >> 13){
 		case 10: { /* Relative */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr_base = pc+1;
@@ -1293,7 +1280,6 @@ switch((addr_base & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
@@ -1519,17 +1505,14 @@ switch((addr & 0xE000) >> 13){
 		case 12: {  /* ADC */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var p = this.P;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var a = this.A;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val; 
@@ -1590,12 +1573,10 @@ switch((addr & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var result = (a + val + (p & 0x1)) & 0xffff;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var newA = result & 0xff;
@@ -1668,7 +1649,6 @@ switch((addr & 0xE000) >> 13){
 		case 14: {  /* ASL */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val; 
@@ -1730,7 +1710,6 @@ switch((addr & 0xE000) >> 13){
 
 			this.P = (this.P & 0xFE) | val >> 7;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var shifted = val << 1;
@@ -1740,7 +1719,6 @@ switch((addr & 0xE000) >> 13){
 		case 15: {  /* ASL_ */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var a = this.A;
@@ -1750,7 +1728,6 @@ switch((addr & 0xE000) >> 13){
 		case 16: {  /* BIT */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val; 
@@ -1874,7 +1851,6 @@ switch((addr & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val = (this.A - mem) & 0xffff;
@@ -1941,7 +1917,6 @@ switch((addr & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val = (this.X - mem) & 0xffff;
@@ -2008,7 +1983,6 @@ switch((addr & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val = (this.Y - mem) & 0xffff;
@@ -2018,7 +1992,6 @@ switch((addr & 0xE000) >> 13){
 		case 20: {  /* DEC */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var mem; 
@@ -2150,7 +2123,6 @@ switch((addr & 0xE000) >> 13){
 		case 24: {  /* INC */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var mem; 
@@ -2221,7 +2193,6 @@ switch((addr & 0xE000) >> 13){
 		case 27: {  /* LSR */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val; 
@@ -2283,7 +2254,6 @@ switch((addr & 0xE000) >> 13){
 
 			this.P = (this.P & 0xFE) | (val & 0x01);
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var shifted = val >> 1;
@@ -2359,7 +2329,6 @@ switch((addr & 0xE000) >> 13){
 		case 30: {  /* ROL */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val; 
@@ -2420,12 +2389,10 @@ switch((addr & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var p = this.P;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var shifted = ((val << 1) & 0xff) | (p & 0x01);
@@ -2436,12 +2403,10 @@ switch((addr & 0xE000) >> 13){
 		case 31: {  /* ROL_ */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var a = this.A;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var p = this.P;
@@ -2451,7 +2416,6 @@ switch((addr & 0xE000) >> 13){
 		case 32: {  /* ROR */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val; 
@@ -2512,12 +2476,10 @@ switch((addr & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var p = this.P;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var shifted = (val >> 1) | ((p & 0x01) << 7);
@@ -2528,17 +2490,14 @@ switch((addr & 0xE000) >> 13){
 		case 33: {  /* ROR_ */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var p = this.P;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var a = this.A;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			this.P = (p & 0xFE) | (a & 0x01);
@@ -2547,17 +2506,14 @@ switch((addr & 0xE000) >> 13){
 		case 34: {  /* SBC */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var p = this.P;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var a = this.A;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val; 
@@ -2618,12 +2574,10 @@ switch((addr & 0xE000) >> 13){
 }
 
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var result = (a - val - ((p & 0x1) ^ 0x1)) & 0xffff;
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var newA = result & 0xff;
@@ -2644,7 +2598,6 @@ switch((addr & 0xE000) >> 13){
 		case 38: {  /* PLP */
 			
 			/**
-			 * @const
 			 * @type {Number}
 			 */
 			var val = /* ::CPU::Pop */ (ram[0x0100 | (++this.SP & 0xff)]);
@@ -4143,7 +4096,6 @@ this.buildSpriteLine = function(){
 	var _spriteHeight = this.spriteHeight;
 	/**
 	 * @type {boolean} bool
-	 * @const
 	 */
 	var searchSprite0Hit = !this.sprite0Hit;
 	/**
@@ -4213,27 +4165,22 @@ this.buildSpriteLine = function(){
 			for(var x=0;x<endX;x++){
 				/**
 				 * @type {number} uint8_t
-				 * @const
 				 */
 				var color = ((firstPlane >> x) & 1) | (((secondPlane >> x) & 1)<<1); //ここだけ違います
 				/**
 				 * @type {number} uint8_t
-				 * @const
 				 */
 				var target = this.screenBuffer8[buffOffset + slot.x + x];
 				/**
 				 * @type {boolean} bool
-				 * @const
 				 */
 				var isEmpty = (target & 192) === 0;
 				/**
 				 * @type {boolean} bool
-				 * @const
 				 */
 				var isBackgroundDrawn = (target & 192) === 128;
 				/**
 				 * @type {boolean} bool
-				 * @const
 				 */
 				var isSpriteNotDrawn = (target & 64) === 0;
 				if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
@@ -4383,7 +4330,6 @@ this.readVideoReg = function(/* uint16_t */ addr)
 			var vramAddrRegister = this.vramAddrRegister;
 			if((vramAddrRegister & 0x3f00) !== 0x3f00){
 				/**
-				 * @const
 				 * @type {number} uint8_t */
 				var ret = this.vramBuffer;
 				this.vramBuffer = (vramAddrRegister < 0x2000 ? pattern[(vramAddrRegister >> 9) & 0xf][vramAddrRegister & 0x1ff] : vramMirroring[(vramAddrRegister >> 10) & 0x3][vramAddrRegister & 0x3ff]);
@@ -4391,7 +4337,6 @@ this.readVideoReg = function(/* uint16_t */ addr)
 				return ret;
 			} else {
 				/**
-				 * @const
 				 * @type {number} uint8_t */
 				var ret = ((vramAddrRegister & 0x3 === 0) ? palette[32 | ((addr >> 2) & 3)] : palette[vramAddrRegister & 31]);
 				this.vramBuffer = (vramAddrRegister < 0x2000 ? pattern[(vramAddrRegister >> 9) & 0xf][vramAddrRegister & 0x1ff] : vramMirroring[(vramAddrRegister >> 10) & 0x3][vramAddrRegister & 0x3ff]); //ミラーされてるVRAMにも同時にアクセスしなければならない。
@@ -4942,7 +4887,6 @@ switch((addr & 0xE000) >> 13){
 
 	this.load = function(rom){
 		cycloa.FastMachine.Mapper.init(this, rom);
-		this.onHardReset();
 	};
 };
 
@@ -5092,6 +5036,6 @@ cycloa.FastMachine.LengthCounterConst = [
 		0x0A,0xFE,0x14,0x02,0x28,0x04,0x50,0x06,
 		0xA0,0x08,0x3C,0x0A,0x0E,0x0C,0x1A,0x0E,
 		0x0C,0x10,0x18,0x12,0x30,0x14,0x60,0x16,
-		0xC0,0x18,0x48,0x1A,0x10,0x1C,0x20,0x1E,
+		0xC0,0x18,0x48,0x1A,0x10,0x1C,0x20,0x1E
 ];
 	

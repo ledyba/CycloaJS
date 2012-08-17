@@ -5,9 +5,18 @@
  * @namespace
  * @type {Object}
  */
-var cycloa;
-if(!cycloa) cycloa = {};
-
+var cycloa = {};
+/**
+ * エラークラスの名前空間
+ * @type {Object}
+ * @namespace
+ */
+cycloa.err = {};
+/**
+ * ユーティリティの名前空間
+ * @type {Object}
+ */
+cycloa.util = {};
 cycloa.debug = false;
 
 cycloa.NesPalette = new Uint32Array([

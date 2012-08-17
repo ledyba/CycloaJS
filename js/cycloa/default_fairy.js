@@ -1,5 +1,4 @@
-var cycloa;
-if(!cycloa) cycloa = {};
+"use strict";
 
 cycloa.AbstractAudioFairy = function(){
 	this.enabled = false;//supported or not.

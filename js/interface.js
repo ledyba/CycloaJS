@@ -8,6 +8,11 @@ function NesController(){
 }
 NesController.prototype.load = function(dat){
 	this.machine.load(dat);
+	if(!this.loaded){
+		this.machine.onHardReset();
+	}else{
+		this.machine.onReset();
+	}
 	this.loaded = true;
 	if(!this.running){
 		this.start();
@@ -81,6 +86,7 @@ var nesController;
 			var reader = new FileReader();
 			reader.onload = function (dat) {
 				nesController.load(dat.target.result);
+				$("#state").text("done.");
 			};
 			reader.readAsArrayBuffer(file);
 		});

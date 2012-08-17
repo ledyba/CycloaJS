@@ -282,7 +282,6 @@ this.buildSpriteLine = function(){
 	var _spriteHeight = this.spriteHeight;
 	/**
 	 * @type {boolean} bool
-	 * @const
 	 */
 	var searchSprite0Hit = !this.sprite0Hit;
 	/**
@@ -352,27 +351,22 @@ this.buildSpriteLine = function(){
 			for(var x=0;x<endX;x++){
 				/**
 				 * @type {number} uint8_t
-				 * @const
 				 */
 				var color = ((firstPlane >> x) & 1) | (((secondPlane >> x) & 1)<<1); //ここだけ違います
 				/**
 				 * @type {number} uint8_t
-				 * @const
 				 */
 				var target = this.screenBuffer8[buffOffset + slot.x + x];
 				/**
 				 * @type {boolean} bool
-				 * @const
 				 */
 				var isEmpty = (target & <%= Video::LayerBitMask %>) === <%= Video::EmptyBit %>;
 				/**
 				 * @type {boolean} bool
-				 * @const
 				 */
 				var isBackgroundDrawn = (target & <%= Video::LayerBitMask %>) === <%= Video::BackgroundBit %>;
 				/**
 				 * @type {boolean} bool
-				 * @const
 				 */
 				var isSpriteNotDrawn = (target & <%= Video::SpriteLayerBit %>) === 0;
 				if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
@@ -524,7 +518,6 @@ this.readVideoReg = function(/* uint16_t */ addr)
 			var vramAddrRegister = this.vramAddrRegister;
 			if((vramAddrRegister & 0x3f00) !== 0x3f00){
 				/**
-				 * @const
 				 * @type {number} uint8_t */
 				var ret = this.vramBuffer;
 				this.vramBuffer = <%= Video::ReadVramExternal("vramAddrRegister") %>;
@@ -532,7 +525,6 @@ this.readVideoReg = function(/* uint16_t */ addr)
 				return ret;
 			} else {
 				/**
-				 * @const
 				 * @type {number} uint8_t */
 				var ret = <%= Video::ReadPalette("vramAddrRegister") %>;
 				this.vramBuffer = <%= Video::ReadVramExternal("vramAddrRegister") %>; //ミラーされてるVRAMにも同時にアクセスしなければならない。

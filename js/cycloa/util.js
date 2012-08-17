@@ -1,12 +1,4 @@
-"use strict";
-
-var cycloa;
-if(!cycloa) cycloa = new Object;
-if(!cycloa.util) cycloa.util = new Object;
-
-
 /**
- * @nosideeffects
  * @param {Number} num
  * @param {Number} [len = 8]
  * @return {String}

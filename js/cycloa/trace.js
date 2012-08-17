@@ -1,6 +1,4 @@
 "use strict";
-var cycloa;
-if (!cycloa) cycloa = new Object;
 
 /**
  * @constructor

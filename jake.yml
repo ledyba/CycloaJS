@@ -1,0 +1,26 @@
+---
+source_directory:     js
+build_directory:      build
+
+layout:               together
+
+builds:
+  src:
+    packer:           false
+#  min:
+#    minify:           true
+#    shrink_vars:      true
+#    private:          true
+
+packages:
+  cycloa:
+    header: cycloa/cycloa.js
+    files:
+      - cycloa/err
+      - cycloa/util
+      - cycloa/trace
+      - cycloa/default_fairy
+      - cycloa/fast
+      - fairy
+      - interface
+    
