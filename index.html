@@ -5,11 +5,10 @@
 	<title>CycloaJS: JavaScript NES Emulator</title>
 	<meta name="description" content="">
 	<link rel="stylesheet" href="css/style.css">
-	<!--
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.0.min.js"></script>
 	<script type="text/javascript" src="build/cycloa-src.js"></script>
-	-->
 
+	<!--
 	<script type="text/javascript" src="js/lib/jquery-1.8.0.js"></script>
 	<script type="text/javascript" src="js/cycloa/cycloa.js"></script>
 	<script type="text/javascript" src="js/cycloa/trace.js"></script>
@@ -19,6 +18,7 @@
 	<script type="text/javascript" src="js/cycloa/fast.js"></script>
 	<script type="text/javascript" src="js/fairy.js"></script>
 	<script type="text/javascript" src="js/interface.js"></script>
+	-->
 </head>
 <body>
 <div id="background">
@@ -51,8 +51,48 @@
 		<div id="state"></div>
 		<hr>
 		<div>
-			<p>This emulator is a port of Cycloa, a NES emulator written in C++, to JavaScript. The main purpose of this development is survey JavaScript performance.</p>
-			<p>このエミュレータは、C++で書かれたCycloaというエミュレータのJavaScriptへの移植です。開発の主目的はJavaScriptのパフォーマンスの調査です。PC上においては概ね実用的なスピードが出せるものの、、サウンドの同期機構やFPSの制御が難しく、</p>
+			<h2>Software Requirements / 動作要件</h2>
+			<p>Chrme/Firefox, Safari for iPad and Safari for Windows(v5). Sounds are available only for Chrome and Firefox (Web Audio API and Audio Data API).</p>
+			<p>Chrome/Firefox、iPad版Safari/Windows版Safari5での動作を確認しています。ChromeとFirefoxのみサウンドも出力されます（Web Audio API and Audio Data API)。</p>
+		</div>
+		<div>
+			<h2>Control / 操作方法</h2>
+			<table>
+				<tr>
+					<th>Player 1</th><th>Button</th>
+				</tr>
+				<tr>
+					<td>A</td><td>Z</td>
+				</tr>
+				<tr>
+					<td>B</td><td>X</td>
+				</tr>
+				<tr>
+					<td>Start</td><td>Enter</td>
+				</tr>
+				<tr>
+					<td>Select</td><td>Space</td>
+				</tr>
+				<tr>
+					<td>↑</td><td>↑</td>
+				</tr>
+				<tr>
+					<td>→</td><td>→</td>
+				</tr>
+				<tr>
+					<td>←</td><td>←</td>
+				</tr>
+				<tr>
+					<td>↓</td><td>↓</td>
+				</tr>
+			</table>
+			<p>Now player2 is not supported.</p>
+			<p>現在プレイヤ２は対応していません</p>
+		</div＞
+		<div>
+			<h2>About CycloaJS</h2>
+			<p>This emulator is a port of Cycloa, a NES emulator written in C++, to JavaScript. The aim of this development is survey of JavaScript performance. In PC browsers, this emulator runs faster than jsnes with funciton inline expansin, but source code has been very messy. In iPad (1st gen), both emulators runs at more of the same speed.</p>
+			<p>このエミュレータは、C++で書かれたCycloaというエミュレータのJavaScriptへの移植です。開発の主目的はJavaScriptのパフォーマンスの調査です。その結果、関数呼び出しのインライン化などを行うことでPC上では十分なパフォーマンスを出せることがわかったものの、ソースコードの可読性が非常に下がってしまうことが分かりました。また、PCでは既存のjsnesよりも数倍と十分な高速化ができましたが、iPad上ではFPSに有意な差が出ませんでした。</p>
 		</div>
 	</div>
 	<div id="footer">
