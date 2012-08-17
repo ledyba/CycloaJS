@@ -77,7 +77,7 @@ var nesController;
 (function(){
 	$(document).ready(function(){
 		jQuery.event.props.push('dataTransfer');
-		$("html").bind("drop", function(e){
+		 $("html").bind("drop", function(e){
 			e.stopPropagation();
 			e.preventDefault();
 			var file = e.dataTransfer.files[0];

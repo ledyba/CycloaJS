@@ -4383,6 +4383,7 @@ this.__audio__onHardReset = function() {
 
 	this.__audio__frameIRQenabled = true;
 	this.IRQ &= 254;
+
 	this.__audio__isNTSCmode = true;
 	this.__audio__frameIRQCnt = 0;
 	this.__audio__frameCnt = 0;
@@ -4402,7 +4403,9 @@ this.readAudioReg = function(addr){
 				|((this.__digital__sampleLength != 0) ? 16 : 0)
 				|(((this.IRQ & 1)) ? 64 : 0)
 				|((this.IRQ & 2) ? 128 : 0);
-		this.IRQ &= 254;		this.IRQ &= 253;	}else if(addr === 0x4016){
+		this.IRQ &= 254;
+		this.IRQ &= 253;
+	}else if(addr === 0x4016){
 		return (this.pad1Fairy.state >> ((this.pad1Idx++) & 7)) & 0x1;
 	}else if(addr === 0x4017){
 		return (this.pad2Fairy.state >> ((this.pad2Idx++) & 7)) & 0x1;
@@ -4545,7 +4548,8 @@ this.writeAudioReg = function(addr, val){
 		case 0x10: { /* 4010h - DMC Play mode and DMA frequency */
 			this.__digital__irqEnabled = (val & 128) == 128;
 			if(!this.__digital__irqEnabled){
-				 this.IRQ &= 253;			}
+				 this.IRQ &= 253;
+			}
 			this.__digital__loopEnabled = (val & 64) == 64;
 			this.__digital__frequency = this.__digital__FrequencyTable[val & 0xf];
 			break;
@@ -4564,7 +4568,8 @@ this.writeAudioReg = function(addr, val){
 		}
 		case 0x14: { /* 4014h execute Sprite DMA */
 			/** @type {number} uint16_t */
-			var rom = this.rom; var ram = this.ram;			var addrMask = val << 8;
+			var rom = this.rom; var ram = this.ram;
+			var addrMask = val << 8;
 			var spRam = this.spRam;
 			var spriteAddr = this.spriteAddr;
 			for(var i=0;i<256;++i){
@@ -4626,6 +4631,7 @@ switch((__addr__ & 0xE000) >> 13){
 		break;
 	}
 }
+
 				spRam[(spriteAddr+i) & 0xff] = __val__;
 			}
 			clockDelta += 512;
@@ -4661,7 +4667,8 @@ switch((__addr__ & 0xE000) >> 13){
 			}
 			if((val & 0x40) === 0x40){
 				this.__audio__frameIRQenabled = false;
-				this.IRQ &= 254;			}
+				this.IRQ &= 254;
+			}
 			break;
 		}
 		default: {
@@ -4766,7 +4773,8 @@ this.__digital__isIRQEnabled = function()
 }
 this.__digital__onHardReset = function() {
 	this.__digital__irqEnabled = false;
-	this.IRQ &= 253;	this.__digital__loopEnabled = false;
+	this.IRQ &= 253;
+	this.__digital__loopEnabled = false;
 	this.__digital__frequency = 0;
 	this.__digital__deltaCounter = 0;
 	this.__digital__sampleAddr = 0xc000;
