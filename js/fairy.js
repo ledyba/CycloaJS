@@ -50,10 +50,11 @@ function AudioFairy() {
 	this.SAMPLE_RATE_ = 22050;
 	this.dataLength = (this.SAMPLE_RATE_ / 4) | 0;
 	this.enabled = false;
-	var context = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
-	if (context) {
+	var audioContext = window.AudioContext || window.webkitAudioContext;
+	var audioData = window.Audio;
+	if (audioContext) {
 		this.enabled = true;
-		this.context_ = new context();
+		this.context_ = new audioContext();
 		this.context_.sampleRate = this.SAMPLE_RATE_;
 		this.dataIndex = 0;
 		this.initBuffer = function () {
@@ -70,6 +71,17 @@ function AudioFairy() {
 			this.dataIndex = 0;
 		};
 		this.initBuffer();
+	}else if(audioData){
+		this.enabled = true;
+		this.audio_ = new audioData();
+		this.audio_.mozSetup(1, this.SAMPLE_RATE_);
+		this.dataIndex = 0;
+		this.data = new Float32Array(this.dataLength);
+		this.onDataFilled = function() {
+			this.audio_.mozWriteAudio(this.data);
+			this.audio_.play();
+			this.dataIndex = 0;
+		}
 	}
 }
 AudioFairy.prototype = new cycloa.AbstractAudioFairy();
