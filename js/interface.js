@@ -71,6 +71,9 @@ NesController.prototype.reset = function(){
 	this.machine.onReset();
 	return true;
 };
+NesController.prototype.zoom = function(){
+	this.videoFairy.zoom();
+};
 
 var nesController;
 
@@ -125,6 +128,10 @@ var nesController;
 				$("#nes_stop").removeClass("disable");
 				$("#nes_start").addClass("disable");
 			}
+		});
+
+		$("#screen_zoom").bind("click", function(){
+			nesController.zoom();
 		});
 
 		$("#rom_sel")[0].selectedIndex  = 0;

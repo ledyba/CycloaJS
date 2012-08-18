@@ -321,13 +321,13 @@ body {
 	width: 100%;
 }
 
-#control_box{
+.control_box{
 	text-align: center;
 	margin: 1em auto 1em auto;
 	width: 320px;
 }
 
-#control_box input{
+.control_box input{
 	width: 30%;
 }
 
@@ -339,10 +339,14 @@ hr {
     border-top: #999999 dotted medium;
 }
 
-.nes_screen_wrapper {
+#nes_screen {
 	margin: 2em auto 2em auto;
 	width: 256px;
 	height: 240px;
-	padding: 0;
 	border: #999999 dotted thick;
+}
+
+.nes_screen_wrapper {
+	padding: 0;
+	text-align: center;
 }

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="./probe.js"></script>
+	<script>
+		"use strict";
+		// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+		window.requestAnimFrame = (function () {
+			return  window.requestAnimationFrame ||
+					window.webkitRequestAnimationFrame ||
+					window.mozRequestAnimationFrame ||
+					window.oRequestAnimationFrame ||
+					window.msRequestAnimationFrame ||
+					function (callback) {
+						window.setTimeout(callback, 1000 / 60);
+					};
+		})();
+		function doBench() {
+			var canvas = document.getElementById("screen").getContext("2d");
+			var img = canvas.createImageData(256, 240);
+			var data = img.data;
+			var firstColor = 0;
+			var fps = 0;
+			var beg = new Date();
+			var loop = function(){
+				var color = (firstColor = (firstColor+1) % 0xff);
+				for(var i=0;i<256*240*4;++i){
+					data[i] = (color = (color+1) & 0xff);
+				}
+				if(++fps >= 600){
+					var end = new Date();
+					log("fps: "+(fps * 10000/(end-beg)));
+					beg = end;
+					fps = 0;
+				}
+				canvas.putImageData(img, 0, 0);
+				window.setTimeout(loop, 0);
+			};
+			loop();
+		}
+	</script>
+	<title>unit test</title>
+</head>
+<body>
+	<input id="start" onclick="doBench();" type="button" value="start" />
+	<canvas id="screen" width="256" height="240"></canvas>
+	<div id="console"></div>
+</body>
+</html>

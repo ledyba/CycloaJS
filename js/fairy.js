@@ -11,6 +11,7 @@ window.requestAnimFrame = (function () {
 })();
 function VideoFairy() {
 	this.screen_ = document.getElementById('nes_screen');
+	this.zoomed_ = false;
 	this.ctx_ = this.screen_.getContext('2d');
 	this.image_ = this.ctx_.createImageData(256, 240);
 	this.palette_ = cycloa.NesPalette;
@@ -45,6 +46,14 @@ VideoFairy.prototype.recycle = function(){
 	for(var i=0;i < 240*256; ++i){
 		prevBuffer[i] = 0xff;
 	}
+};
+VideoFairy.prototype.zoom = function(){
+	if(this.zoomed_){
+		$("#nes_screen").animate({width: 256, height: 240});
+	}else{
+		$("#nes_screen").animate({width: 512, height: 480});
+	}
+	this.zoomed_ = !this.zoomed_;
 };
 function AudioFairy() {
 	this.SAMPLE_RATE_ = 22050;

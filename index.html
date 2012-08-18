@@ -32,9 +32,6 @@
 			<p>Please drag & drop your .NES game or select opensource game below.</p>
 			<p>.NESファイルをドラッグ・アンド・ドロップするか、以下からフリーなゲームを選択すると遊ぶことができます。</p>
 		</div>
-		<div class="nes_screen_wrapper">
-			<canvas id="nes_screen" width="256" height="240"></canvas>
-		</div>
 		<label for="rom_sel"></label>
 		<select id="rom_sel">
 			<option value="">Select...</option>
@@ -42,13 +39,19 @@
 			<option value="roms/croom/croom.nes">Concentration Room (by Damian Yerrick)</option>
 			<option value="roms/lj65/lj65.nes">LJ65(by Damian Yerrick)</option>
 		</select>
-		<div id="control_box">
+		<div id="interface_box" class="control_box">
+			<input id="screen_zoom" type="button" value="zoom in/out" />
+		</div>
+		<div id="control_box" class="control_box">
 			<input id="nes_hardreset" type="button" value="HardReset"/>
 			<input id="nes_reset" type="button" value="Reset"/>
 			<input id="nes_stop" type="button" value="Stop"/>
 			<input id="nes_start" type="button" value="Start"/>
 		</div>
-		<div id="state"></div>
+		<div class="nes_screen_wrapper">
+			<canvas id="nes_screen" width="256" height="240"></canvas>
+		</div>
+		<div id="state" class="control_box"></div>
 		<hr>
 		<div>
 			<h2>Software Requirements / 動作要件</h2>
@@ -88,11 +91,18 @@
 			</table>
 			<p>Now player2 is not supported.</p>
 			<p>現在プレイヤ２は対応していません</p>
-		</div＞
+		</div>
 		<div>
 			<h2>About CycloaJS</h2>
 			<p>This emulator is a port of Cycloa, a NES emulator written in C++, to JavaScript. The aim of this development is survey of JavaScript performance. In PC browsers, this emulator runs faster than jsnes with funciton inline expansin, but source code has been very messy. In iPad (1st gen), both emulators runs at more of the same speed.</p>
 			<p>このエミュレータは、C++で書かれたCycloaというエミュレータのJavaScriptへの移植です。開発の主目的はJavaScriptのパフォーマンスの調査です。その結果、関数呼び出しのインライン化などを行うことでPC上では十分なパフォーマンスを出せることがわかったものの、ソースコードの可読性が非常に下がってしまうことが分かりました。また、PCでは既存のjsnesよりも数倍と十分な高速化ができましたが、iPad上ではFPSに有意な差が出ませんでした。</p>
+		</div>
+		<div>
+			<h2>About sample games</h2>
+			<div>
+				<h3>Alter Ego</h3>
+				Alter Ego is a
+			</div>
 		</div>
 	</div>
 	<div id="footer">
