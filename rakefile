@@ -5,13 +5,13 @@ generated = ["build/cycloajs-src.js"];
 
 task :default => generated;
 
-file "build/cycloajs-src.js" => "js/cycloa/fast.js" do |t|
+file "build/cycloajs-src.js" => "js/cycloa/vm.js" do |t|
 	sh "jake"
 end
 
-file "js/cycloa/fast.js" => FileList["src/fast*.erb.js", "src/*.rb"] do |t|
+file "js/cycloa/vm.js" => FileList["src/vm*.erb.js", "src/*.rb"] do |t|
 	puts "generating emulation core"
-	sh "erb src/fast.erb.js > #{t.name}" 
+	sh "erb src/vm.erb.js > #{t.name}" 
 end
 
 task :clean do

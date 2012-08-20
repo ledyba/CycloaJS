@@ -20,7 +20,7 @@ packages:
       - cycloa/util
       - cycloa/trace
       - cycloa/default_fairy
-      - cycloa/fast
+      - cycloa/vm
       - fairy
       - interface
     

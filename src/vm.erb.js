@@ -4,7 +4,7 @@
 /**
  * @constructor
  */
-cycloa.FastMachine = function(videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
+cycloa.VirtualMachine = function(videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
 	this.tracer = new cycloa.Tracer(this);
 	this.videoFairy = videoFairy;
 	this.audioFairy = audioFairy;
@@ -13,14 +13,14 @@ cycloa.FastMachine = function(videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
 	
 	this.pad1Idx = 0;
 	this.pad2Idx = 0;
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_cpu_init.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_video_init.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_init.erb.js" %>
-<%= render (File.expand_path (File.dirname(__FILE__)+"/fast_audio_rectangle_init.erb.js")), :isFirstChannel=>false %>
-<%= render (File.expand_path (File.dirname(__FILE__)+"/fast_audio_rectangle_init.erb.js")), :isFirstChannel=>false %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_triangle_init.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_noize_init.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_digital_init.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_cpu_init.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_video_init.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_init.erb.js" %>
+<%= render (File.expand_path (File.dirname(__FILE__)+"/vm_audio_rectangle_init.erb.js")), :isFirstChannel=>false %>
+<%= render (File.expand_path (File.dirname(__FILE__)+"/vm_audio_rectangle_init.erb.js")), :isFirstChannel=>false %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_triangle_init.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_noize_init.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_digital_init.erb.js" %>
 
 	this.reservedClockDelta = 0;
 	this.run = function () {
@@ -31,24 +31,24 @@ cycloa.FastMachine = function(videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
 		var reservedClockDelta = this.reservedClockDelta;
 		while(_run) {
 			//console.log(this.tracer.decode());
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_cpu_run.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_video_run.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_run.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_cpu_run.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_video_run.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_run.erb.js" %>
 		}
 		this.reservedClockDelta = reservedClockDelta;
 		return _run;
 	};
 
 
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_cpu_method.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_video_method.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_method.erb.js" %>
-<%= render (File.expand_path (File.dirname(__FILE__)+"/fast_audio_rectangle_method.erb.js")), :isFirstChannel=>false %>
-<%= render (File.expand_path (File.dirname(__FILE__)+"/fast_audio_rectangle_method.erb.js")), :isFirstChannel=>true %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_triangle_method.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_noize_method.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_audio_digital_method.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/fast_ioport_method.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_cpu_method.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_video_method.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_method.erb.js" %>
+<%= render (File.expand_path (File.dirname(__FILE__)+"/vm_audio_rectangle_method.erb.js")), :isFirstChannel=>false %>
+<%= render (File.expand_path (File.dirname(__FILE__)+"/vm_audio_rectangle_method.erb.js")), :isFirstChannel=>true %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_triangle_method.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_noize_method.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_digital_method.erb.js" %>
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_ioport_method.erb.js" %>
 
 	/**
 	 * @function
@@ -85,11 +85,11 @@ cycloa.FastMachine = function(videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
 	};
 
 	this.load = function(rom){
-		cycloa.FastMachine.Mapper.init(this, rom);
+		cycloa.VirtualMachine.Mapper.init(this, rom);
 	};
 };
 
-cycloa.FastMachine.Mapper = [
+cycloa.VirtualMachine.Mapper = [
 	/* mapper 0 */
 	function(self){
 		self.writeMapperCPU = function(/* uint8_t */ addr){
@@ -109,18 +109,18 @@ cycloa.FastMachine.Mapper = [
 	}
 ];
 
-cycloa.FastMachine.Mapper.init = function(self, data) {
+cycloa.VirtualMachine.Mapper.init = function(self, data) {
 	// カートリッジの解釈
-	cycloa.FastMachine.Mapper.load(self, data);
+	cycloa.VirtualMachine.Mapper.load(self, data);
 	// デフォルト関数のインジェクション
-	cycloa.FastMachine.Mapper.initDefault(self);
+	cycloa.VirtualMachine.Mapper.initDefault(self);
 	// マッパー関数のインジェクション
-	cycloa.FastMachine.Mapper[self.mapperNo](self);
+	cycloa.VirtualMachine.Mapper[self.mapperNo](self);
 	
 	self.changeMirrorType(self.mirrorType);
 };
 
-cycloa.FastMachine.Mapper.initDefault = function(self){
+cycloa.VirtualMachine.Mapper.initDefault = function(self){
 	self.vramMirroring = new Array(4);
 	self.internalVram = new Array(4);
 	for(var i=0;i<4;++i){
@@ -172,7 +172,7 @@ cycloa.FastMachine.Mapper.initDefault = function(self){
 	};
 };
 
-cycloa.FastMachine.Mapper.load = function(self, data){
+cycloa.VirtualMachine.Mapper.load = function(self, data){
 	var data8 = new Uint8Array(data);
 	/* check NES data8 */
 	if(!(data8[0] === 0x4e && data8[1]===0x45 && data8[2]===0x53 && data8[3] == 0x1a)){
@@ -210,7 +210,7 @@ cycloa.FastMachine.Mapper.load = function(self, data){
 	self.chrRom = new Uint8Array(data, fptr, self.chrSize);
 };
 
-cycloa.FastMachine.ZNFlagCache = new Uint8Array([
+cycloa.VirtualMachine.ZNFlagCache = new Uint8Array([
 	0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -229,9 +229,9 @@ cycloa.FastMachine.ZNFlagCache = new Uint8Array([
 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
 ]);
 
-cycloa.FastMachine.TransTable = new Uint32Array(<%= CPU::Middle::TransTable %>);
+cycloa.VirtualMachine.TransTable = new Uint32Array(<%= CPU::Middle::TransTable %>);
 
-cycloa.FastMachine.LengthCounterConst = [
+cycloa.VirtualMachine.LengthCounterConst = [
 		0x0A,0xFE,0x14,0x02,0x28,0x04,0x50,0x06,
 		0xA0,0x08,0x3C,0x0A,0x0E,0x0C,0x1A,0x0E,
 		0x0C,0x10,0x18,0x12,0x30,0x14,0x60,0x16,

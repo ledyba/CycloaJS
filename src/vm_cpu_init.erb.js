@@ -23,7 +23,7 @@ this.IRQ = false;
 this.ram = new Uint8Array(new ArrayBuffer(0x800));
 this.rom = new Array(32);
 
-this.ZNFlagCache = cycloa.FastMachine.ZNFlagCache;
-this.TransTable = cycloa.FastMachine.TransTable;
+this.ZNFlagCache = cycloa.VirtualMachine.ZNFlagCache;
+this.TransTable = cycloa.VirtualMachine.TransTable;
 this.MAX_INST_LENGTH = 3;
 

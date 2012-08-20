@@ -2,7 +2,7 @@ function NesController(){
 	this.videoFairy = new VideoFairy();
 	this.audioFairy = new AudioFairy();
 	this.padFairy = new PadFairy();
-	this.machine = new cycloa.FastMachine(this.videoFairy, this.audioFairy, this.padFairy);
+	this.machine = new cycloa.VirtualMachine(this.videoFairy, this.audioFairy, this.padFairy);
 	this.running = false;
 	this.loaded = false;
 }
