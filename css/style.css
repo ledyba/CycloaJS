@@ -350,3 +350,7 @@ hr {
 	padding: 0;
 	text-align: center;
 }
+
+#footer {
+	border-top: #999999 dotted thin;
+}

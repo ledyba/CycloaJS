@@ -29,8 +29,8 @@
 	</div>
 	<div id="content">
 		<div>
-			<p>Please drag & drop your .NES game or select opensource game below.</p>
-			<p>.NESファイルをドラッグ・アンド・ドロップするか、以下からフリーなゲームを選択すると遊ぶことができます。</p>
+			<p>Please drag & drop your .NES game or select a homebrew game below.</p>
+			<p>.NESファイルをドラッグ・アンド・ドロップするか、以下から無料なゲームを選択すると遊ぶことができます。</p>
 		</div>
 		<label for="rom_sel"></label>
 		<select id="rom_sel">
@@ -90,28 +90,33 @@
 					<td>↓</td><td>↓</td>
 				</tr>
 			</table>
-			<p>Now player2 is not supported.</p>
-			<p>現在プレイヤ２は対応していません</p>
+			<p>Currently player2 is not supported. I have tried many times to support Gamepad API, but I couldn't.</p>
+			<p>現在プレイヤ２は対応していません。ゲームパッドAPIにも何度も対応しようとしたのですが、ゲームパッドの状態が拾えません…。</p>
 		</div>
 		<div>
 			<h2>About CycloaJS</h2>
-			<p>This emulator is a port of Cycloa, a NES emulator written in C++, to JavaScript. The aim of this development is survey of JavaScript performance. In PC browsers, this emulator runs faster than jsnes with funciton inline expansin, but source code has been very messy. In iPad (1st gen), both emulators runs at more of the same speed. All sourecodes are licensed under GPL v3 or later, and available on Github.</p>
-			<p>このエミュレータは、C++で書かれたCycloaというエミュレータのJavaScriptへの移植です。開発の主目的はJavaScriptのパフォーマンスの調査です。その結果、関数呼び出しのインライン化などを行うことでPC上では十分なパフォーマンスを出せることがわかったものの、ソースコードの可読性が非常に下がってしまうことが分かりました。また、PCでは既存のjsnesよりも数倍と十分な高速化ができましたが、iPad上ではFPSに有意な差が出ませんでした。ソースコードのライセンスはGPL v3かそれ以降のバージョンです。ソースコードはGithubで得ることができます。</p>
+			<p>This emulator is a port of Cycloa, a NES emulator written in C++, to JavaScript. The aim of this development is survey of JavaScript performance. In PC browsers, this emulator runs faster than jsnes with funciton inline expansin, but source code has been very messy. In iPad (1st gen), both emulators runs at more of the same speed.</p>
+			<p>このエミュレータは、C++で書かれたCycloaというエミュレータのJavaScriptへの移植です。開発の主目的はJavaScriptのパフォーマンスの調査です。その結果、関数呼び出しのインライン化などを行うことでPC上では十分なパフォーマンスを出せることがわかったものの、ソースコードの可読性が非常に下がってしまうことが分かりました。また、PCでは既存のjsnesよりも数倍と十分な高速化ができましたが、iPad上ではFPSに有意な差が出ませんでした。</p>
+		</div>
+		<div>
+			<h2>Sourcecode</h2>
+			<p>All sourecodes are licensed under GPL v3 or later, and available on Github.</p>
+			<p>ソースコードのライセンスはGPL v3かそれ以降のバージョンです。ソースコードはGithubで得ることができます。</p>
 		</div>
 		<div>
 			<h2>About sample games</h2>
 			<div>
 				<h3>Alter Ego</h3>
-				<p><a href="http://www.retrosouls.net/?page_id=614">Alter Ego</a> is a puzzle action game, originally developed by <a href="http://www.retrosouls.net/">Denis Grachev</a> in ZX Spectrum.  This NES version is ported by <a href="http://shiru.untergrund.net">Shiru</a> and <a href="http://www.kulor.arnoldascher.com">Kulor</a> in 2011. This game is "free of charge", but not licensed under GPL or any "opensource" license.</p>
+				<p><a href="http://www.retrosouls.net/?page_id=614">Alter Ego</a> is a puzzle action game, originally developed by <a href="http://www.retrosouls.net/">Denis Grachev</a> in ZX Spectrum.  This NES version is ported by <a href="http://shiru.untergrund.net">Shiru</a> and <a href="http://www.kulor.arnoldascher.com">Kulor</a> in 2011. <strong>Warning! This game is "free of charge", but not licensed under GPL or any "opensource" license.</strong></p>
 				<p>You can control a hero and his "alter ego". The hero and  his alter ego move in mirrored fashion each other. You can swap them with B button in limited times. To complete stage, you have to collect all items in the satage.</p>
-				<p><a href="http://www.retrosouls.net/?page_id=614">Alter Ego</a>は、<a href="http://www.retrosouls.net/">Denis Grachev</a>さんがZXスペクトラム向けに2011年に開発したアクションパズルゲームで、それを同年に<a href="http://shiru.untergrund.net">Shiru</a>さんと<a href="http://www.kulor.arnoldascher.com">Kulor</a>さんがファミコン向けに移植したものを今回許可を頂いて転載させて頂いています。</p>
+				<p><a href="http://www.retrosouls.net/?page_id=614">Alter Ego</a>は、<a href="http://www.retrosouls.net/">Denis Grachev</a>さんがZXスペクトラム向けに2011年に開発したアクションパズルゲームで、それを同年に<a href="http://shiru.untergrund.net">Shiru</a>さんと<a href="http://www.kulor.arnoldascher.com">Kulor</a>さんがファミコン向けに移植したものを今回許可を頂いて転載させて頂いています。「無料」のゲームですが、GPLなどの自由なライセンスではありません。</p>
 				<p>画面上には操作する主人公と、そのアルター・エゴ（分身）が居ます。分身はステージに応じて、左右または上下方向に対して対称に動きます。Bボタンを押すことで分身と主人公を制限回数付きで入れ替えることができ、これを使って通常行けない場所に行くことができます。</p>
 				<p>主人公と分身を上手く入れ替えて、ステージ上のアイテムをすべて集めてください！敵キャラに触れるか、ステージ上から落下してしまうとアウトです。</p>
 			</div>
 			<div>
 				<h3>thwaite</h3>
-				<p><a href="http://pineight.com/nes/">thwaite</a> is a shooting-game developed by Damian Yerrick. You have to break out the ICBM and save your town! Is is licensed under GPL v3 or later. <a href="roms/croom/README.html">Here is a "README" document.</a></p>
-				<p><a href="http://pineight.com/nes/">thwaite</a>は、Damian Yerrickさんによって開発されたシューティングゲームです。 空から降り注ぐICBMを撃ち落とし、あなたの街を守りましょう。 ライセンスはGPL v3かそれ以降です。 <a href="roms/croom/README.html">READMEファイルはこちらです。</a></p>
+				<p><a href="http://pineight.com/nes/">thwaite</a> is a shooting-game developed by Damian Yerrick. You have to break out the ICBM and save your town! Is is licensed under GPL v3 or later. <a href="roms/thwaite-0.03/README.html">Here is a "README" document.</a></p>
+				<p><a href="http://pineight.com/nes/">thwaite</a>は、Damian Yerrickさんによって開発されたシューティングゲームです。 空から降り注ぐICBMを撃ち落とし、あなたの街を守りましょう。 ライセンスはGPL v3かそれ以降です。 <a href="roms/thwaite-0.03/README.html">READMEファイルはこちらです。</a></p>
 			</div>
 			<div>
 				<h3>Concentration Room</h3>
@@ -124,9 +129,11 @@
 				<p><a href="http://pineight.com/nes/">LJ65</a>は、Damian Yerrickさんによって開発された、テトリス(R)に似たアクションパズルゲームです。 ライセンスはGPL v2かそれ以降です。 <a href="roms/lj65/README.txt">READMEファイルはこちらです。</a></p>
 			</div>
 		</div>
+		<div>
+		</div>
 	</div>
 	<div id="footer">
-		2012 (C)PSI GPLv3 or later
+		(C) 2012 <a href="http://ledyba.org/">PSI</a> / Fairy and Rockets
 	</div>
 </div>
 </body>
