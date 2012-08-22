@@ -38,7 +38,7 @@ NesController.prototype.start = function(){
 		cnt++;
 		if (cnt >= 30) {
 			var now = new Date();
-			state.text("fps: " + (cnt * 1000 / (now - beg)));
+			state.text("fps: " + (cnt * 1000 / (now - beg)).toFixed(2));
 			beg = now;
 			cnt = 0;
 		}
