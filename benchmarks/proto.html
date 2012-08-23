@@ -19,20 +19,20 @@
 			this.state += 1;
 		};
 		function doBench() {
-			log("member object member variable: "+cycloa.probe.measure(function(){new function(){
+			log("direct injecting: "+cycloa.probe.measure(function(){
 				var obj = new Klass();
 				var i = TIMES;
 				while(--i){
 					obj.method();
 				}
-			}()}));
-			log("member object member variable: "+cycloa.probe.measure(function(){new function(){
+			}));
+			log("using prototype: "+cycloa.probe.measure(function(){
 				var obj = new Klass2();
 				var i = TIMES;
 				while(--i){
 					obj.method();
 				}
-			}()}));
+			}));
 		}
 	</script>
 	<title>benchmark</title>
