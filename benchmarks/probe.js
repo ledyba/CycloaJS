@@ -8,9 +8,13 @@ function log(msg){
 	document.getElementById('console').innerHTML + "<br>" + msg;
 }
 
+function clear(){
+	document.getElementById('console').innerHTML = undefined;
+}
+
 cycloa.probe.measure = function(func){
 	var start = new Date();
 	func();
 	var elapsed = (new Date())-start;
 	return elapsed;
-}
+};
