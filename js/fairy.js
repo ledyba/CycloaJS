@@ -19,26 +19,26 @@ function VideoFairy() {
 	for (var i = 0; i < 256 * 240; ++i) {
 		this.image_.data[(i << 2) + 3] = 0xff;
 	}
-	this.dispatchRendering = function (/* const uint8_t*/ nesBuffer, /* const uint8_t */ paletteMask) {
-		var dat = this.image_.data;
-		var palette = this.palette_;
-		var prevBuffer = this.prevBuffer_;
-		var pixel;
-		for (var i = 0; i < 61440 /* = 256*240 */; ++i) {
-			//TODO: 最適化
-			pixel = nesBuffer[i] & paletteMask;
-			if(pixel != prevBuffer[i]){
-				var idx = i << 2, color = palette[pixel];
-				dat[idx    ] = (color >> 16) & 0xff;
-				dat[idx + 1] = (color >> 8) & 0xff;
-				dat[idx + 2] = color & 0xff;
-				prevBuffer[i] = pixel;
-			}
-		}
-		this.ctx_.putImageData(this.image_, 0, 0);
-	};
 }
-VideoFairy.prototype = new cycloa.AbstractVideoFairy();
+VideoFairy.prototype.__proto__ = cycloa.AbstractVideoFairy.prototype;
+VideoFairy.prototype.dispatchRendering = function (/* const uint8_t*/ nesBuffer, /* const uint8_t */ paletteMask) {
+	var dat = this.image_.data;
+	var palette = this.palette_;
+	var prevBuffer = this.prevBuffer_;
+	var pixel;
+	for (var i = 0; i < 61440 /* = 256*240 */; ++i) {
+		//TODO: 最適化
+		pixel = nesBuffer[i] & paletteMask;
+		if(pixel != prevBuffer[i]){
+			var idx = i << 2, color = palette[pixel];
+			dat[idx    ] = (color >> 16) & 0xff;
+			dat[idx + 1] = (color >> 8) & 0xff;
+			dat[idx + 2] = color & 0xff;
+			prevBuffer[i] = pixel;
+		}
+	}
+	this.ctx_.putImageData(this.image_, 0, 0);
+};
 VideoFairy.prototype.recycle = function(){
 	this.ctx_.fillStyle="#000000";
 	this.ctx_.fillRect(0, 0, 256, 240);
@@ -96,7 +96,8 @@ function AudioFairy() {
 		}
 	}
 }
-AudioFairy.prototype = new cycloa.AbstractAudioFairy();
+
+AudioFairy.prototype.__proto__ = cycloa.AbstractAudioFairy.prototype;
 AudioFairy.prototype.recycle = function(){
 	this.dataIndex = 0;
 };
@@ -177,7 +178,7 @@ function PadFairy() {
 		}
 	});
 }
-PadFairy.prototype = new cycloa.AbstractPadFairy();
+PadFairy.prototype.__proto__ = cycloa.AbstractPadFairy.prototype;
 PadFairy.prototype.recycle = function(){
 	this.state = 0;
 };
