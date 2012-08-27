@@ -1,6 +1,6 @@
 %# -*- encoding: utf-8 -*-
 
-this.__audio__onHardReset = function() {
+cycloa.VirtualMachine.prototype.__audio__onHardReset = function() {
 	this.__audio__clockCnt = 0;
 	this.__audio__leftClock = 0;
 
@@ -11,10 +11,10 @@ this.__audio__onHardReset = function() {
 	this.__audio__frameIRQCnt = 0;
 	this.__audio__frameCnt = 0;
 };
-this.__audio__onReset = function() {
+cycloa.VirtualMachine.prototype.__audio__onReset = function() {
 };
 
-this.readAudioReg = function(addr){
+cycloa.VirtualMachine.prototype.readAudioReg = function(addr){
 	if(addr === 0x4015){
 	 	/* Clears the frame interrupt flag after being read (but not the DMC interrupt flag).
 		   If an interrupt flag was set at the same moment of the read, it will read back as 1 but it will not be cleared. */
@@ -39,7 +39,7 @@ this.readAudioReg = function(addr){
 	}
 };
 
-this.writeAudioReg = function(addr, val){
+cycloa.VirtualMachine.prototype.writeAudioReg = function(addr, val){
 		switch(addr & 0x1f) {
 		case 0x0: { /* 4000h - APU Volume/Decay Channel 1 (Rectangle) */
 			this.__rectangle0__decayCounter = this.__rectangle0__volumeOrDecayRate = val & 15;
@@ -201,7 +201,7 @@ this.writeAudioReg = function(addr, val){
 				<%= CPU::MemRead("__addr__", "__val__") %>
 				spRam[(spriteAddr+i) & 0xff] = __val__;
 			}
-			clockDelta += 512;
+			clockDelta += 512; //FIXME: これはここにあるべきじゃない
 			break;
 		}
 		/* ------------------------------ CTRL -------------------------------------------------- */

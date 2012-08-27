@@ -1,6 +1,6 @@
 %# -*- encoding: utf-8 -*-
 
-this.onHardResetCPU = function(){
+cycloa.VirtualMachine.prototype.onHardResetCPU = function(){
 		//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
 		this.P = 0x24;
 		this.A = 0x0;
@@ -16,7 +16,7 @@ this.onHardResetCPU = function(){
 		this.IRQ = 0;
 };
 
-this.onResetCPU = function () {
+cycloa.VirtualMachine.prototype.onResetCPU = function () {
 	//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
 	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
 	this.reservedClockDelta += <%= CPU::ResetClock %>;

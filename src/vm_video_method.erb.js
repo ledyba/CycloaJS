@@ -1,6 +1,6 @@
 %# -*- encoding: utf-8 -*-
 
-this.onHardResetVideo = function() {
+cycloa.VirtualMachine.prototype.onHardResetVideo = function() {
 	//from http://wiki.nesdev.com/w/index.php/PPU_power_up_state
 	for(var i=0;i< 4;++i) {
 		var iv = this.internalVram[i];
@@ -40,7 +40,7 @@ this.onHardResetVideo = function() {
 	//0x2006
 	this.vramAddrRegister = 0;
 };
-this.onResetVideo = function() {
+cycloa.VirtualMachine.prototype.onResetVideo = function() {
 	//from http://wiki.nesdev.com/w/index.php/PPU_power_up_state
 	//0x2000
 	this.executeNMIonVBlank = false;
@@ -65,7 +65,7 @@ this.onResetVideo = function() {
 	this.vramBuffer = 0;
 };
 
-this.spriteEval = function() {
+cycloa.VirtualMachine.prototype.spriteEval = function() {
 	/**
 	 * @type {Uint8Array}
 	 * @const
@@ -151,7 +151,7 @@ this.spriteEval = function() {
 	}
 };
 
-this.buildBgLine = function(){
+cycloa.VirtualMachine.prototype.buildBgLine = function(){
 	<%= Video::UseVideoAccess() %>
 	var _color = <%= Video::EmptyBit %> | <%= Video::Palette(8, 0) %>;
 	if(!this.backgroundVisibility) {
@@ -265,7 +265,7 @@ this.buildBgLine = function(){
 	}
 };
 
-this.buildSpriteLine = function(){
+cycloa.VirtualMachine.prototype.buildSpriteLine = function(){
 	if(!this.spriteVisibility){
 		return;
 	}
@@ -416,7 +416,7 @@ this.buildSpriteLine = function(){
 	}
 };
 
-this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
+cycloa.VirtualMachine.prototype.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
 	<%= Video::UseVideoAccess() %>
 
 	switch(addr & 0x07) {
@@ -482,7 +482,7 @@ this.writeVideoReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
 	}
 };
 
-this.readVideoReg = function(/* uint16_t */ addr)
+cycloa.VirtualMachine.prototype.readVideoReg = function(/* uint16_t */ addr)
 {
 	<%= Video::UseVideoAccess() %>
 	switch(addr & 0x07)
@@ -540,7 +540,7 @@ this.readVideoReg = function(/* uint16_t */ addr)
 };
 
 
-this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
+cycloa.VirtualMachine.prototype.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
 	if(addr < 0x2000) {
 		//this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
@@ -550,7 +550,7 @@ this.writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 };
 
 
-this.writeVram = function(/* uint16_t */ addr, /* uint8_t */ value) {
+cycloa.VirtualMachine.prototype.writeVram = function(/* uint16_t */ addr, /* uint8_t */ value) {
 	if((addr & 0x3f00) !== 0x3f00){
 		this.writeVramExternal(addr, value);
 	}else{

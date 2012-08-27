@@ -2,7 +2,7 @@
 % isFirstChannel = args[:isFirstChannel]
 % prefix=isFirstChannel ? "__rectangle0__" : "__rectangle1__"
 
-this.<%= prefix %>onHardReset = function() {
+cycloa.VirtualMachine.prototype.<%= prefix %>onHardReset = function() {
 	this.<%= prefix %>volumeOrDecayRate = 0;
 	this.<%= prefix %>decayReloaded = false;
 	this.<%= prefix %>decayEnabled = false;
@@ -20,6 +20,6 @@ this.<%= prefix %>onHardReset = function() {
 	this.<%= prefix %>loopEnabled = false;
 	this.<%= prefix %>lengthCounter = 0;
 };
-this.<%= prefix %>onReset = function(){
+cycloa.VirtualMachine.prototype.<%= prefix %>onReset = function(){
 	this.<%= prefix %>onHardReset();
 };

@@ -1,78 +1,104 @@
+cycloa.calc_fps_mode = true;
+
+// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+window.requestAnimFrame = (function () {
+	if(cycloa.calc_fps_mode){
+		return function(callback){
+			window.setTimeout(callback, 0);
+		};
+	}
+	return  window.requestAnimationFrame ||
+		window.webkitRequestAnimationFrame ||
+		window.mozRequestAnimationFrame ||
+		window.oRequestAnimationFrame ||
+		window.msRequestAnimationFrame ||
+		function (callback) {
+			window.setTimeout(callback, 1000 / 60);
+		};
+})();
+
 function NesController(){
-	this.videoFairy = new VideoFairy();
-	this.audioFairy = new AudioFairy();
-	this.padFairy = new PadFairy();
-	this.machine = new cycloa.VirtualMachine(this.videoFairy, this.audioFairy, this.padFairy);
-	this.running = false;
-	this.loaded = false;
+	this.videoFairy_ = new VideoFairy();
+	this.audioFairy_ = new AudioFairy();
+	this.padFairy_ = new PadFairy();
+	this.machine_ = new cycloa.VirtualMachine(this.videoFairy_, this.audioFairy_, this.padFairy_);
+	this.running_ = false;
+	this.loaded_ = false;
+	this.total_frame_ = 0;
 }
 NesController.prototype.load = function(dat){
-	this.machine.load(dat);
-	if(!this.loaded){
-		this.machine.onHardReset();
+	this.machine_.load(dat);
+	if(!this.loaded_){
+		this.machine_.onHardReset();
 	}else{
-		this.machine.onReset();
+		this.machine_.onReset();
 	}
-	this.loaded = true;
-	if(!this.running){
+	this.loaded_ = true;
+	if(!this.running_){
 		this.start();
 	}
 	return true;
 };
 NesController.prototype.start = function(){
-	if(this.running){
+	if(this.running_){
 		$("#state").text("VM already running! Please stop the machine before loading another game.");
 		return false;
 	}
-	if(!this.loaded){
+	if(!this.loaded_){
 		$("#state").text("VM has not loaded any games. Please load a game.");
 		return false;
 	}
-	this.running = true;
+	this.running_ = true;
 	var self = this;
 	var cnt = 0;
 	var state = $("#state");
 	var loop = function () {
-		if(self.running) window.requestAnimFrame(loop);
-		self.machine.run();
+		if(self.running_) window.requestAnimFrame(loop);
+		self.machine_.run();
 		cnt++;
 		if (cnt >= 30) {
 			var now = new Date();
-			state.text("fps: " + (cnt * 1000 / (now - beg)).toFixed(2));
+			self.total_frame_ += cnt;
+			var str = "fps: " + (cnt * 1000 / (now - beg)).toFixed(2);
+			if(cycloa.calc_fps_mode){
+				str += " / avg: "+(self.total_frame_ * 1000/(now-startTime)).toFixed(2);
+			}
+			state.text(str);
 			beg = now;
 			cnt = 0;
 		}
 	};
 	var beg = new Date();
+	var startTime = beg
 	loop();
 	return true;
 };
 NesController.prototype.stop = function(){
-	if(!this.loaded){
+	if(!this.loaded_){
 		$("#state").text("VM has not loaded any games. Please load a game.");
 		return false;
 	}
-	this.running = false;
+	this.running_ = false;
 	return true;
 };
 NesController.prototype.hardReset = function(){
-	if(!this.loaded){
+	if(!this.loaded_){
 		$("#state").text("VM has not loaded any games. Please load a game.");
 		return false;
 	}
-	this.machine.onHardReset();
+	this.machine_.onHardReset();
 	return true;
 };
 NesController.prototype.reset = function(){
-	if(!this.loaded){
+	if(!this.loaded_){
 		$("#state").text("VM has not loaded any games. Please load a game.");
 		return false;
 	}
-	this.machine.onReset();
+	this.machine_.onReset();
 	return true;
 };
 NesController.prototype.zoom = function(){
-	this.videoFairy.zoom();
+	this.videoFairy_.zoom();
 };
 
 var nesController;
