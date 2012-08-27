@@ -33,6 +33,32 @@
 				}
 				console.log(this.variable);
 			}()}));
+			var scoped_variable = 0;
+			log("lexical scope variable: "+cycloa.probe.measure(function(){
+				var i = TIMES;
+				while(--i){
+					scoped_variable += i&0x37f;
+				}
+				console.log(scoped_variable);
+			}));
+			log("argument variable: "+cycloa.probe.measure(function(){
+				(function(variable){
+					var i = TIMES;
+					while(--i){
+						variable += i&0x37f;
+					}
+					console.log(variable);
+				})(0);
+			}));
+			log("argument object variable: "+cycloa.probe.measure(function(){
+				(function(obj){
+					var i = TIMES;
+					while(--i){
+						obj.variable += i&0x37f;
+					}
+					console.log(obj.variable);
+				})(new function(){this.variable = 0;});
+			}));
 			log("local object member variable: "+cycloa.probe.measure(function(){
 				var obj = new function(){this.variable = 0;};
 				var i = TIMES;

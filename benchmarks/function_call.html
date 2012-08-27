@@ -5,13 +5,19 @@
 	<script type="text/javascript" src="./probe.js"></script>
 	<script>
 		"use strict";
-		var TIMES = 100000000;
+		var TIMES = 1000000000;
 		function Klass(){
 			this.val = 0;
 			this.add = function(val){
 				this.val += val;
 			};
 		}
+		function _Klass(){
+			this.val = 0;
+		}
+		_Klass.prototype.add = function(val){
+			this.val += val;
+		};
 		function doBench() {
 			var memory = new Uint8Array(1024*1024);
 			log("calling func: "+cycloa.probe.measure(function(){
@@ -21,8 +27,15 @@
 					obj.add(i&0xfff);
 				}
 			}));
+			log("calling func (prototype): "+cycloa.probe.measure(function(){
+				var obj = new _Klass();
+				var i = TIMES;
+				while(--i){
+					obj.add(i&0xfff);
+				}
+			}));
 			log("not calling func: "+cycloa.probe.measure(function(){
-				var obj = new Klass();
+				var obj = new _Klass();
 				var i = TIMES;
 				while(--i){
 					obj.val += (i&0xfff);
