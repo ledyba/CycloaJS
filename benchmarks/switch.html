@@ -16,7 +16,7 @@
 						case 1:
 							total += 6;
 							break;
-					};
+					}
 				}
 			}));
 			log("三項演算子："+cycloa.probe.measure(function(){
@@ -32,9 +32,9 @@
 				var total = 0;
 				for(var i=0;i<500000000;++i){
 					var tmp = i & 0x1;
-					if ((tmp & 1)) {
+					if (tmp === 0) {
 						total += 6;
-					} else {
+					} else if (tmp === 1) {
 						total += 3;
 					}
 				}

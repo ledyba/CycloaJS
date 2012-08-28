@@ -1,5 +1,7 @@
 %# -*- encoding: utf-8 -*-
 
+this.videoFairy = videoFairy;
+
 this.isEven = false;
 this.nowY = 0;
 this.nowX = 0;
