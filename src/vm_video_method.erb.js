@@ -562,4 +562,51 @@ cycloa.VirtualMachine.prototype.writeVram = function(/* uint16_t */ addr, /* uin
 	}
 };
 
+/**
+ * @type {number} mirrorType
+ */
+cycloa.VirtualMachine.prototype.changeMirrorType = function(/* NesFile::MirrorType */ mirrorType) {
+	this.mirrorType = mirrorType;
+	switch(mirrorType)
+	{
+	case <%= NES::SINGLE0 %>: {
+		this.vramMirroring[0] = this.internalVram[0];
+		this.vramMirroring[1] = this.internalVram[0];
+		this.vramMirroring[2] = this.internalVram[0];
+		this.vramMirroring[3] = this.internalVram[0];
+		break;
+	}
+	case <%= NES::SINGLE1 %>: {
+		this.vramMirroring[0] = this.internalVram[1];
+		this.vramMirroring[1] = this.internalVram[1];
+		this.vramMirroring[2] = this.internalVram[1];
+		this.vramMirroring[3] = this.internalVram[1];
+		break;
+	}
+	case <%= NES::FOUR_SCREEN %>: {
+		this.vramMirroring[0] = this.internalVram[1];
+		this.vramMirroring[1] = this.internalVram[2];
+		this.vramMirroring[2] = this.internalVram[3];
+		this.vramMirroring[3] = this.internalVram[4];
+		break;
+	}
+	case <%= NES::HORIZONTAL %>: {
+		this.vramMirroring[0] = this.internalVram[0];
+		this.vramMirroring[1] = this.internalVram[0];
+		this.vramMirroring[2] = this.internalVram[1];
+		this.vramMirroring[3] = this.internalVram[1];
+		break;
+	}
+	case <%= NES::VERTICAL%>: {
+		this.vramMirroring[0] = this.internalVram[0];
+		this.vramMirroring[1] = this.internalVram[1];
+		this.vramMirroring[2] = this.internalVram[0];
+		this.vramMirroring[3] = this.internalVram[1];
+		break;
+	}
+	default: {
+		throw new cycloa.err.CoreException("Invalid mirroring type!");
+	}
+	}
+};
 

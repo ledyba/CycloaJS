@@ -13,7 +13,7 @@ cycloa.Tracer = function (machine) {
 	this.code_ = new Uint8Array(3 /*MAX_INST_LENGTH*/);
 	/**
 	 * 命令のコードをどれくらい読んだかを管理するインデックス
-	 * @type {Number}
+	 * @type {number}
 	 * @private
 	 */
 	this.code_idx_ = 0;
@@ -113,7 +113,7 @@ cycloa.Tracer = function (machine) {
 	this.addrIndirect = function () { // used only in JMP
 		this.readCode_(3);
 		/** @const
-		 *  @type {Number} */
+		 *  @type {number} */
 		var base = this.m.read(this.m.PC + 1) | (this.m.read(this.m.PC + 2) << 8);
 		this.addr_ = this.m.read(base) | (this.m.read((base & 0xff00) | ((base + 1) & 0x00ff)) << 8); //bug of NES
 		this.addr_repr_ = "($" + cycloa.util.formatHex(base, 16) + ") @ $" + cycloa.util.formatHex(this.addr_, 16);
@@ -122,7 +122,7 @@ cycloa.Tracer = function (machine) {
 	this.addrIndirectX = function () {
 		this.readCode_(2);
 		/** @const
-		 *  @type {Number} */
+		 *  @type {number} */
 		var base = (this.m.read(this.m.PC + 1) + this.m.X) & 0xff;
 		this.addr_ = this.m.read(base) | (this.m.read((base + 1) & 0xff) << 8);
 		this.addr_repr_ = "($" + cycloa.util.formatHex(base) + ",X) @ $" + cycloa.util.formatHex(this.addr_, 16);
@@ -131,7 +131,7 @@ cycloa.Tracer = function (machine) {
 	this.addrIndirectY = function () {
 		this.readCode_(2);
 		/** @const
-		 *  @type {Number} */
+		 *  @type {number} */
 		var base = this.m.read(this.m.PC + 1);
 		this.addr_ = ((this.m.read(base) | (this.m.read((base + 1) & 0xff) << 8)) + this.m.Y);
 		this.addr_repr_ = "($" + cycloa.util.formatHex(base) + "),Y @ $" + cycloa.util.formatHex(this.addr_, 16);
@@ -140,7 +140,7 @@ cycloa.Tracer = function (machine) {
 	this.addrRelative = function () {
 		this.readCode_(2);
 		/** @const
-		 *  @type {Number} */
+		 *  @type {number} */
 		var offset = this.m.read(this.m.PC + 1);
 		this.addr_ = ((offset >= 128 ? (offset - 256) : offset) + this.m.PC + 2) & 0xffff;
 		this.addr_repr_ = "$" + cycloa.util.formatHex(this.addr_, 16);

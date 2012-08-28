@@ -8,7 +8,7 @@ module CPU
 	def self.RunInit()
 """
 /**
- * @type {Number}
+ * @type {number}
  */
 var clockDelta;#{UseMemory()}
 """
@@ -445,7 +445,7 @@ switch((#{addr} & 0xE000) >> 13) {
 """
 			/**
 			 * @const
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var pc = #{Target}.PC;
 """
@@ -458,7 +458,7 @@ switch((#{addr} & 0xE000) >> 13) {
 		def self.Immediate()
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr = (pc+1);
 			#{excelPC 2}
@@ -468,7 +468,7 @@ switch((#{addr} & 0xE000) >> 13) {
 		def self.Zeropage()
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr_base = pc+1;
 			var addr;
@@ -481,7 +481,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			var addr_base = pc+1;
 			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr = (addr_base + #{Target}.X) & 0xff;
 			#{excelPC 2}
@@ -492,7 +492,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			var addr_base = pc+1;
 			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr = (addr_base + #{Target}.Y) & 0xff;
 			#{excelPC 2}
@@ -505,7 +505,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			var addr_base2 = pc+2;
 			#{CPU::MemRead("addr_base2", "addr_base2")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr = (addr_base1 | (addr_base2 << 8));
 			#{excelPC 3}
@@ -518,7 +518,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			var addr_base2 = pc+2;
 			#{CPU::MemRead("addr_base2", "addr_base2")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr = (addr_base1 | (addr_base2 << 8)) + #{Target}.X;
 			#{CrossCheck()}
@@ -532,7 +532,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			var addr_base2 = pc+2;
 			#{CPU::MemRead("addr_base2", "addr_base2")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr = (addr_base1 | (addr_base2 << 8)) + #{Target}.Y;
 			#{CrossCheck()}
@@ -552,7 +552,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			var addr_base5 = (addr_base3 & 0xff00) | ((addr_base3+1) & 0x00ff) /* bug of NES */;
 			#{CPU::MemRead("addr_base5", "addr_base5")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr = addr_base4 | (addr_base5 << 8); 
 			#{excelPC 3}
@@ -561,13 +561,13 @@ switch((#{addr} & 0xE000) >> 13) {
 		def self.IndirectX()
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr_base = pc+1;
 			#{CPU::MemRead("addr_base", "addr_base")}
 			addr_base = (addr_base + #{Target}.X) & 0xff;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr = ram[addr_base] | (ram[(addr_base + 1) & 0xff] << 8);
 			#{excelPC 2}
@@ -576,12 +576,12 @@ switch((#{addr} & 0xE000) >> 13) {
 		def self.IndirectY()
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr_base = pc+1;
 			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr = (ram[addr_base] | (ram[(addr_base + 1) & 0xff] << 8)) + #{Target}.Y;
 			#{excelPC 2}
@@ -590,12 +590,12 @@ switch((#{addr} & 0xE000) >> 13) {
 		def self.Relative()
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr_base = pc+1;
 			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
 			#{excelPC 2}
@@ -668,7 +668,7 @@ var tmpX;
 		def self.PLP()
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val = #{::CPU::Pop()};
 			if((#{Target}.P & 0x#{Opcode::Flag[:I].to_s(16)}) && !(val & 0x#{Opcode::Flag[:I].to_s(16)})){
@@ -690,23 +690,23 @@ var tmpX;
 		def self.ADC()
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var p = #{Target}.P;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var a = #{Target}.A;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val; #{CPU::MemRead("addr", "val")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var result = (a + val + (p & 0x#{Opcode::Flag[:C].to_s(16)})) & 0xffff;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var newA = result & 0xff;
 			#{Target}.P = (p & 0x#{((~(Opcode::Flag[:V] | Opcode::Flag[:C])) & 0xff).to_s(16)})
@@ -718,23 +718,23 @@ var tmpX;
 		def self.SBC()
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var p = #{Target}.P;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var a = #{Target}.A;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val; #{CPU::MemRead("addr", "val")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var result = (a - val - ((p & 0x#{Opcode::Flag[:C].to_s(16)}) ^ 0x#{Opcode::Flag[:C].to_s(16)})) & 0xffff;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var newA = result & 0xff;
 			#{Target}.P = (p & 0x#{((~(Opcode::Flag[:V]|Opcode::Flag[:C])) & 0xff).to_s(16)})
@@ -747,7 +747,7 @@ var tmpX;
 """
 			var mem; #{CPU::MemRead("addr", "mem")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val = (#{Target}.X - mem) & 0xffff;
 			#{UpdateFlag "val & 0xff"}
@@ -758,7 +758,7 @@ var tmpX;
 """
 			var mem; #{CPU::MemRead("addr", "mem")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val = (#{Target}.Y - mem) & 0xffff;
 			#{UpdateFlag "val & 0xff"}
@@ -769,7 +769,7 @@ var tmpX;
 """
 			var mem; #{CPU::MemRead("addr", "mem")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val = (#{Target}.A - mem) & 0xffff;
 			#{UpdateFlag "val & 0xff"}
@@ -797,7 +797,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 		def self.BIT
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val; #{CPU::MemRead("addr","val")}
 			#{Target}.P = (#{Target}.P & 0x#{(0xff & ~(Opcode::Flag[:V] | Opcode::Flag[:N] | Opcode::Flag[:Z])).to_s(16)})
@@ -808,7 +808,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 		def self.ASL_
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var a = #{Target}.A;
 			#{Target}.P = (#{Target}.P & 0xFE) | (a & 0xff) >> 7;
@@ -818,12 +818,12 @@ var mem; #{CPU::MemRead("addr", "mem")};
 		def self.ASL
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val; #{CPU::MemRead("addr","val")}
 			#{Target}.P = (#{Target}.P & 0xFE) | val >> 7;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var shifted = val << 1;
 			#{CPU::MemWrite("addr", "shifted")}
@@ -839,12 +839,12 @@ var mem; #{CPU::MemRead("addr", "mem")};
 		def self.LSR
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val; #{CPU::MemRead("addr","val")}
 			#{Target}.P = (#{Target}.P & 0xFE) | (val & 0x01);
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var shifted = val >> 1;
 			#{CPU::MemWrite("addr", "shifted")}
@@ -854,11 +854,11 @@ var mem; #{CPU::MemRead("addr", "mem")};
 		def self.ROL_
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var a = #{Target}.A;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var p = #{Target}.P;
 			#{Target}.P = (p & 0xFE) | ((a & 0xff) >> 7);
@@ -868,15 +868,15 @@ var mem; #{CPU::MemRead("addr", "mem")};
 		def self.ROL
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val; #{CPU::MemRead("addr","val")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var p = #{Target}.P;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var shifted = ((val << 1) & 0xff) | (p & 0x01);
 			#{Target}.P = (p & 0xFE) | (val >> 7);
@@ -887,15 +887,15 @@ var mem; #{CPU::MemRead("addr", "mem")};
 		def self.ROR_
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var p = #{Target}.P;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var a = #{Target}.A;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			#{Target}.P = (p & 0xFE) | (a & 0x01);
 			#{UpdateFlag("#{Target}.A = ((a >> 1) & 0x7f) | ((p & 0x1) << 7)")}
@@ -904,15 +904,15 @@ var mem; #{CPU::MemRead("addr", "mem")};
 		def self.ROR
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var val; #{CPU::MemRead("addr","val")}
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var p = #{Target}.P;
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var shifted = (val >> 1) | ((p & 0x01) << 7);
 			#{Target}.P = (p & 0xFE) | (val & 0x01);
@@ -929,7 +929,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 		def self.INC
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var mem; #{CPU::MemRead("addr","mem")}
 			var val = (mem+1) & 0xff;
@@ -946,7 +946,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 		def self.DEC
 """
 			/**
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var mem; #{CPU::MemRead("addr","mem")}
 			var val = (mem-1) & 0xff;
@@ -1088,7 +1088,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 """
 			/**
 			 * @const
-			 * @type {Number}
+			 * @type {number}
 			 */
 			var stored_pc = #{Target}.PC-1;
 			#{::CPU::Push "stored_pc >> 8"}

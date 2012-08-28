@@ -1,20 +1,20 @@
 %# -*- encoding: utf-8 -*-
 
-/** @type {Number} */
+/** @type {number} */
 this.A = 0;
-/** @type {Number} */
+/** @type {number} */
 this.X = 0;
-/** @type {Number} */
+/** @type {number} */
 this.Y = 0;
-/** @type {Number} */
+/** @type {number} */
 this.PC = 0;
-/** @type {Number} */
+/** @type {number} */
 this.SP = 0;
-/** @type {Number} */
+/** @type {number} */
 this.P = 0;
-/** @type {Boolean} */
+/** @type {boolean} */
 this.NMI = false;
-/** @type {Boolean} */
+/** @type {boolean} */
 this.IRQ = false;
 /**
  * @const

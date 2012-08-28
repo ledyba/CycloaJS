@@ -44,7 +44,7 @@ var opbyte;
 <%= CPU::MemRead("pc", "opbyte") %>
 /**
  * @const
- * @type {Number}
+ * @type {number}
  */
 var inst = this.TransTable[opbyte];
 // http://www.llx.com/~nparker/a2/opcodes.html

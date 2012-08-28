@@ -1,7 +1,7 @@
 /**
- * @param {Number} num
- * @param {Number} [len = 8]
- * @return {String}
+ * @param {number} num
+ * @param {number} [len = 8]
+ * @return {string}
  */
 cycloa.util.formatHex = function(num, len){
 	len = len || 8;

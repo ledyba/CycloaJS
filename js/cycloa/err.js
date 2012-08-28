@@ -1,21 +1,21 @@
 "use strict";
 /**
  * 例外のベースクラスです
- * @param {String} name 例外クラス名
- * @param {String} message メッセージ
+ * @param {string} name 例外クラス名
+ * @param {string} message メッセージ
  * @const
  * @constructor
  */
 cycloa.err.Exception = function (name, message) {
 	/**
 	 * 例外のメッセージのインスタンス
-	 * @type {String}
+	 * @type {string}
 	 * @const
 	 * @private
 	 */
 	/**
 	 * @const
-	 * @type {String}
+	 * @type {string}
 	 */
 	this.name = name;
 	this.message = "["+name.toString()+"] "+message;
@@ -25,7 +25,7 @@ cycloa.err.Exception.prototype.toString = function(){
 };
 /**
  * エミュレータのコアで発生した例外です
- * @param {String} message
+ * @param {string} message
  * @constructor
  * @extends cycloa.err.Exception
  */
@@ -37,7 +37,7 @@ cycloa.err.CoreException.prototype = {
 };
 /**
  * 実装するべきメソッドを実装してない例外です
- * @param {String} message
+ * @param {string} message
  * @constructor
  * @extends cycloa.err.Exception
  */
@@ -49,7 +49,7 @@ cycloa.err.NotImplementedException.prototype = {
 };
 /**
  * サポートしてない事を示す例外です
- * @param {String} message
+ * @param {string} message
  * @constructor
  */
 cycloa.err.NotSupportedException = function ( message ) {
