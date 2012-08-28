@@ -34,7 +34,7 @@ this.spRam = new Uint8Array(256);
 this.palette = new Uint8Array(9*4);
 this.spriteTable = new Array(<%= Video::DefaultSpriteCnt %>);
 for(var i=0; i< <%= Video::DefaultSpriteCnt %>; ++i){
-	this.spriteTable[i] = new Object;
+	this.spriteTable[i] = {};
 }
 
 this.pattern = new Array(0x10);

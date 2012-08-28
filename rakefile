@@ -2,7 +2,6 @@ require 'erb'
 
 generated = ["build/cycloajs-src.js"];
 
-
 task :default => generated;
 
 file "build/cycloajs-src.js" => "js/cycloa/vm.js" do |t|
@@ -15,6 +14,7 @@ file "js/cycloa/vm.js" => FileList["src/vm*.erb.js", "src/*.rb"] do |t|
 end
 
 task :clean do
+	rm "js/cycloa/vm.js"
 	rm generated
 end
 	

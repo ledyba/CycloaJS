@@ -18,8 +18,8 @@ cycloa.VirtualMachine.prototype.readAudioReg = function(addr){
 	if(addr === 0x4015){
 	 	/* Clears the frame interrupt flag after being read (but not the DMC interrupt flag).
 		   If an interrupt flag was set at the same moment of the read, it will read back as 1 but it will not be cleared. */
-		return
-				( (this.__rectangle0__lengthCounter != 0 && this.__rectangle0__frequency >= 0x8 && this.__rectangle0__frequency  < 0x800)	? 1 : 0)
+		var result=
+			( (this.__rectangle0__lengthCounter != 0 && this.__rectangle0__frequency >= 0x8 && this.__rectangle0__frequency  < 0x800)	? 1 : 0)
 				|((this.__rectangle1__lengthCounter != 0 && this.__rectangle1__frequency >= 0x8 && this.__rectangle1__frequency  < 0x800) ? 2 : 0)
 				|((this.__triangle__lengthCounter != 0 && this.__triangle__linearCounter != 0) ? 4 : 0)
 				|((this.__noize__lengthCounter != 0) ? 8 : 0)
@@ -28,6 +28,7 @@ cycloa.VirtualMachine.prototype.readAudioReg = function(addr){
 				|(<%= CPU::IsIRQPending(CPU::IRQ::DMC) %> ? 128 : 0);
 		<%= CPU::ReleaseIRQ(CPU::IRQ::FRAMECNT) %>
 		<%= CPU::ReleaseIRQ(CPU::IRQ::DMC) %>
+		return result;
 	}else if(addr === 0x4016){
 		return (this.pad1Fairy.state >> ((this.pad1Idx++) & 7)) & 0x1;
 	}else if(addr === 0x4017){

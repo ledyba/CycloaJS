@@ -19,7 +19,7 @@ this.IRQ = false;
 /**
  * @const
  * @type {Uint8Array}
-*/
+ */
 this.ram = new Uint8Array(new ArrayBuffer(0x800));
 this.rom = new Array(32);
 

@@ -16,28 +16,11 @@ cycloa.VirtualMachine = function(videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_digital_init.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_pad_init.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_mapper_init.erb.js" %>
-
-	this.reservedClockDelta = 0;
-
-
+this.reservedClockDelta = 0;
 };
 
+<%= render File.expand_path File.dirname(__FILE__)+"/vm_run.erb.js" %>
 
-cycloa.VirtualMachine.prototype.run = function () {
-	<%= CPU::RunInit() %>
-	<%= Video::RunInit() %>
-	<%= Audio::RunInit() %>
-	var _run = true;
-	var reservedClockDelta = this.reservedClockDelta;
-	while(_run) {
-		//console.log(this.tracer.decode());
-		<%= render File.expand_path File.dirname(__FILE__)+"/vm_cpu_run.erb.js" %>
-		<%= render File.expand_path File.dirname(__FILE__)+"/vm_video_run.erb.js" %>
-		<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_run.erb.js" %>
-	}
-	this.reservedClockDelta = reservedClockDelta;
-	return _run;
-};
 /**
  * @function
  */
