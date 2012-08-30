@@ -15,7 +15,7 @@ if(this.NMI){
 	<%= CPU::Push "this.P" %>;
 	this.P |= <%= Opcode::Flag[:I] %>;
 	//this.PC = (this.read(0xFFFA) | (this.read(0xFFFB) << 8));
-	this.PC = (this.rom[31][0x3FA]| (this.rom[31][0x3FB] << 8));
+	this.PC = (this.__cpu__rom[31][0x3FA]| (this.__cpu__rom[31][0x3FB] << 8));
 	this.NMI = false;
 }else if(this.IRQ){
 	this.onIRQ();
@@ -29,7 +29,7 @@ if(this.NMI){
 		<%= CPU::Push "this.P" %>
 		this.P |= <%= Opcode::Flag[:I] %>;
 		//this.PC = (this.read(0xFFFE) | (this.read(0xFFFF) << 8));
-		this.PC = (this.rom[31][0x3FE] | (this.rom[31][0x3FF] << 8));
+		this.PC = (this.__cpu__rom[31][0x3FE] | (this.__cpu__rom[31][0x3FF] << 8));
 	}
 }
 

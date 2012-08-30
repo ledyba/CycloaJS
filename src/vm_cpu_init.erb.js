@@ -21,7 +21,7 @@ this.IRQ = false;
  * @type {Uint8Array}
  */
 this.ram = new Uint8Array(new ArrayBuffer(0x800));
-this.rom = new Array(32);
+this.__cpu__rom = new Array(32);
 
 this.ZNFlagCache = cycloa.VirtualMachine.ZNFlagCache;
 this.TransTable = cycloa.VirtualMachine.TransTable;

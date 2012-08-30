@@ -14,7 +14,7 @@ var clockDelta;#{UseMemory()}
 """
 	end
 	def self.UseMemory()
-	"var rom = this.rom; var ram = this.ram;"
+	"var __cpu__rom = this.__cpu__rom; var ram = this.ram;"
 	end
 	def self.Init()
 """
@@ -80,19 +80,19 @@ switch((#{addrsym} & 0xE000) >> 13){
 		break;
 	}
 	case 4:{ /* 0x8000 -> 0xA000 */
-		#{store_sym} = rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
+		#{store_sym} = __cpu__rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
 		break;
 	}
 	case 5:{ /* 0xA000 -> 0xC000 */
-		#{store_sym} = rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
+		#{store_sym} = __cpu__rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
 		break;
 	}
 	case 6:{ /* 0xC000 -> 0xE000 */
-		#{store_sym} = rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
+		#{store_sym} = __cpu__rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
 		break;
 	}
 	case 7:{ /* 0xE000 -> 0xffff */
-		#{store_sym} = rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
+		#{store_sym} = __cpu__rom[(#{addrsym}>>10) & 31][#{addrsym} & 0x3ff];
 		break;
 	}
 }

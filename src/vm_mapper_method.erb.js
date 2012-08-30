@@ -8,7 +8,7 @@ cycloa.VirtualMachine.Mapper[0] = function(self){
 	};
 	var idx = 0;
 	for(var i=0; i<32; ++i){
-		self.rom[i] = self.__mapper__prgRom.subarray(idx, idx+=<%= NES::PRG_ROM_BLOCK_SIZE %>);
+		self.__cpu__rom[i] = self.__mapper__prgRom.subarray(idx, idx+=<%= NES::PRG_ROM_BLOCK_SIZE %>);
 		if(idx >= self.__mapper__prgRom.length){
 			idx = 0;
 		}
@@ -20,8 +20,8 @@ cycloa.VirtualMachine.Mapper[0] = function(self){
 };
 
 /**
- * ROMを解析してマッパーの初期化などを行う
- * @param {ArrayBuffer} rom
+ * __cpu__romを解析してマッパーの初期化などを行う
+ * @param {ArrayBuffer} __cpu__rom
  */
 cycloa.VirtualMachine.prototype.load = function(rom){
 	this.__mapper__parseROM(rom);
@@ -35,7 +35,7 @@ cycloa.VirtualMachine.prototype.load = function(rom){
 };
 
 /**
- * ROMをパースしてセットする
+ * __cpu__romをパースしてセットする
  * @param {ArrayBuffer} data
  */
 cycloa.VirtualMachine.prototype.__mapper__parseROM = function(data){
@@ -65,7 +65,7 @@ cycloa.VirtualMachine.prototype.__mapper__parseROM = function(data){
 		this.__mapper__trainer = new Uint8Array(data, fptr, <%= NES::TRAINER_SIZE %>);
 		fptr += <%= NES::TRAINER_SIZE %>;
 	}
-	/* read PRG ROM */
+	/* read PRG __cpu__rom */
 	if(fptr + this.__mapper__prgSize > data.byteLength) throw new cycloa.err.CoreException("[FIXME] Invalid file size; too short!");
 	this.__mapper__prgRom = new Uint8Array(data, fptr, this.__mapper__prgSize);
 	fptr += this.__mapper__prgSize;

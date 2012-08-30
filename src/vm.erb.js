@@ -70,7 +70,7 @@ cycloa.VirtualMachine.prototype.onIRQ = function(){
 };
 cycloa.VirtualMachine.prototype.read = function(addr) { 
 	var __val__;
-	var rom = this.rom; var ram = this.ram;
+	var __cpu__rom = this.__cpu__rom; var ram = this.ram;
 	<%= CPU::MemRead("addr", "__val__") %>;
 	return __val__;
 };
