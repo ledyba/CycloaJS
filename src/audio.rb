@@ -7,6 +7,6 @@ module Audio
 		SAMPLE_RATE = 22050;
 		FRAME_IRQ_RATE = 240;
 	def self.RunInit()
-		"var audioFairy = this.__audio__audioFairy; var __audio__enabled = audioFairy.enabled; var __audio__data=audioFairy.data; var __audio__data__length = audioFairy.dataLength;"
+		"var __audio__audioFairy = this.__audio__audioFairy; var __audio__enabled = __audio__audioFairy.enabled; var __audio__data=__audio__audioFairy.data; var __audio__data__length = __audio__audioFairy.dataLength;"
 	end
 end

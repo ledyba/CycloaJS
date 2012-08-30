@@ -7,13 +7,13 @@ if(this.<%= prefix %>lengthCounter != 0 && this.<%= prefix %>frequency >= 0x8 &&
 	 * @type {number} unsigned int
 	 * @const
 	 */
-	var nowCounter = this.<%= prefix %>freqCounter + delta;
-	this.<%= prefix %>freqCounter = nowCounter % (this.<%= prefix %>frequency + 1);
-	this.<%= prefix %>dutyCounter = (this.<%= prefix %>dutyCounter + (nowCounter  / (this.<%= prefix %>frequency + 1))) & 15;
+	var <%= prefix %>nowCounter = this.<%= prefix %>freqCounter + __audio__delta;
+	this.<%= prefix %>freqCounter = <%= prefix %>nowCounter % (this.<%= prefix %>frequency + 1);
+	this.<%= prefix %>dutyCounter = (this.<%= prefix %>dutyCounter + (<%= prefix %>nowCounter  / (this.<%= prefix %>frequency + 1))) & 15;
 	if(this.<%= prefix %>dutyCounter < this.<%= prefix %>dutyRatio){
-		sound += this.<%= prefix %>decayEnabled ? this.<%= prefix %>decayVolume : this.<%= prefix %>volumeOrDecayRate;
+		__audio__sound += this.<%= prefix %>decayEnabled ? this.<%= prefix %>decayVolume : this.<%= prefix %>volumeOrDecayRate;
 	}else{
-		sound += this.<%= prefix %>decayEnabled ? -this.<%= prefix %>decayVolume : -this.<%= prefix %>volumeOrDecayRate;
+		__audio__sound += this.<%= prefix %>decayEnabled ? -this.<%= prefix %>decayVolume : -this.<%= prefix %>volumeOrDecayRate;
 	}
 }
 

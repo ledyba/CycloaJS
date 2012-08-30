@@ -1,15 +1,15 @@
 %# -*- encoding: utf-8 -*-
 if(this.__digital__sampleLength != 0){
-	/*unsigned int*/ var nowCounter = this.__digital__freqCounter + delta;
-	/*const uint16_t*/var divFreq = this.__digital__frequency + 1;
-	while(nowCounter >= divFreq){
-		nowCounter -= divFreq;
+	/*unsigned int*/ var __digital__nowCounter = this.__digital__freqCounter + __audio__delta;
+	/*const uint16_t*/var __digital__divFreq = this.__digital__frequency + 1;
+	while(__digital__nowCounter >= __digital__divFreq){
+		__digital__nowCounter -= divFreq;
 			if(this.__digital__sampleBufferLeft == 0){
 				this.__digital__sampleLength--;
 				var __val__;
-				var addr = this.__digital__sampleAddr;
-				<%= CPU::MemRead("addr", "__val__") %>
-				this.__digital__sampleBuffer = __val__;
+				var __digital__addr = this.__digital__sampleAddr;
+				<%= CPU::MemRead("__digital__addr", "__digitl__val__") %>
+				this.__digital__sampleBuffer = __digitl__val__;
 
 				if(this.__digital__sampleAddr >= 0xffff){
 					this.__digital__sampleAddr = 0x8000;
@@ -40,7 +40,7 @@ if(this.__digital__sampleLength != 0){
 			}
 			this.__digital__sampleBufferLeft--;
 	}
-	this.__digital__freqCounter = nowCounter;
-	sound += this.__digital__deltaCounter;
+	this.__digital__freqCounter = __digitl__nowCounter;
+	__audio__sound += this.__digital__deltaCounter;
 }
 

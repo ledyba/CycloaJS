@@ -12,11 +12,11 @@ if(this.<%= prefix %>sweepEnabled){
 			/**
 			 * @type {number} uint16_t
 			 */
-			var shift = (this.<%= prefix %>frequency >> this.<%= prefix %>sweepShiftAmount);
+			var <%= prefix %>shift = (this.<%= prefix %>frequency >> this.<%= prefix %>sweepShiftAmount);
 			if(this.<%= prefix %>sweepIncreased){
-				this.<%= prefix %>frequency += shift;
+				this.<%= prefix %>frequency += <%= prefix %>shift;
 			}else{
-				this.<%= prefix %>frequency -= shift;
+				this.<%= prefix %>frequency -= <%= prefix %>shift;
 % if isFirstChannel
 					this.<%= prefix %>frequency--;
 % end
