@@ -14,7 +14,7 @@ var clockDelta;#{UseMemory()}
 """
 	end
 	def self.UseMemory()
-	"var __cpu__rom = this.__cpu__rom; var ram = this.ram;"
+	"var __cpu__rom = this.__cpu__rom; var __cpu__ram = this.__cpu__ram;"
 	end
 	def self.Init()
 """
@@ -43,7 +43,7 @@ clockDelta = reservedClockDelta; reservedClockDelta = 0;
 """
 switch((#{addrsym} & 0xE000) >> 13){
 	case 0:{ /* 0x0000 -> 0x2000 */
-		#{store_sym} = ram[#{addrsym} & 0x7ff];
+		#{store_sym} = __cpu__ram[#{addrsym} & 0x7ff];
 		break;
 	}
 	case 1:{ /* 0x2000 -> 0x4000 */
@@ -102,7 +102,7 @@ switch((#{addrsym} & 0xE000) >> 13){
 """
 switch((#{addr} & 0xE000) >> 13) {
 	case 0:{ /* 0x0000 -> 0x2000 */
-		ram[#{addr} & 0x1fff] = #{val};
+		__cpu__ram[#{addr} & 0x1fff] = #{val};
 		break;
 	}
 	case 1:{ /* 0x2000 -> 0x4000 */
@@ -337,10 +337,10 @@ switch((#{addr} & 0xE000) >> 13) {
 """.gsub(/[\r\n]/, '');
 	end
 	def self.Push(val)
-		" /* ::CPU::Push */ ram[0x0100 | (#{Target}.SP-- & 0xff)] = #{val};";
+		" /* ::CPU::Push */ __cpu__ram[0x0100 | (#{Target}.SP-- & 0xff)] = #{val};";
 	end
 	def self.Pop()
-		"/* ::CPU::Pop */ (ram[0x0100 | (++#{Target}.SP & 0xff)])";
+		"/* ::CPU::Pop */ (__cpu__ram[0x0100 | (++#{Target}.SP & 0xff)])";
 	end
 	module Middle
 	    TransTable = [0xff]*0x100;
@@ -568,7 +568,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr = ram[addr_base] | (ram[(addr_base + 1) & 0xff] << 8);
+			var addr = __cpu__ram[addr_base] | (__cpu__ram[(addr_base + 1) & 0xff] << 8);
 			#{excelPC 2}
 """
 		end
@@ -582,7 +582,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr = (ram[addr_base] | (ram[(addr_base + 1) & 0xff] << 8)) + #{Target}.Y;
+			var addr = (__cpu__ram[addr_base] | (__cpu__ram[(addr_base + 1) & 0xff] << 8)) + #{Target}.Y;
 			#{excelPC 2}
 """
 		end

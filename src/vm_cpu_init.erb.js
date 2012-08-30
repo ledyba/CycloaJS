@@ -20,7 +20,7 @@ this.IRQ = false;
  * @const
  * @type {Uint8Array}
  */
-this.ram = new Uint8Array(new ArrayBuffer(0x800));
+this.__cpu__ram = new Uint8Array(new ArrayBuffer(0x800));
 this.__cpu__rom = new Array(32);
 
 this.ZNFlagCache = cycloa.VirtualMachine.ZNFlagCache;
