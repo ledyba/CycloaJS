@@ -14,7 +14,7 @@ cycloa.VirtualMachine.prototype.__audio__onHardReset = function() {
 cycloa.VirtualMachine.prototype.__audio__onReset = function() {
 };
 
-cycloa.VirtualMachine.prototype.readAudioReg = function(addr){
+cycloa.VirtualMachine.prototype.__audio__readAudioReg = function(addr){
 	if(addr === 0x4015){
 	 	/* Clears the frame interrupt flag after being read (but not the DMC interrupt flag).
 		   If an interrupt flag was set at the same moment of the read, it will read back as 1 but it will not be cleared. */
@@ -30,9 +30,9 @@ cycloa.VirtualMachine.prototype.readAudioReg = function(addr){
 		<%= CPU::ReleaseIRQ(CPU::IRQ::DMC) %>
 		return result;
 	}else if(addr === 0x4016){
-		return (this.pad1Fairy.state >> ((this.pad1Idx++) & 7)) & 0x1;
+		return (this.__pad__pad1Fairy.state >> ((this.__pad__pad1Idx++) & 7)) & 0x1;
 	}else if(addr === 0x4017){
-		return (this.pad2Fairy.state >> ((this.pad2Idx++) & 7)) & 0x1;
+		return (this.__pad__pad2Fairy.state >> ((this.__pad__pad2Idx++) & 7)) & 0x1;
 	}else if(addr < 0x4018){
 		throw new cycloa.err.CoreException('[FIXME] Invalid addr: 0x'+addr.toString(16));
 	}else{
@@ -40,7 +40,7 @@ cycloa.VirtualMachine.prototype.readAudioReg = function(addr){
 	}
 };
 
-cycloa.VirtualMachine.prototype.writeAudioReg = function(addr, val){
+cycloa.VirtualMachine.prototype.__audio__writeAudioReg = function(addr, val){
 		switch(addr & 0x1f) {
 		case 0x0: { /* 4000h - APU Volume/Decay Channel 1 (Rectangle) */
 			this.__rectangle0__decayCounter = this.__rectangle0__volumeOrDecayRate = val & 15;
@@ -76,7 +76,7 @@ cycloa.VirtualMachine.prototype.writeAudioReg = function(addr, val){
 		}
 		case 0x3: { /* 4003h - APU Length Channel 1 (Rectangle) */
 			this.__rectangle0__frequency = (this.__rectangle0__frequency & 0x00ff) | ((val & 7) << 8);
-			this.__rectangle0__lengthCounter = this.LengthCounterConst[val >> 3];
+			this.__rectangle0__lengthCounter = this.__audio__LengthCounterConst[val >> 3];
 			/* Writing to the length registers restarts the length (obviously),
 			and also restarts the duty cycle (channel 1,2 only), */
 			this.__rectangle0__dutyCounter = 0;
@@ -118,7 +118,7 @@ cycloa.VirtualMachine.prototype.writeAudioReg = function(addr, val){
 		}
 		case 0x7: { /* 4007h - APU Length Channel 2 (Rectangle) */
 			this.__rectangle1__frequency = (this.__rectangle1__frequency & 0x00ff) | ((val & 7) << 8);
-			this.__rectangle1__lengthCounter = this.LengthCounterConst[val >> 3];
+			this.__rectangle1__lengthCounter = this.__audio__LengthCounterConst[val >> 3];
 			/* Writing to the length registers restarts the length (obviously),
 			and also restarts the duty cycle (channel 1,2 only), */
 			this.__rectangle1__dutyCounter = 0;
@@ -141,7 +141,7 @@ cycloa.VirtualMachine.prototype.writeAudioReg = function(addr, val){
 		}
 		case 0xB: { /* 400Bh - APU Length Channel 3 (Triangle) */
 			this.__triangle__frequency = (this.__triangle__frequency & 0x00ff) | ((val & 7) << 8);
-			this.__triangle__lengthCounter = this.LengthCounterConst[val >> 3];
+			this.__triangle__lengthCounter = this.__audio__LengthCounterConst[val >> 3];
 			/* Side effects 	Sets the halt flag */
 			this.__triangle__haltFlag = true;
 			break;
@@ -163,7 +163,7 @@ cycloa.VirtualMachine.prototype.writeAudioReg = function(addr, val){
 		}
 		case 0xF: { /* 400Fh - APU Length Channel 4 (Noise) */
 			/* Writing to the length registers restarts the length (obviously), */
-			this.__noize__lengthCounter = this.LengthCounterConst[val >> 3];
+			this.__noize__lengthCounter = this.__audio__LengthCounterConst[val >> 3];
 			/* and restarts the decay volume (channel 1,2,4 only). */
 			this.__noize__decayReloaded = true;
 			break;
@@ -194,8 +194,8 @@ cycloa.VirtualMachine.prototype.writeAudioReg = function(addr, val){
 			/** @type {number} uint16_t */
 			<%= CPU::UseMemory() %>
 			var addrMask = val << 8;
-			var spRam = this.spRam;
-			var spriteAddr = this.spriteAddr;
+			var __video__spRam = this.__video__spRam;
+			var spriteAddr = this.__video__spriteAddr;
 			for(var i=0;i<256;++i){
 				var __addr__ = addrMask | i;
 				var __val__;
@@ -216,8 +216,8 @@ cycloa.VirtualMachine.prototype.writeAudioReg = function(addr, val){
 		}
 		case 0x16: {
 			if((val & 1) === 1){
-				this.pad1Idx = 0;
-				this.pad2Idx = 0;
+				this.__pad__pad1Idx = 0;
+				this.__pad__pad2Idx = 0;
 			}
 			break;
 		}

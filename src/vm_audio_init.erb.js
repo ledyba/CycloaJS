@@ -1,4 +1,4 @@
 %# -*- encoding: utf-8 -*-
-this.audioFairy = audioFairy;
+this.__audio__audioFairy = audioFairy;
 
-this.LengthCounterConst = cycloa.VirtualMachine.LengthCounterConst;
+this.__audio__LengthCounterConst = cycloa.VirtualMachine.LengthCounterConst;

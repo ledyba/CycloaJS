@@ -65,9 +65,9 @@ switch((#{addrsym} & 0xE000) >> 13){
 			#{ CPU::ReleaseIRQ(CPU::IRQ::FRAMECNT) }
 			#{ CPU::ReleaseIRQ(CPU::IRQ::DMC) }
 		}else if(#{addr} === 0x4016){
-			#{store_sym} = (this.pad1Fairy.state >> ((this.pad1Idx++) & 7)) & 0x1;
+			#{store_sym} = (this.__pad__pad1Fairy.state >> ((this.__pad__pad1Idx++) & 7)) & 0x1;
 		}else if(#{addr} === 0x4017){
-			#{store_sym} = (this.pad2Fairy.state >> ((this.pad2Idx++) & 7)) & 0x1;
+			#{store_sym} = (this.__pad__pad2Fairy.state >> ((this.__pad__pad2Idx++) & 7)) & 0x1;
 		}else if(addr < 0x4018){
 			throw new cycloa.err.CoreException('[FIXME] Invalid addr: 0x'+#{addr}.toString(16));
 		}else{
@@ -99,7 +99,6 @@ switch((#{addrsym} & 0xE000) >> 13){
 """
 	end
 	def self.MemWrite(addr, val)
-#	return "this.write(#{addr}, #{val});";
 """
 switch((#{addr} & 0xE000) >> 13) {
 	case 0:{ /* 0x0000 -> 0x2000 */
@@ -146,7 +145,7 @@ switch((#{addr} & 0xE000) >> 13) {
 		}
 		case 0x3: { /* 4003h - APU Length Channel 1 (Rectangle) */
 			this.__rectangle0__frequency = (this.__rectangle0__frequency & 0x00ff) | ((#{val} & 7) << 8);
-			this.__rectangle0__lengthCounter = this.LengthCounterConst[#{val} >> 3];
+			this.__rectangle0__lengthCounter = this.__audio__LengthCounterConst[#{val} >> 3];
 			/* Writing to the length registers restarts the length (obviously),
 			and also restarts the duty cycle (channel 1,2 only), */
 			this.__rectangle0__dutyCounter = 0;
@@ -188,7 +187,7 @@ switch((#{addr} & 0xE000) >> 13) {
 		}
 		case 0x7: { /* 4007h - APU Length Channel 2 (Rectangle) */
 			this.__rectangle1__frequency = (this.__rectangle1__frequency & 0x00ff) | ((#{val} & 7) << 8);
-			this.__rectangle1__lengthCounter = this.LengthCounterConst[#{val} >> 3];
+			this.__rectangle1__lengthCounter = this.__audio__LengthCounterConst[#{val} >> 3];
 			/* Writing to the length registers restarts the length (obviously),
 			and also restarts the duty cycle (channel 1,2 only), */
 			this.__rectangle1__dutyCounter = 0;
@@ -211,7 +210,7 @@ switch((#{addr} & 0xE000) >> 13) {
 		}
 		case 0xB: { /* 400Bh - APU Length Channel 3 (Triangle) */
 			this.__triangle__frequency = (this.__triangle__frequency & 0x00ff) | ((#{val} & 7) << 8);
-			this.__triangle__lengthCounter = this.LengthCounterConst[#{val} >> 3];
+			this.__triangle__lengthCounter = this.__audio__LengthCounterConst[#{val} >> 3];
 			/* Side effects 	Sets the halt flag */
 			this.__triangle__haltFlag = true;
 			break;
@@ -233,7 +232,7 @@ switch((#{addr} & 0xE000) >> 13) {
 		}
 		case 0xF: { /* 400Fh - APU Length Channel 4 (Noise) */
 			/* Writing to the length registers restarts the length (obviously), */
-			this.__noize__lengthCounter = this.LengthCounterConst[#{val} >> 3];
+			this.__noize__lengthCounter = this.__audio__LengthCounterConst[#{val} >> 3];
 			/* and restarts the decay volume (channel 1,2,4 only). */
 			this.__noize__decayReloaded = true;
 			break;
@@ -263,13 +262,13 @@ switch((#{addr} & 0xE000) >> 13) {
 		case 0x14: { /* 4014h execute Sprite DMA */
 			/** @type {number} uint16_t */
 			var addrMask = #{val} << 8;
-			var spRam = this.spRam;
-			var spriteAddr = this.spriteAddr;
+			var __video__spRam = this.__video__spRam;
+			var __video__spriteAddr = this.__video__spriteAddr;
 			for(var i=0;i<256;++i){
 				var __addr__ = addrMask | i;
 				var __val__;
 				#{CPU::MemRead("__addr__", "__val__")}
-				spRam[(spriteAddr+i) & 0xff] = __val__;
+				__video__spRam[(__video__spriteAddr+i) & 0xff] = __val__;
 			}
 			clockDelta += 512;
 			break;
@@ -285,8 +284,8 @@ switch((#{addr} & 0xE000) >> 13) {
 		}
 		case 0x16: {
 			if((#{val} & 1) === 1){
-				this.pad1Idx = 0;
-				this.pad2Idx = 0;
+				this.__pad__pad1Idx = 0;
+				this.__pad__pad2Idx = 0;
 			}
 			break;
 		}

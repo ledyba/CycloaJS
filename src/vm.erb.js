@@ -83,6 +83,5 @@ cycloa.VirtualMachine.prototype.read = function(addr) {
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_triangle_method.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_noize_method.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_digital_method.erb.js" %>
-<%= render File.expand_path File.dirname(__FILE__)+"/vm_ioport_method.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_mapper_method.erb.js" %>
 

@@ -1,39 +1,39 @@
 %# -*- encoding: utf-8 -*-
 
-this.nowX += clockDelta * <%= Video::ClockFactor %>;
-while(this.nowX >= 341){
-	this.nowX -= 341;
+this.__video__nowX += clockDelta * <%= Video::ClockFactor %>;
+while(this.__video__nowX >= 341){
+	this.__video__nowX -= 341;
 	/**
 	 * @const
 	 * @type {number}
 	 */
-	var nowY = (++this.nowY);
+	var nowY = (++this.__video__nowY);
 	if(nowY <= 240){
 		/**
 		 * @const
 		 * @type {Uint8Array}
 		 */
 		this.__video__spriteEval();
-		if(this.backgroundVisibility || this.spriteVisibility) {
+		if(this.__video__backgroundVisibility || this.__video__spriteVisibility) {
 			// from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
-			this.vramAddrRegister = (this.vramAddrRegister & 0x7BE0) | (this.vramAddrReloadRegister & 0x041F);
+			this.__video__vramAddrRegister = (this.__video__vramAddrRegister & 0x7BE0) | (this.__video__vramAddrReloadRegister & 0x041F);
 			this.__video__buildBgLine();
 			this.__video__buildSpriteLine();
-			var vramAddrRegister = this.vramAddrRegister + (1 << 12);
+			var vramAddrRegister = this.__video__vramAddrRegister + (1 << 12);
 			vramAddrRegister += (vramAddrRegister & 0x8000) >> 10;
 			vramAddrRegister &= 0x7fff;
 			if((vramAddrRegister & 0x03e0) === 0x3c0){
 				vramAddrRegister &= 0xFC1F;
 				vramAddrRegister ^= 0x800;
 			}
-			this.vramAddrRegister = vramAddrRegister;
+			this.__video__vramAddrRegister = vramAddrRegister;
 		}
 	}else if(nowY === 241){
 		//241: The PPU just idles during this scanline. Despite this, this scanline still occurs before the VBlank flag is set.
-		this.videoFairy.dispatchRendering(screenBuffer8, this.paletteMask);
+		this.__video__videoFairy.dispatchRendering(screenBuffer8, this.__video__paletteMask);
 		_run = false;
-		this.nowOnVBnank = true;
-		this.spriteAddr = 0;//and typically contains 00h at the begin of the VBlank periods
+		this.__video__nowOnVBnank = true;
+		this.__video__spriteAddr = 0;//and typically contains 00h at the begin of the VBlank periods
 	}else if(nowY === 242){
 		// NESDEV: These occur during VBlank. The VBlank flag of the PPU is pulled low during scanline 241, so the VBlank NMI occurs here.
 		// EVERYNES: http://nocash.emubase.de/everynes.htm#ppudimensionstimings
@@ -41,25 +41,25 @@ while(this.nowX >= 341){
 		// なお、$2002のレジスタがHIGHになった後にVBLANKを起こさないと「ソロモンの鍵」にてゲームが始まらない。
 		// (NMI割り込みがレジスタを読み込みフラグをリセットしてしまう上、NMI割り込みが非常に長く、クリアしなくてもすでにVBLANKが終わった後に返ってくる)
 		//nowOnVBlankフラグの立ち上がり後、数クロックでNMIが発生。
-		this.NMI = this.executeNMIonVBlank; /* reserve NMI if emabled */
+		this.NMI = this.__video__executeNMIonVBlank; /* reserve NMI if emabled */
 		this.onVBlank();
 	}else if(nowY <= 261){
 		//nowVBlank.
 	}else if(nowY === 262){
-		this.nowOnVBnank = false;
-		this.sprite0Hit = false;
-		this.nowY = 0;
-		if(!this.isEven){
-			this.nowX++;
+		this.__video__nowOnVBnank = false;
+		this.__video__sprite0Hit = false;
+		this.__video__nowY = 0;
+		if(!this.__video__isEven){
+			this.__video__nowX++;
 		}
-		this.isEven = !this.isEven;
+		this.__video__isEven = !this.__video__isEven;
 		// the reload value is automatically loaded into the Pointer at the end of the vblank period (vertical reload bits)
 		// from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
-		if(this.backgroundVisibility || this.spriteVisibility){
-			this.vramAddrRegister = (this.vramAddrRegister & 0x041F) | (this.vramAddrReloadRegister & 0x7BE0);
+		if(this.__video__backgroundVisibility || this.__video__spriteVisibility){
+			this.__video__vramAddrRegister = (this.__video__vramAddrRegister & 0x041F) | (this.__video__vramAddrReloadRegister & 0x7BE0);
 		}
 	}else{
-		throw new cycloa.err.CoreException("Invalid scanline: "+this.nowY);
+		throw new cycloa.err.CoreException("Invalid scanline: "+this.__video__nowY);
 	}
 }
 

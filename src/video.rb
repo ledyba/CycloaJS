@@ -28,7 +28,7 @@ module Video
 		""
 	end
 	def self.UseVideoAccess()
-		"var palette = this.palette; var vramMirroring = this.vramMirroring; var pattern = this.pattern; var screenBuffer8 = this.screenBuffer8;var screenBuffer32 = this.screenBuffer32;"
+		"var palette = this.__video__palette; var vramMirroring = this.__video__vramMirroring; var pattern = this.__video__pattern; var screenBuffer8 = this.__video__screenBuffer8;var screenBuffer32 = this.__video__screenBuffer32;"
 	end
 	def self.Palette(i,j)
 		"palette[#{i<<2+j}]";

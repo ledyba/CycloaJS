@@ -3,66 +3,66 @@
 cycloa.VirtualMachine.prototype.__video__onHardReset= function() {
 	//from http://wiki.nesdev.com/w/index.php/PPU_power_up_state
 	for(var i=0;i< 4;++i) {
-		var iv = this.internalVram[i];
+		var iv = this.__video__internalVram[i];
 		for(var j=0;j<0x400; ++j){
 			iv[j] = 0;
 		}
 	}
 	for(var i=0;i< <%= Video::SpRamSize %>;++i) {
-		this.spRam[i] = 0;
+		this.__video__spRam[i] = 0;
 	}
 	for(var i=0;i< <%= Video::PaletteSize %>;++i) {
-		this.palette[i] = 0;
+		this.__video__palette[i] = 0;
 	}
-	this.nowY=0;
-	this.nowX=0;
+	this.__video__nowY=0;
+	this.__video__nowX=0;
 	//0x2000
-	this.executeNMIonVBlank = false;
-	this.spriteHeight = 8;
-	this.patternTableAddressBackground = 0x0000;
-	this.patternTableAddress8x8Sprites = 0x0000;
-	this.vramIncrementSize = 1;
+	this.__video__executeNMIonVBlank = false;
+	this.__video__spriteHeight = 8;
+	this.__video__patternTableAddressBackground = 0x0000;
+	this.__video__patternTableAddress8x8Sprites = 0x0000;
+	this.__video__vramIncrementSize = 1;
 	//0x2005 & 0x2000
-	this.vramAddrReloadRegister = 0x0000;
-	this.horizontalScrollBits = 0;
+	this.__video__vramAddrReloadRegister = 0x0000;
+	this.__video__horizontalScrollBits = 0;
 	//0x2001
-	this.colorEmphasis = 0;
-	this.spriteVisibility = false;
-	this.backgroundVisibility = false;
-	this.spriteClipping = true;
-	this.backgroundClipping = true;
-	this.paletteMask = 0x3f;
+	this.__video__colorEmphasis = 0;
+	this.__video__spriteVisibility = false;
+	this.__video__backgroundVisibility = false;
+	this.__video__spriteClipping = true;
+	this.__video__backgroundClipping = true;
+	this.__video__paletteMask = 0x3f;
 	//0x2003
-	this.spriteAddr = 0;
+	this.__video__spriteAddr = 0;
 	//0x2005/0x2006
-	this.vramAddrRegisterWritten = false;
-	this.scrollRegisterWritten = false;
+	this.__video__vramAddrRegisterWritten = false;
+	this.__video__scrollRegisterWritten = false;
 	//0x2006
-	this.vramAddrRegister = 0;
+	this.__video__vramAddrRegister = 0;
 };
 cycloa.VirtualMachine.prototype.__video__onReset = function() {
 	//from http://wiki.nesdev.com/w/index.php/PPU_power_up_state
 	//0x2000
-	this.executeNMIonVBlank = false;
-	this.spriteHeight = 8;
-	this.patternTableAddressBackground = 0x0000;
-	this.patternTableAddress8x8Sprites = 0x0000;
-	this.vramIncrementSize = 1;
+	this.__video__executeNMIonVBlank = false;
+	this.__video__spriteHeight = 8;
+	this.__video__patternTableAddressBackground = 0x0000;
+	this.__video__patternTableAddress8x8Sprites = 0x0000;
+	this.__video__vramIncrementSize = 1;
 	//0x2005 & 0x2000
-	this.vramAddrReloadRegister = 0x0000;
-	this.horizontalScrollBits = 0;
+	this.__video__vramAddrReloadRegister = 0x0000;
+	this.__video__horizontalScrollBits = 0;
 	//0x2001
-	this.colorEmphasis = 0;
-	this.spriteVisibility = false;
-	this.backgroundVisibility = false;
-	this.spriteClipping = true;
-	this.backgroundClipping = true;
-	this.paletteMask = 0x3f;
+	this.__video__colorEmphasis = 0;
+	this.__video__spriteVisibility = false;
+	this.__video__backgroundVisibility = false;
+	this.__video__spriteClipping = true;
+	this.__video__backgroundClipping = true;
+	this.__video__paletteMask = 0x3f;
 	//0x2005/0x2006
-	this.vramAddrRegisterWritten = false;
-	this.scrollRegisterWritten = false;
+	this.__video__vramAddrRegisterWritten = false;
+	this.__video__scrollRegisterWritten = false;
 	//0x2007
-	this.vramBuffer = 0;
+	this.__video__vramBuffer = 0;
 };
 
 cycloa.VirtualMachine.prototype.__video__spriteEval = function() {
@@ -70,20 +70,20 @@ cycloa.VirtualMachine.prototype.__video__spriteEval = function() {
 	 * @type {Uint8Array}
 	 * @const
 	 */
-	var spRam = this.spRam;
+	var spRam = this.__video__spRam;
 	/**
 	 * @type {number}
 	 * @const
 	 */
-	var y = this.nowY-1;
+	var y = this.__video__nowY-1;
 	/** @type {number} */
 	var _spriteHitCnt = 0;
-	this.lostSprites = false;
+	this.__video__lostSprites = false;
 	/**
 	 * @type {number}
 	 * @const
 	 */
-	var _sprightHeight = this.spriteHeight;
+	var _sprightHeight = this.__video__spriteHeight;
 	/**
 	 * @type {boolean}
 	 * @const
@@ -93,12 +93,12 @@ cycloa.VirtualMachine.prototype.__video__spriteEval = function() {
 	 * @type {object[]}
 	 * @const
 	 */
-	var spriteTable = this.spriteTable;
+	var spriteTable = this.__video__spriteTable;
 	/**
 	 * @type {number}
 	 * @const
 	 */
-	var spriteTileAddrBase = this.patternTableAddress8x8Sprites;
+	var spriteTileAddrBase = this.__video__patternTableAddress8x8Sprites;
 	for(var i=0;i<256;i+=4){
 		/** @type {number} */
 		var spY = spRam[i]+1;
@@ -139,13 +139,13 @@ cycloa.VirtualMachine.prototype.__video__spriteEval = function() {
 			}else{
 				//本当はもっと複雑な仕様みたいなものの、省略。
 				//http://wiki.nesdev.com/w/index.php/PPU_sprite_evaluation
-				this.lostSprites = true;
+				this.__video__lostSprites = true;
 				break;
 			}
 		}
 	}
 	//残りは無効化
-	this.spriteHitCnt = _spriteHitCnt;
+	this.__video__spriteHitCnt = _spriteHitCnt;
 	for(var i=_spriteHitCnt;i< <%= Video::DefaultSpriteCnt %>;i++){
 		spriteTable[i].y=255;
 	}
@@ -154,7 +154,7 @@ cycloa.VirtualMachine.prototype.__video__spriteEval = function() {
 cycloa.VirtualMachine.prototype.__video__buildBgLine = function(){
 	<%= Video::UseVideoAccess() %>
 	var _color = <%= Video::EmptyBit %> | <%= Video::Palette(8, 0) %>;
-	if(!this.backgroundVisibility) {
+	if(!this.__video__backgroundVisibility) {
 		var _color32 = _color << 24 | _color << 16 | _color << 8 | _color;
 		for(var i=((nowY-1) << <%= Video::ScreenWidthShift-2 %>), max=i+<%= Video::ScreenWidth/4 %>; i<max; ++i) screenBuffer32[i] = _color32;
 		return;
@@ -163,26 +163,26 @@ cycloa.VirtualMachine.prototype.__video__buildBgLine = function(){
 	 * @type {number} uint8_t
 	 * @const
 	 */
-	var buffOffset = (this.nowY-1) << <%= Video::ScreenWidthShift %>;
+	var buffOffset = (this.__video__nowY-1) << <%= Video::ScreenWidthShift %>;
 	/**
 	 * @type {number} uint16_t
 	 */
-	var nameTableAddr = 0x2000 | (this.vramAddrRegister & 0xfff);
+	var nameTableAddr = 0x2000 | (this.__video__vramAddrRegister & 0xfff);
 	/**
 	 * @type {number} uint8_t
 	 * @const
 	 */
-	var offY = (this.vramAddrRegister >> 12);
+	var offY = (this.__video__vramAddrRegister >> 12);
 	/**
 	 * @type {number} uint8_t
 	 */
-	var offX = this.horizontalScrollBits;
+	var offX = this.__video__horizontalScrollBits;
 
 	/**
 	 * @type {number} uint16_t
 	 * @const
 	 */
-	var bgTileAddrBase = this.patternTableAddressBackground;
+	var bgTileAddrBase = this.__video__patternTableAddressBackground;
 	
 	var renderX=0;
 
@@ -266,7 +266,7 @@ cycloa.VirtualMachine.prototype.__video__buildBgLine = function(){
 };
 
 cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
-	if(!this.spriteVisibility){
+	if(!this.__video__spriteVisibility){
 		return;
 	}
 	<%= Video::UseVideoAccess() %>
@@ -274,33 +274,33 @@ cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
 	 * @type {number} uint8_t
 	 * @const
 	 */
-	var y = this.nowY-1;
+	var y = this.__video__nowY-1;
 	/**
 	 * @type {number} uint16_t
 	 * @const
 	 */
-	var _spriteHeight = this.spriteHeight;
+	var _spriteHeight = this.__video__spriteHeight;
 	/**
 	 * @type {boolean} bool
 	 */
-	var searchSprite0Hit = !this.sprite0Hit;
+	var searchSprite0Hit = !this.__video__sprite0Hit;
 	/**
 	 * @type {number} uint16_t
 	 * @const
 	 */
-	var _spriteHitCnt = this.spriteHitCnt;
+	var _spriteHitCnt = this.__video__spriteHitCnt;
 	/**
 	 * @type {number} uint8_t
 	 * @const
 	 */
-	var buffOffset = (this.nowY-1) << <%= Video::ScreenWidthShift %>;
-	//readVram(this.spriteTable[0].tileAddr); //FIXME: 読み込まないと、MMC4が動かない。
+	var buffOffset = (this.__video__nowY-1) << <%= Video::ScreenWidthShift %>;
+	//readVram(this.__video__spriteTable[0].tileAddr); //FIXME: 読み込まないと、MMC4が動かない。
 	for(var i=0;i<_spriteHitCnt;i++){
 		/**
 		 * @type {object} struct SpriteSlot&
 		 * @const
 		 */
-		var slot = this.spriteTable[i];
+		var slot = this.__video__spriteTable[i];
 		searchSprite0Hit &= (slot.idx === 0);
 		/**
 		 * @type {number} uint16_t
@@ -356,7 +356,7 @@ cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
 				/**
 				 * @type {number} uint8_t
 				 */
-				var target = this.screenBuffer8[buffOffset + slot.x + x];
+				var target = this.__video__screenBuffer8[buffOffset + slot.x + x];
 				/**
 				 * @type {boolean} bool
 				 */
@@ -370,7 +370,7 @@ cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
 				 */
 				var isSpriteNotDrawn = (target & <%= Video::SpriteLayerBit %>) === 0;
 				if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
-					this.sprite0Hit = true;
+					this.__video__sprite0Hit = true;
 					searchSprite0Hit = false;
 				}
 				if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
@@ -388,7 +388,7 @@ cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
 				 * @type {number} uint8_t
 				 * @const
 				 */
-				var target = this.screenBuffer8[buffOffset + slot.x + x];
+				var target = this.__video__screenBuffer8[buffOffset + slot.x + x];
 				/**
 				 * @type {boolean} bool
 				 * @const
@@ -405,7 +405,7 @@ cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
 				 */
 				var isSpriteNotDrawn = (target & <%= Video::SpriteLayerBit %>) === 0;
 				if(searchSprite0Hit && (color !== 0 && isBackgroundDrawn)){
-					this.sprite0Hit = true;
+					this.__video__sprite0Hit = true;
 					searchSprite0Hit = false;
 				}
 				if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
@@ -422,58 +422,58 @@ cycloa.VirtualMachine.prototype.__video__writeReg = function(/* uint16_t */ addr
 	switch(addr & 0x07) {
 		/* PPU Control and Status Registers */
 		case 0x00: { //2000h - PPU Control Register 1 (W)
-			this.executeNMIonVBlank = ((value & 0x80) === 0x80) ? true : false;
-			this.spriteHeight = ((value & 0x20) === 0x20) ? 16 : 8;
-			this.patternTableAddressBackground = (value & 0x10) << 8;
-			this.patternTableAddress8x8Sprites = (value & 0x8) << 9;
-			this.vramIncrementSize = ((value & 0x4) === 0x4) ? 32 : 1;
-			this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x73ff) | ((value & 0x3) << 10);
+			this.__video__executeNMIonVBlank = ((value & 0x80) === 0x80) ? true : false;
+			this.__video__spriteHeight = ((value & 0x20) === 0x20) ? 16 : 8;
+			this.__video__patternTableAddressBackground = (value & 0x10) << 8;
+			this.__video__patternTableAddress8x8Sprites = (value & 0x8) << 9;
+			this.__video__vramIncrementSize = ((value & 0x4) === 0x4) ? 32 : 1;
+			this.__video__vramAddrReloadRegister = (this.__video__vramAddrReloadRegister & 0x73ff) | ((value & 0x3) << 10);
 			break;
 		}
 		case 0x01: { //2001h - PPU Control Register 2 (W)
-			this.colorEmphasis = value >> 5; //FIXME: この扱い、どーする？
-			this.spriteVisibility = ((value & 0x10) === 0x10) ? true : false;
-			this.backgroundVisibility = ((value & 0x08) == 0x08) ? true : false;
-			this.spriteClipping = ((value & 0x04) === 0x04) ? false : true;
-			this.backgroundClipping = ((value & 0x2) === 0x02) ? false : true;
-			this.paletteMask = ((value & 0x1) === 0x01) ? 0x30 : 0x3f;
+			this.__video__colorEmphasis = value >> 5; //FIXME: この扱い、どーする？
+			this.__video__spriteVisibility = ((value & 0x10) === 0x10) ? true : false;
+			this.__video__backgroundVisibility = ((value & 0x08) == 0x08) ? true : false;
+			this.__video__spriteClipping = ((value & 0x04) === 0x04) ? false : true;
+			this.__video__backgroundClipping = ((value & 0x2) === 0x02) ? false : true;
+			this.__video__paletteMask = ((value & 0x1) === 0x01) ? 0x30 : 0x3f;
 			break;
 		}
 		//case 0x02: //2002h - PPU Status Register (R)
 		/* PPU SPR-RAM Access Registers */
 		case 0x03: { //2003h - SPR-RAM Address Register (W)
-			this.spriteAddr = value;
+			this.__video__spriteAddr = value;
 			break;
 		}
 		case 0x04: { //2004h - SPR-RAM Data Register (Read/Write)
-			spRam[this.spriteAddr] = value;
-			this.spriteAddr = (this.spriteAddr+1) & 0xff;
+			spRam[this.__video__spriteAddr] = value;
+			this.__video__spriteAddr = (this.__video__spriteAddr+1) & 0xff;
 			break;
 		}
 		/* PPU VRAM Access Registers */
 		case 0x05: { //PPU Background Scrolling Offset (W2)
-			if(this.scrollRegisterWritten){ //Y
-				this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x8C1F) | ((value & 0xf8) << 2) | ((value & 7) << 12);
+			if(this.__video__scrollRegisterWritten){ //Y
+				this.__video__vramAddrReloadRegister = (this.__video__vramAddrReloadRegister & 0x8C1F) | ((value & 0xf8) << 2) | ((value & 7) << 12);
 			}else{ //X
-				this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0xFFE0) | value >> 3;
-				this.horizontalScrollBits = value & 7;
+				this.__video__vramAddrReloadRegister = (this.__video__vramAddrReloadRegister & 0xFFE0) | value >> 3;
+				this.__video__horizontalScrollBits = value & 7;
 			}
-			this.scrollRegisterWritten = !this.scrollRegisterWritten;
+			this.__video__scrollRegisterWritten = !this.__video__scrollRegisterWritten;
 			break;
 		}
 		case 0x06: { //VRAM Address Register (W2)
-			if(this.vramAddrRegisterWritten){
-				this.vramAddrReloadRegister = (this.vramAddrReloadRegister & 0x7f00) | value;
-				this.vramAddrRegister = this.vramAddrReloadRegister & 0x3fff;
+			if(this.__video__vramAddrRegisterWritten){
+				this.__video__vramAddrReloadRegister = (this.__video__vramAddrReloadRegister & 0x7f00) | value;
+				this.__video__vramAddrRegister = this.__video__vramAddrReloadRegister & 0x3fff;
 			} else {
-				this.vramAddrReloadRegister =(this.vramAddrReloadRegister & 0x00ff) | ((value & 0x7f) << 8);
+				this.__video__vramAddrReloadRegister =(this.__video__vramAddrReloadRegister & 0x00ff) | ((value & 0x7f) << 8);
 			}
-			this.vramAddrRegisterWritten = !this.vramAddrRegisterWritten;
+			this.__video__vramAddrRegisterWritten = !this.__video__vramAddrRegisterWritten;
 			break;
 		}
 		case 0x07: { //VRAM Read/Write Data Register (RW)
-			this.__video__writeVram(this.vramAddrRegister, value);
-			this.vramAddrRegister = (this.vramAddrRegister + this.vramIncrementSize) & 0x3fff;
+			this.__video__writeVram(this.__video__vramAddrRegister, value);
+			this.__video__vramAddrRegister = (this.__video__vramAddrRegister + this.__video__vramIncrementSize) & 0x3fff;
 			break;
 		}
 		default: {
@@ -492,43 +492,43 @@ cycloa.VirtualMachine.prototype.__video__readReg = function(/* uint16_t */ addr)
 		//case 0x01: //2001h - PPU Control Register 2 (W)
 		case 0x02: { //2002h - PPU Status Register (R)
 			//from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
-			this.vramAddrRegisterWritten = false;
-			this.scrollRegisterWritten = false;
+			this.__video__vramAddrRegisterWritten = false;
+			this.__video__scrollRegisterWritten = false;
 			//Reading resets the 1st/2nd-write flipflop (used by Port 2005h and 2006h).
 			/**
 			 * @const
 			 * @type {number} uint8_t
 			 */
 			var result =
-					((this.nowOnVBnank) ? 128 : 0)
-				|   ((this.sprite0Hit) ? 64 : 0)
-				|   ((this.lostSprites) ? 32 : 0);
-			this.nowOnVBnank = false;
+					((this.__video__nowOnVBnank) ? 128 : 0)
+				|   ((this.__video__sprite0Hit) ? 64 : 0)
+				|   ((this.__video__lostSprites) ? 32 : 0);
+			this.__video__nowOnVBnank = false;
 			return result;
 		}
 		/* PPU SPR-RAM Access Registers */
 		//case 0x03: //2003h - SPR-RAM Address Register (W)
 		case 0x04: { //2004h - SPR-RAM Data Register (Read/Write)
-			return this.spRam[this.spriteAddr];
+			return this.__video__spRam[this.__video__spriteAddr];
 		}
 		/* PPU VRAM Access Registers */
 		//case 0x05: //PPU Background Scrolling Offset (W2)
 		//case 0x06: //VRAM Address Register (W2)
 		case 0x07: { //VRAM Read/Write Data Register (RW)
-			var vramAddrRegister = this.vramAddrRegister;
+			var vramAddrRegister = this.__video__vramAddrRegister;
 			if((vramAddrRegister & 0x3f00) !== 0x3f00){
 				/**
 				 * @type {number} uint8_t */
-				var ret = this.vramBuffer;
-				this.vramBuffer = <%= Video::ReadVramExternal("vramAddrRegister") %>;
-				this.vramAddrRegister = (vramAddrRegister + this.vramIncrementSize) & 0x3fff;
+				var ret = this.__video__vramBuffer;
+				this.__video__vramBuffer = <%= Video::ReadVramExternal("vramAddrRegister") %>;
+				this.__video__vramAddrRegister = (vramAddrRegister + this.__video__vramIncrementSize) & 0x3fff;
 				return ret;
 			} else {
 				/**
 				 * @type {number} uint8_t */
 				var ret = <%= Video::ReadPalette("vramAddrRegister") %>;
-				this.vramBuffer = <%= Video::ReadVramExternal("vramAddrRegister") %>; //ミラーされてるVRAMにも同時にアクセスしなければならない。
-				this.vramAddrRegister = (vramAddrRegister + this.vramIncrementSize) & 0x3fff;
+				this.__video__vramBuffer = <%= Video::ReadVramExternal("vramAddrRegister") %>; //ミラーされてるVRAMにも同時にアクセスしなければならない。
+				this.__video__vramAddrRegister = (vramAddrRegister + this.__video__vramIncrementSize) & 0x3fff;
 				return ret;
 			}
 		}
@@ -543,9 +543,9 @@ cycloa.VirtualMachine.prototype.__video__readReg = function(/* uint16_t */ addr)
 cycloa.VirtualMachine.prototype.__video__writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
 	if(addr < 0x2000) {
-		//this.pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
+		//this.__video__pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
 	} else {
-		this.vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
+		this.__video__vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
 	}
 };
 
@@ -555,9 +555,9 @@ cycloa.VirtualMachine.prototype.__video__writeVram = function(/* uint16_t */ add
 		this.__video__writeVramExternal(addr, value);
 	}else{
 		if((addr & 0x3) === 0){ /* writePalette */
-			this.palette[32 | ((addr >> 2) & 3)] = value & 0x3f;
+			this.__video__palette[32 | ((addr >> 2) & 3)] = value & 0x3f;
 		}else{
-			this.palette[addr & 31] = value & 0x3f;
+			this.__video__palette[addr & 31] = value & 0x3f;
 		}
 	}
 };
@@ -566,42 +566,42 @@ cycloa.VirtualMachine.prototype.__video__writeVram = function(/* uint16_t */ add
  * @type {number} mirrorType
  */
 cycloa.VirtualMachine.prototype.__video__changeMirrorType = function(/* NesFile::MirrorType */ mirrorType) {
-	this.mirrorType = mirrorType;
+	this.__video__mirrorType = mirrorType;
 	switch(mirrorType)
 	{
 	case <%= NES::SINGLE0 %>: {
-		this.vramMirroring[0] = this.internalVram[0];
-		this.vramMirroring[1] = this.internalVram[0];
-		this.vramMirroring[2] = this.internalVram[0];
-		this.vramMirroring[3] = this.internalVram[0];
+		this.__video__vramMirroring[0] = this.__video__internalVram[0];
+		this.__video__vramMirroring[1] = this.__video__internalVram[0];
+		this.__video__vramMirroring[2] = this.__video__internalVram[0];
+		this.__video__vramMirroring[3] = this.__video__internalVram[0];
 		break;
 	}
 	case <%= NES::SINGLE1 %>: {
-		this.vramMirroring[0] = this.internalVram[1];
-		this.vramMirroring[1] = this.internalVram[1];
-		this.vramMirroring[2] = this.internalVram[1];
-		this.vramMirroring[3] = this.internalVram[1];
+		this.__video__vramMirroring[0] = this.__video__internalVram[1];
+		this.__video__vramMirroring[1] = this.__video__internalVram[1];
+		this.__video__vramMirroring[2] = this.__video__internalVram[1];
+		this.__video__vramMirroring[3] = this.__video__internalVram[1];
 		break;
 	}
 	case <%= NES::FOUR_SCREEN %>: {
-		this.vramMirroring[0] = this.internalVram[1];
-		this.vramMirroring[1] = this.internalVram[2];
-		this.vramMirroring[2] = this.internalVram[3];
-		this.vramMirroring[3] = this.internalVram[4];
+		this.__video__vramMirroring[0] = this.__video__internalVram[1];
+		this.__video__vramMirroring[1] = this.__video__internalVram[2];
+		this.__video__vramMirroring[2] = this.__video__internalVram[3];
+		this.__video__vramMirroring[3] = this.__video__internalVram[4];
 		break;
 	}
 	case <%= NES::HORIZONTAL %>: {
-		this.vramMirroring[0] = this.internalVram[0];
-		this.vramMirroring[1] = this.internalVram[0];
-		this.vramMirroring[2] = this.internalVram[1];
-		this.vramMirroring[3] = this.internalVram[1];
+		this.__video__vramMirroring[0] = this.__video__internalVram[0];
+		this.__video__vramMirroring[1] = this.__video__internalVram[0];
+		this.__video__vramMirroring[2] = this.__video__internalVram[1];
+		this.__video__vramMirroring[3] = this.__video__internalVram[1];
 		break;
 	}
 	case <%= NES::VERTICAL%>: {
-		this.vramMirroring[0] = this.internalVram[0];
-		this.vramMirroring[1] = this.internalVram[1];
-		this.vramMirroring[2] = this.internalVram[0];
-		this.vramMirroring[3] = this.internalVram[1];
+		this.__video__vramMirroring[0] = this.__video__internalVram[0];
+		this.__video__vramMirroring[1] = this.__video__internalVram[1];
+		this.__video__vramMirroring[2] = this.__video__internalVram[0];
+		this.__video__vramMirroring[3] = this.__video__internalVram[1];
 		break;
 	}
 	default: {
