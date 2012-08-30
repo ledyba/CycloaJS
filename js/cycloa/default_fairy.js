@@ -8,7 +8,7 @@ cycloa.AbstractAudioFairy = function(){
 };
 
 //called when all data buffer has been filled.
-cycloa.AbstractVideoFairy.prototype.onDataFilled = function(){
+cycloa.AbstractAudioFairy.prototype.onDataFilled = function(){
 };
 
 cycloa.AbstractVideoFairy = function(){
