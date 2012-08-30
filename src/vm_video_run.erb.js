@@ -13,12 +13,12 @@ while(this.nowX >= 341){
 		 * @const
 		 * @type {Uint8Array}
 		 */
-		this.spriteEval();
+		this.__video__spriteEval();
 		if(this.backgroundVisibility || this.spriteVisibility) {
 			// from http://nocash.emubase.de/everynes.htm#pictureprocessingunitppu
 			this.vramAddrRegister = (this.vramAddrRegister & 0x7BE0) | (this.vramAddrReloadRegister & 0x041F);
-			this.buildBgLine();
-			this.buildSpriteLine();
+			this.__video__buildBgLine();
+			this.__video__buildSpriteLine();
 			var vramAddrRegister = this.vramAddrRegister + (1 << 12);
 			vramAddrRegister += (vramAddrRegister & 0x8000) >> 10;
 			vramAddrRegister &= 0x7fff;

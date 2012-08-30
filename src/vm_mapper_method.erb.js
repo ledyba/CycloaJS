@@ -31,7 +31,7 @@ cycloa.VirtualMachine.prototype.load = function(rom){
 		throw new cycloa.err.NotSupportedException("Not supported mapper: "+this.mapperNo);
 	}
 	mapperInit(this);
-	this.changeMirrorType(this.mirrorType);
+	this.__video__changeMirrorType(this.mirrorType);
 };
 
 /**

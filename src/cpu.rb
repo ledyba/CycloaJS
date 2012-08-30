@@ -47,7 +47,7 @@ switch((#{addrsym} & 0xE000) >> 13){
 		break;
 	}
 	case 1:{ /* 0x2000 -> 0x4000 */
-		#{store_sym} = this.readVideoReg(#{addrsym});
+		#{store_sym} = this.__video__readReg(#{addrsym});
 		break;
 	}
 	case 2:{ /* 0x4000 -> 0x6000 */
@@ -107,7 +107,7 @@ switch((#{addr} & 0xE000) >> 13) {
 		break;
 	}
 	case 1:{ /* 0x2000 -> 0x4000 */
-		this.writeVideoReg(#{addr}, #{val});
+		this.__video__writeReg(#{addr}, #{val});
 		break;
 	}
 	case 2:{ /* 0x4000 -> 0x6000 */

@@ -46,7 +46,7 @@ cycloa.VirtualMachine.prototype.run = function () {
  */
 cycloa.VirtualMachine.prototype.onHardReset = function () {
 	this.onHardResetCPU();
-	this.onHardResetVideo();
+	this.__video__onHardReset();
 	this.__audio__onHardReset();
 	this.__rectangle0__onHardReset();
 	this.__rectangle1__onHardReset();
@@ -56,7 +56,7 @@ cycloa.VirtualMachine.prototype.onHardReset = function () {
 };
 cycloa.VirtualMachine.prototype.onReset = function () {
 	this.onResetCPU();
-	this.onResetVideo();
+	this.__video__onReset();
 	this.__audio__onReset();
 	this.__rectangle0__onReset();
 	this.__rectangle1__onReset();
