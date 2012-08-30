@@ -261,14 +261,14 @@ switch((#{addr} & 0xE000) >> 13) {
 		}
 		case 0x14: { /* 4014h execute Sprite DMA */
 			/** @type {number} uint16_t */
-			var addrMask = #{val} << 8;
+			var __audio__dma__addrMask = #{val} << 8;
 			var __video__spRam = this.__video__spRam;
 			var __video__spriteAddr = this.__video__spriteAddr;
 			for(var i=0;i<256;++i){
-				var __addr__ = addrMask | i;
-				var __val__;
-				#{CPU::MemRead("__addr__", "__val__")}
-				__video__spRam[(__video__spriteAddr+i) & 0xff] = __val__;
+				var __audio__dma__addr__ = __audio__dma__addrMask | i;
+				var __audio_dma__val__;
+				#{CPU::MemRead("__audio__dma__addr__", "__audio__dma__val__")}
+				__video__spRam[(__video__spriteAddr+i) & 0xff] = __audio__dma__val__;
 			}
 			clockDelta += 512;
 			break;
