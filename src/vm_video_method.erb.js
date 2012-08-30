@@ -246,9 +246,9 @@ cycloa.VirtualMachine.prototype.__video__buildBgLine = function(){
 			 */
 			var color = ((firstPlane >> (7-x)) & 1) | (((secondPlane >> (7-x)) & 1)<<1);
 			if(color !== 0){
-				screenBuffer8[buffOffset+renderX] = palette[paletteOffset+color] | <%= Video::BackgroundBit %>;
+				__video__screenBuffer8[buffOffset+renderX] = __video__palette[paletteOffset+color] | <%= Video::BackgroundBit %>;
 			}else{
-				screenBuffer8[buffOffset+renderX] = _color;
+				__video__screenBuffer8[buffOffset+renderX] = _color;
 			}
 			renderX++;
 			if(renderX >= <%= Video::ScreenWidth %>){
@@ -356,7 +356,7 @@ cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
 				/**
 				 * @type {number} uint8_t
 				 */
-				var target = this.__video__screenBuffer8[buffOffset + slot.x + x];
+				var target = __video__screenBuffer8[buffOffset + slot.x + x];
 				/**
 				 * @type {boolean} bool
 				 */
@@ -374,7 +374,7 @@ cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
 					searchSprite0Hit = false;
 				}
 				if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
-					screenBuffer8[buffOffset + slot.x + x] = palette[(slot.paletteNo<<2) + color] | layerMask;
+					__video__screenBuffer8[buffOffset + slot.x + x] = __video__palette[(slot.paletteNo<<2) + color] | layerMask;
 				}
 			}
 		}else{
@@ -388,7 +388,7 @@ cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
 				 * @type {number} uint8_t
 				 * @const
 				 */
-				var target = this.__video__screenBuffer8[buffOffset + slot.x + x];
+				var target = __video__screenBuffer8[buffOffset + slot.x + x];
 				/**
 				 * @type {boolean} bool
 				 * @const
@@ -409,7 +409,7 @@ cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
 					searchSprite0Hit = false;
 				}
 				if(color != 0 && ((!slot.isForeground && isEmpty) || (slot.isForeground &&  isSpriteNotDrawn))){
-					screenBuffer8[buffOffset + slot.x + x] = palette[(slot.paletteNo<<2) + color] | layerMask;
+					__video__screenBuffer8[buffOffset + slot.x + x] = __video__palette[(slot.paletteNo<<2) + color] | layerMask;
 				}
 			}
 		}

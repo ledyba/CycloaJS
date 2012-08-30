@@ -28,16 +28,16 @@ module Video
 		""
 	end
 	def self.UseVideoAccess()
-		"var palette = this.__video__palette; var vramMirroring = this.__video__vramMirroring; var pattern = this.__video__pattern; var screenBuffer8 = this.__video__screenBuffer8;var screenBuffer32 = this.__video__screenBuffer32;"
+		"var __video__palette = this.__video__palette; var __video__vramMirroring = this.__video__vramMirroring; var __video__pattern = this.__video__pattern; var __video__screenBuffer8 = this.__video__screenBuffer8;var __video__screenBuffer32 = this.__video__screenBuffer32;"
 	end
 	def self.Palette(i,j)
-		"palette[#{i<<2+j}]";
+		"__video__palette[#{i<<2+j}]";
 	end
 	def self.ReadVramExternal(addr)
-		"(#{addr} < 0x2000 ? pattern[(#{addr} >> 9) & 0xf][#{addr} & 0x1ff] : vramMirroring[(#{addr} >> 10) & 0x3][#{addr} & 0x3ff])"
+		"(#{addr} < 0x2000 ? __video__pattern[(#{addr} >> 9) & 0xf][#{addr} & 0x1ff] : __video__vramMirroring[(#{addr} >> 10) & 0x3][#{addr} & 0x3ff])"
 	end
 	def self.ReadPalette(addr)
-		"((#{addr} & 0x3 === 0) ? palette[32 | ((addr >> 2) & 3)] : palette[#{addr} & 31])"
+		"((#{addr} & 0x3 === 0) ? __video__palette[32 | ((addr >> 2) & 3)] : __video__palette[#{addr} & 31])"
 	end
 	def self.ReadVram(addr, with_this = false)
 		"(((#{addr} & 0x3f00) !== 0x3f00) ? #{ReadVramExternal(addr)} : #{ReadPalette(addr)} )"
