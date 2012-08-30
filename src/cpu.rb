@@ -18,7 +18,7 @@ var clockDelta;#{UseMemory()}
 	end
 	def self.Init()
 """
-clockDelta = reservedClockDelta; reservedClockDelta = 0;
+clockDelta = __vm__reservedClockDelta; __vm__reservedClockDelta = 0;
 """
 	end
 	module IRQ
@@ -433,7 +433,7 @@ switch((#{addr} & 0xE000) >> 13) {
 		"clockDelta += (#{clk});"
 	end
 	def self.ConsumeReservedClock(clk)
-		"reservedClockDelta += (#{clk});"
+		"__vm__reservedClockDelta += (#{clk});"
 	end
 
 	module AddrMode

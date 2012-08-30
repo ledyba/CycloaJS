@@ -17,7 +17,7 @@ this.tracer = new cycloa.Tracer(this);
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_digital_init.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_pad_init.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_mapper_init.erb.js" %>
-this.reservedClockDelta = 0;
+this.__vm__reservedClockDelta = 0;
 };
 
 /**
@@ -27,17 +27,17 @@ cycloa.VirtualMachine.prototype.run = function () {
 	<%= CPU::RunInit() %>
 	<%= Video::RunInit() %>
 	<%= Audio::RunInit() %>
-	var _run = true;
-	var reservedClockDelta = this.reservedClockDelta;
-	this.reservedClockDelta = 0;
-	while(_run) {
+	var __vm__run = true;
+	var __vm__reservedClockDelta = this.__vm__reservedClockDelta;
+	this.__vm__reservedClockDelta = 0;
+	while(__vm__run) {
 		//console.log(this.tracer.decode());
 		<%= render File.expand_path File.dirname(__FILE__)+"/vm_cpu_run.erb.js" %>
 		<%= render File.expand_path File.dirname(__FILE__)+"/vm_video_run.erb.js" %>
 		<%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_run.erb.js" %>
 	}
-	this.reservedClockDelta += reservedClockDelta;
-	return _run;
+	this.__vm__reservedClockDelta += __vm__reservedClockDelta;
+	return __vm__run;
 };
 
 /**

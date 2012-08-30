@@ -31,7 +31,7 @@ while(this.__video__nowX >= 341){
 	}else if(__video__nowY === 241){
 		//241: The PPU just idles during this scanline. Despite this, this scanline still occurs before the VBlank flag is set.
 		this.__video__videoFairy.dispatchRendering(__video__screenBuffer8, this.__video__paletteMask);
-		_run = false;
+		__vm__run = false;
 		this.__video__nowOnVBnank = true;
 		this.__video__spriteAddr = 0;//and typically contains 00h at the begin of the VBlank periods
 	}else if(__video__nowY === 242){

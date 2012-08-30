@@ -202,7 +202,7 @@ cycloa.VirtualMachine.prototype.__audio__writeAudioReg = function(addr, val){
 				<%= CPU::MemRead("__addr__", "__val__") %>
 				spRam[(spriteAddr+i) & 0xff] = __val__;
 			}
-			this.reservedClockDelta += 512;
+			this.__vm__reservedClockDelta += 512;
 			break;
 		}
 		/* ------------------------------ CTRL -------------------------------------------------- */
