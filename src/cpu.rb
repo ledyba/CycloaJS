@@ -436,7 +436,7 @@ switch((#{addr} & 0xE000) >> 13) {
 
 	module AddrMode
 		def self.CrossCheck()
-			"if(((addr ^ addr_base) & 0x0100) !== 0) #{CPU::ConsumeClock 1}"
+			"if(((__cpu__addr ^ __cpu__addr_base) & 0x0100) !== 0) #{CPU::ConsumeClock 1}"
 		end
 		def self.Init()
 """
@@ -457,7 +457,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr = (__cpu__pc+1);
+			var __cpu__addr = (__cpu__pc+1);
 			#{excelPC 2}
 """
 		end
@@ -467,91 +467,91 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr_base = __cpu__pc+1;
-			var addr;
-			#{CPU::MemRead("addr_base", "addr")}
+			var __cpu__addr_base = __cpu__pc+1;
+			var __cpu__addr;
+			#{CPU::MemRead("__cpu__addr_base", "__cpu__addr")}
 			#{excelPC 2}
 """
 		end
 		def self.ZeropageX()
 """
-			var addr_base = __cpu__pc+1;
-			#{CPU::MemRead("addr_base", "addr_base")}
+			var __cpu__addr_base = __cpu__pc+1;
+			#{CPU::MemRead("__cpu__addr_base", "__cpu__addr_base")}
 			/**
 			 * @type {number}
 			 */
-			var addr = (addr_base + #{Target}.X) & 0xff;
+			var __cpu__addr = (__cpu__addr_base + #{Target}.X) & 0xff;
 			#{excelPC 2}
 """
 		end
 		def self.ZeropageY()
 """
-			var addr_base = __cpu__pc+1;
-			#{CPU::MemRead("addr_base", "addr_base")}
+			var __cpu__addr_base = __cpu__pc+1;
+			#{CPU::MemRead("__cpu__addr_base", "__cpu__addr_base")}
 			/**
 			 * @type {number}
 			 */
-			var addr = (addr_base + #{Target}.Y) & 0xff;
+			var __cpu__addr = (__cpu__addr_base + #{Target}.Y) & 0xff;
 			#{excelPC 2}
 """
 		end
 		def self.Absolute()
 """
-			var addr_base1 = __cpu__pc+1;
-			#{CPU::MemRead("addr_base1", "addr_base1")}
-			var addr_base2 = __cpu__pc+2;
-			#{CPU::MemRead("addr_base2", "addr_base2")}
+			var __cpu__addr_base1 = __cpu__pc+1;
+			#{CPU::MemRead("__cpu__addr_base1", "__cpu__addr_base1")}
+			var __cpu__addr_base2 = __cpu__pc+2;
+			#{CPU::MemRead("__cpu__addr_base2", "__cpu__addr_base2")}
 			/**
 			 * @type {number}
 			 */
-			var addr = (addr_base1 | (addr_base2 << 8));
+			var __cpu__addr = (__cpu__addr_base1 | (__cpu__addr_base2 << 8));
 			#{excelPC 3}
 """
 		end
 		def self.AbsoluteX()
 """
-			var addr_base1 = __cpu__pc+1;
-			#{CPU::MemRead("addr_base1", "addr_base1")}
-			var addr_base2 = __cpu__pc+2;
-			#{CPU::MemRead("addr_base2", "addr_base2")}
+			var __cpu__addr_base1 = __cpu__pc+1;
+			#{CPU::MemRead("__cpu__addr_base1", "__cpu__addr_base1")}
+			var __cpu__addr_base2 = __cpu__pc+2;
+			#{CPU::MemRead("__cpu__addr_base2", "__cpu__addr_base2")}
 			/**
 			 * @type {number}
 			 */
-			var addr = (addr_base1 | (addr_base2 << 8)) + #{Target}.X;
+			var __cpu__addr = (__cpu__addr_base1 | (__cpu__addr_base2 << 8)) + #{Target}.X;
 			#{CrossCheck()}
 			#{excelPC 3}
 """
 		end
 		def self.AbsoluteY()
 """
-			var addr_base1 = __cpu__pc+1;
-			#{CPU::MemRead("addr_base1", "addr_base1")}
-			var addr_base2 = __cpu__pc+2;
-			#{CPU::MemRead("addr_base2", "addr_base2")}
+			var __cpu__addr_base1 = __cpu__pc+1;
+			#{CPU::MemRead("__cpu__addr_base1", "__cpu__addr_base1")}
+			var __cpu__addr_base2 = __cpu__pc+2;
+			#{CPU::MemRead("__cpu__addr_base2", "__cpu__addr_base2")}
 			/**
 			 * @type {number}
 			 */
-			var addr = (addr_base1 | (addr_base2 << 8)) + #{Target}.Y;
+			var __cpu__addr = (__cpu__addr_base1 | (__cpu__addr_base2 << 8)) + #{Target}.Y;
 			#{CrossCheck()}
 			#{excelPC 3}
 """
 		end
 		def self.Indirect()
 """
-			var addr_base1 = __cpu__pc+1;
-			#{CPU::MemRead("addr_base1", "addr_base1")}
-			var addr_base2 = __cpu__pc+2;
-			#{CPU::MemRead("addr_base2", "addr_base2")}
-			var addr_base3 = (addr_base1 | (addr_base2 << 8));
+			var __cpu__addr_base1 = __cpu__pc+1;
+			#{CPU::MemRead("__cpu__addr_base1", "__cpu__addr_base1")}
+			var __cpu__addr_base2 = __cpu__pc+2;
+			#{CPU::MemRead("__cpu__addr_base2", "__cpu__addr_base2")}
+			var __cpu__addr_base3 = (__cpu__addr_base1 | (__cpu__addr_base2 << 8));
 
-			var addr_base4;
-			#{CPU::MemRead("addr_base3", "addr_base4")}
-			var addr_base5 = (addr_base3 & 0xff00) | ((addr_base3+1) & 0x00ff) /* bug of NES */;
-			#{CPU::MemRead("addr_base5", "addr_base5")}
+			var __cpu__addr_base4;
+			#{CPU::MemRead("__cpu__addr_base3", "__cpu__addr_base4")}
+			var __cpu__addr_base5 = (__cpu__addr_base3 & 0xff00) | ((__cpu__addr_base3+1) & 0x00ff) /* bug of NES */;
+			#{CPU::MemRead("__cpu__addr_base5", "__cpu__addr_base5")}
 			/**
 			 * @type {number}
 			 */
-			var addr = addr_base4 | (addr_base5 << 8); 
+			var __cpu__addr = __cpu__addr_base4 | (__cpu__addr_base5 << 8); 
 			#{excelPC 3}
 """
 		end
@@ -560,13 +560,13 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr_base = __cpu__pc+1;
-			#{CPU::MemRead("addr_base", "addr_base")}
-			addr_base = (addr_base + #{Target}.X) & 0xff;
+			var __cpu__addr_base = __cpu__pc+1;
+			#{CPU::MemRead("__cpu__addr_base", "__cpu__addr_base")}
+			__cpu__addr_base = (__cpu__addr_base + #{Target}.X) & 0xff;
 			/**
 			 * @type {number}
 			 */
-			var addr = __cpu__ram[addr_base] | (__cpu__ram[(addr_base + 1) & 0xff] << 8);
+			var __cpu__addr = __cpu__ram[__cpu__addr_base] | (__cpu__ram[(__cpu__addr_base + 1) & 0xff] << 8);
 			#{excelPC 2}
 """
 		end
@@ -575,12 +575,12 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr_base = __cpu__pc+1;
-			#{CPU::MemRead("addr_base", "addr_base")}
+			var __cpu__addr_base = __cpu__pc+1;
+			#{CPU::MemRead("__cpu__addr_base", "__cpu__addr_base")}
 			/**
 			 * @type {number}
 			 */
-			var addr = (__cpu__ram[addr_base] | (__cpu__ram[(addr_base + 1) & 0xff] << 8)) + #{Target}.Y;
+			var __cpu__addr = (__cpu__ram[__cpu__addr_base] | (__cpu__ram[(__cpu__addr_base + 1) & 0xff] << 8)) + #{Target}.Y;
 			#{excelPC 2}
 """
 		end
@@ -589,12 +589,12 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr_base = __cpu__pc+1;
-			#{CPU::MemRead("addr_base", "addr_base")}
+			var __cpu__addr_base = __cpu__pc+1;
+			#{CPU::MemRead("__cpu__addr_base", "__cpu__addr_base")}
 			/**
 			 * @type {number}
 			 */
-			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + __cpu__pc + 2;
+			var __cpu__addr = (__cpu__addr_base >= 128 ? (__cpu__addr_base-256) : __cpu__addr_base) + __cpu__pc + 2;
 			#{excelPC 2}
 """
 		end
@@ -611,32 +611,32 @@ switch((#{addr} & 0xE000) >> 13) {
 		def self.LDA()
 """
 var tmpA;
-#{CPU::MemRead("addr", "tmpA")}
+#{CPU::MemRead("__cpu__addr", "tmpA")}
 #{UpdateFlag("#{Target}.A = tmpA")}
 """
 		end
 		def self.LDY()
 """
 var tmpY;
-#{CPU::MemRead("addr", "tmpY")}
+#{CPU::MemRead("__cpu__addr", "tmpY")}
 #{UpdateFlag("#{Target}.Y = tmpY")}
 """
 		end
 		def self.LDX()
 """
 var tmpX;
-#{CPU::MemRead("addr", "tmpX")}
+#{CPU::MemRead("__cpu__addr", "tmpX")}
 #{UpdateFlag("#{Target}.X = tmpX")}
 """
 		end
 		def self.STA()
-			CPU::MemWrite("addr", "#{Target}.A");
+			CPU::MemWrite("__cpu__addr", "#{Target}.A");
 		end
 		def self.STX()
-			CPU::MemWrite("addr", "#{Target}.X");
+			CPU::MemWrite("__cpu__addr", "#{Target}.X");
 		end
 		def self.STY()
-			CPU::MemWrite("addr", "#{Target}.Y");
+			CPU::MemWrite("__cpu__addr", "#{Target}.Y");
 		end
 		def self.TXA()
 			UpdateFlag("#{Target}.A = #{Target}.X");
@@ -689,27 +689,27 @@ var tmpX;
 			/**
 			 * @type {number}
 			 */
-			var p = #{Target}.P;
+			var __cpu__adc_p = #{Target}.P;
 			/**
 			 * @type {number}
 			 */
-			var a = #{Target}.A;
+			var __cpu__adc_a = #{Target}.A;
 			/**
 			 * @type {number}
 			 */
-			var val; #{CPU::MemRead("addr", "val")}
+			var __cpu__adc_val; #{CPU::MemRead("__cpu__addr", "__cpu__adc_val")}
 			/**
 			 * @type {number}
 			 */
-			var result = (a + val + (p & 0x#{Opcode::Flag[:C].to_s(16)})) & 0xffff;
+			var __cpu__adc_result = (__cpu__adc_a + __cpu__adc_val + (__cpu__adc_p & 0x#{Opcode::Flag[:C].to_s(16)})) & 0xffff;
 			/**
 			 * @type {number}
 			 */
-			var newA = result & 0xff;
-			#{Target}.P = (p & 0x#{((~(Opcode::Flag[:V] | Opcode::Flag[:C])) & 0xff).to_s(16)})
-				| ((((a ^ val) & 0x80) ^ 0x80) & ((a ^ newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
-				| ((result >> 8) & 0x#{Opcode::Flag[:C].to_s(16)}); //set C flag
-			#{UpdateFlag "#{Target}.A = newA"}
+			var __cpu__adc_newA = __cpu__adc_result & 0xff;
+			#{Target}.P = (__cpu__adc_p & 0x#{((~(Opcode::Flag[:V] | Opcode::Flag[:C])) & 0xff).to_s(16)})
+				| ((((__cpu__adc_a ^ val) & 0x80) ^ 0x80) & ((__cpu__adc_a ^ __cpu__adc_newA) & 0x80)) >> 1 //set V flag //いまいちよくわかってない（
+				| ((__cpu__adc_result >> 8) & 0x#{Opcode::Flag[:C].to_s(16)}); //set C flag
+			#{UpdateFlag "#{Target}.A = __cpu__adc_newA"}
 """
 		end
 		def self.SBC()
@@ -717,32 +717,32 @@ var tmpX;
 			/**
 			 * @type {number}
 			 */
-			var p = #{Target}.P;
+			var __cpu__sbc_p = #{Target}.P;
 			/**
 			 * @type {number}
 			 */
-			var a = #{Target}.A;
+			var __cpu__sbc_a = #{Target}.A;
 			/**
 			 * @type {number}
 			 */
-			var val; #{CPU::MemRead("addr", "val")}
+			var __cpu__sbc_val; #{CPU::MemRead("__cpu__addr", "__cpu__sbc_val")}
 			/**
 			 * @type {number}
 			 */
-			var result = (a - val - ((p & 0x#{Opcode::Flag[:C].to_s(16)}) ^ 0x#{Opcode::Flag[:C].to_s(16)})) & 0xffff;
+			var __cpu__sbc_result = (__cpu__sbc_a - __cpu__sbc_val - ((__cpu__sbc_p & 0x#{Opcode::Flag[:C].to_s(16)}) ^ 0x#{Opcode::Flag[:C].to_s(16)})) & 0xffff;
 			/**
 			 * @type {number}
 			 */
-			var newA = result & 0xff;
-			#{Target}.P = (p & 0x#{((~(Opcode::Flag[:V]|Opcode::Flag[:C])) & 0xff).to_s(16)})
-				| ((a ^ val) & (a ^ newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
-				| (((result >> 8) & 0x#{Opcode::Flag[:C].to_s(16)}) ^ 0x#{Opcode::Flag[:C].to_s(16)});
-			#{UpdateFlag "#{Target}.A = newA"}
+			var __cpu__sbc_newA = __cpu__sbc_result & 0xff;
+			#{Target}.P = (__cpu__sbc_p & 0x#{((~(Opcode::Flag[:V]|Opcode::Flag[:C])) & 0xff).to_s(16)})
+				| ((__cpu__sbc_a ^ __cpu__sbc_val) & (__cpu__sbc_a ^ __cpu__sbc_newA) & 0x80) >> 1 //set V flag //いまいちよくわかってない（
+				| (((__cpu__sbc_result >> 8) & 0x#{Opcode::Flag[:C].to_s(16)}) ^ 0x#{Opcode::Flag[:C].to_s(16)});
+			#{UpdateFlag "#{Target}.A = __cpu__sbc_newA"}
 """
 		end
 		def self.CPX()
 """
-			var mem; #{CPU::MemRead("addr", "mem")}
+			var mem; #{CPU::MemRead("__cpu__addr", "mem")}
 			/**
 			 * @type {number}
 			 */
@@ -753,7 +753,7 @@ var tmpX;
 		end
 		def self.CPY()
 """
-			var mem; #{CPU::MemRead("addr", "mem")}
+			var mem; #{CPU::MemRead("__cpu__addr", "mem")}
 			/**
 			 * @type {number}
 			 */
@@ -764,7 +764,7 @@ var tmpX;
 		end
 		def self.CMP()
 """
-			var mem; #{CPU::MemRead("addr", "mem")}
+			var mem; #{CPU::MemRead("__cpu__addr", "mem")}
 			/**
 			 * @type {number}
 			 */
@@ -775,19 +775,19 @@ var tmpX;
 		end
 		def self.AND
 """
-var mem; #{CPU::MemRead("addr", "mem")};
+var mem; #{CPU::MemRead("__cpu__addr", "mem")};
 #{UpdateFlag("#{Target}.A &= mem")}
 """
 		end
 		def self.EOR
 """
-var mem; #{CPU::MemRead("addr", "mem")};
+var mem; #{CPU::MemRead("__cpu__addr", "mem")};
 #{UpdateFlag("#{Target}.A ^= mem")}
 """
 		end
 		def self.ORA
 """
-var mem; #{CPU::MemRead("addr", "mem")};
+var mem; #{CPU::MemRead("__cpu__addr", "mem")};
 #{UpdateFlag("#{Target}.A |= mem")}
 """
 		end
@@ -796,7 +796,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			/**
 			 * @type {number}
 			 */
-			var val; #{CPU::MemRead("addr","val")}
+			var val; #{CPU::MemRead("__cpu__addr","val")}
 			#{Target}.P = (#{Target}.P & 0x#{(0xff & ~(Opcode::Flag[:V] | Opcode::Flag[:N] | Opcode::Flag[:Z])).to_s(16)})
 				| (val & 0x#{(Opcode::Flag[:V] | Opcode::Flag[:N]).to_s(16)})
 				| (__cpu__ZNFlagCache[#{Target}.A & val] & 0x#{Opcode::Flag[:Z].to_s(16)});
@@ -817,13 +817,13 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			/**
 			 * @type {number}
 			 */
-			var val; #{CPU::MemRead("addr","val")}
+			var val; #{CPU::MemRead("__cpu__addr","val")}
 			#{Target}.P = (#{Target}.P & 0xFE) | val >> 7;
 			/**
 			 * @type {number}
 			 */
 			var shifted = val << 1;
-			#{CPU::MemWrite("addr", "shifted")}
+			#{CPU::MemWrite("__cpu__addr", "shifted")}
 			#{UpdateFlag("shifted & 0xff")}
 """
 		end
@@ -838,13 +838,13 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			/**
 			 * @type {number}
 			 */
-			var val; #{CPU::MemRead("addr","val")}
+			var val; #{CPU::MemRead("__cpu__addr","val")}
 			#{Target}.P = (#{Target}.P & 0xFE) | (val & 0x01);
 			/**
 			 * @type {number}
 			 */
 			var shifted = val >> 1;
-			#{CPU::MemWrite("addr", "shifted")}
+			#{CPU::MemWrite("__cpu__addr", "shifted")}
 			#{UpdateFlag("shifted")}
 """
 		end
@@ -867,7 +867,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			/**
 			 * @type {number}
 			 */
-			var val; #{CPU::MemRead("addr","val")}
+			var val; #{CPU::MemRead("__cpu__addr","val")}
 			/**
 			 * @type {number}
 			 */
@@ -878,7 +878,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			var shifted = ((val << 1) & 0xff) | (p & 0x01);
 			#{Target}.P = (p & 0xFE) | (val >> 7);
 			#{UpdateFlag("shifted")}
-			#{CPU::MemWrite("addr", "shifted")}
+			#{CPU::MemWrite("__cpu__addr", "shifted")}
 """
 		end
 		def self.ROR_
@@ -903,7 +903,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			/**
 			 * @type {number}
 			 */
-			var val; #{CPU::MemRead("addr","val")}
+			var val; #{CPU::MemRead("__cpu__addr","val")}
 			/**
 			 * @type {number}
 			 */
@@ -914,7 +914,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			var shifted = (val >> 1) | ((p & 0x01) << 7);
 			#{Target}.P = (p & 0xFE) | (val & 0x01);
 			#{UpdateFlag("shifted")}
-			#{CPU::MemWrite("addr", "shifted")}
+			#{CPU::MemWrite("__cpu__addr", "shifted")}
 """
 		end
 		def self.INX
@@ -928,10 +928,10 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			/**
 			 * @type {number}
 			 */
-			var mem; #{CPU::MemRead("addr","mem")}
+			var mem; #{CPU::MemRead("__cpu__addr","mem")}
 			var val = (mem+1) & 0xff;
 			#{UpdateFlag("val")}
-			#{CPU::MemWrite("addr", "val")}
+			#{CPU::MemWrite("__cpu__addr", "val")}
 """
 		end
 		def self.DEX
@@ -945,10 +945,10 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			/**
 			 * @type {number}
 			 */
-			var mem; #{CPU::MemRead("addr","mem")}
+			var mem; #{CPU::MemRead("__cpu__addr","mem")}
 			var val = (mem-1) & 0xff;
 			#{UpdateFlag("val")}
-			#{CPU::MemWrite("addr", "val")}
+			#{CPU::MemWrite("__cpu__addr", "val")}
 """
 		end
 		def self.CLC
@@ -1015,13 +1015,13 @@ var mem; #{CPU::MemRead("addr", "mem")};
 """
 		end
 		def self.CrossCheck
-			CPU::ConsumeClock "(((#{Target}.PC ^ addr) & 0x0100) !== 0) ? 2 : 1"
+			CPU::ConsumeClock "(((#{Target}.PC ^ __cpu__addr) & 0x0100) !== 0) ? 2 : 1"
 		end
 		def self.BCC
 """
 			if(!(#{Target}.P & 0x#{Opcode::Flag[:C].to_s(16)})){
 				#{CrossCheck()}
-				#{Target}.PC = addr;
+				#{Target}.PC = __cpu__addr;
 			}
 """
 		end
@@ -1029,7 +1029,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 """
 			if(#{Target}.P & 0x#{Opcode::Flag[:C].to_s(16)}){
 				#{CrossCheck()}
-				#{Target}.PC = addr;
+				#{Target}.PC = __cpu__addr;
 			}
 """
 		end
@@ -1037,7 +1037,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 """
 			if(#{Target}.P & 0x#{Opcode::Flag[:Z].to_s(16)}){
 				#{CrossCheck()}
-				#{Target}.PC = addr;
+				#{Target}.PC = __cpu__addr;
 			}
 """
 		end
@@ -1045,7 +1045,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 """
 			if(!(#{Target}.P & 0x#{Opcode::Flag[:Z].to_s(16)})){
 				#{CrossCheck()}
-				#{Target}.PC = addr;
+				#{Target}.PC = __cpu__addr;
 			}
 """
 		end
@@ -1053,7 +1053,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 """
 			if(!(#{Target}.P & 0x#{Opcode::Flag[:V].to_s(16)})){
 				#{CrossCheck()}
-				#{Target}.PC = addr;
+				#{Target}.PC = __cpu__addr;
 			}
 """
 		end
@@ -1061,7 +1061,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 """
 			if(#{Target}.P & 0x#{Opcode::Flag[:V].to_s(16)}){
 				#{CrossCheck()}
-				#{Target}.PC = addr;
+				#{Target}.PC = __cpu__addr;
 			}
 """
 		end
@@ -1069,7 +1069,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 """
 			if(!(#{Target}.P & 0x#{Opcode::Flag[:N].to_s(16)})){
 				#{CrossCheck()}
-				#{Target}.PC = addr;
+				#{Target}.PC = __cpu__addr;
 			}
 """
 		end
@@ -1077,7 +1077,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 """
 			if(#{Target}.P & 0x#{Opcode::Flag[:N].to_s(16)}){
 				#{CrossCheck()}
-				#{Target}.PC = addr;
+				#{Target}.PC = __cpu__addr;
 			}
 """
 		end
@@ -1087,15 +1087,15 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			 * @const
 			 * @type {number}
 			 */
-			var stored_pc = #{Target}.PC-1;
-			#{::CPU::Push "stored_pc >> 8"}
-			#{::CPU::Push "stored_pc"}
-			#{Target}.PC = addr;
+			var __cpu__jsr_stored_pc = #{Target}.PC-1;
+			#{::CPU::Push "__cpu__jsr_stored_pc >> 8"}
+			#{::CPU::Push "__cpu__jsr_stored_pc"}
+			#{Target}.PC = __cpu__addr;
 """
 		end
 		def self.JMP
 """
-			#{Target}.PC = addr;
+			#{Target}.PC = __cpu__addr;
 """
 		end
 			def self.RTI
