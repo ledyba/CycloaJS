@@ -444,12 +444,12 @@ switch((#{addr} & 0xE000) >> 13) {
 			 * @const
 			 * @type {number}
 			 */
-			var pc = #{Target}.PC;
+			var __cpu__pc = #{Target}.PC;
 """
 		end
 		def self.excelPC(size)
 """
-			#{Target}.PC = pc + #{size};
+			#{Target}.PC = __cpu__pc + #{size};
 """
 		end
 		def self.Immediate()
@@ -457,7 +457,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr = (pc+1);
+			var addr = (__cpu__pc+1);
 			#{excelPC 2}
 """
 		end
@@ -467,7 +467,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr_base = pc+1;
+			var addr_base = __cpu__pc+1;
 			var addr;
 			#{CPU::MemRead("addr_base", "addr")}
 			#{excelPC 2}
@@ -475,7 +475,7 @@ switch((#{addr} & 0xE000) >> 13) {
 		end
 		def self.ZeropageX()
 """
-			var addr_base = pc+1;
+			var addr_base = __cpu__pc+1;
 			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
 			 * @type {number}
@@ -486,7 +486,7 @@ switch((#{addr} & 0xE000) >> 13) {
 		end
 		def self.ZeropageY()
 """
-			var addr_base = pc+1;
+			var addr_base = __cpu__pc+1;
 			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
 			 * @type {number}
@@ -497,9 +497,9 @@ switch((#{addr} & 0xE000) >> 13) {
 		end
 		def self.Absolute()
 """
-			var addr_base1 = pc+1;
+			var addr_base1 = __cpu__pc+1;
 			#{CPU::MemRead("addr_base1", "addr_base1")}
-			var addr_base2 = pc+2;
+			var addr_base2 = __cpu__pc+2;
 			#{CPU::MemRead("addr_base2", "addr_base2")}
 			/**
 			 * @type {number}
@@ -510,9 +510,9 @@ switch((#{addr} & 0xE000) >> 13) {
 		end
 		def self.AbsoluteX()
 """
-			var addr_base1 = pc+1;
+			var addr_base1 = __cpu__pc+1;
 			#{CPU::MemRead("addr_base1", "addr_base1")}
-			var addr_base2 = pc+2;
+			var addr_base2 = __cpu__pc+2;
 			#{CPU::MemRead("addr_base2", "addr_base2")}
 			/**
 			 * @type {number}
@@ -524,9 +524,9 @@ switch((#{addr} & 0xE000) >> 13) {
 		end
 		def self.AbsoluteY()
 """
-			var addr_base1 = pc+1;
+			var addr_base1 = __cpu__pc+1;
 			#{CPU::MemRead("addr_base1", "addr_base1")}
-			var addr_base2 = pc+2;
+			var addr_base2 = __cpu__pc+2;
 			#{CPU::MemRead("addr_base2", "addr_base2")}
 			/**
 			 * @type {number}
@@ -538,9 +538,9 @@ switch((#{addr} & 0xE000) >> 13) {
 		end
 		def self.Indirect()
 """
-			var addr_base1 = pc+1;
+			var addr_base1 = __cpu__pc+1;
 			#{CPU::MemRead("addr_base1", "addr_base1")}
-			var addr_base2 = pc+2;
+			var addr_base2 = __cpu__pc+2;
 			#{CPU::MemRead("addr_base2", "addr_base2")}
 			var addr_base3 = (addr_base1 | (addr_base2 << 8));
 
@@ -560,7 +560,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr_base = pc+1;
+			var addr_base = __cpu__pc+1;
 			#{CPU::MemRead("addr_base", "addr_base")}
 			addr_base = (addr_base + #{Target}.X) & 0xff;
 			/**
@@ -575,7 +575,7 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr_base = pc+1;
+			var addr_base = __cpu__pc+1;
 			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
 			 * @type {number}
@@ -589,12 +589,12 @@ switch((#{addr} & 0xE000) >> 13) {
 			/**
 			 * @type {number}
 			 */
-			var addr_base = pc+1;
+			var addr_base = __cpu__pc+1;
 			#{CPU::MemRead("addr_base", "addr_base")}
 			/**
 			 * @type {number}
 			 */
-			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + pc + 2;
+			var addr = (addr_base >= 128 ? (addr_base-256) : addr_base) + __cpu__pc + 2;
 			#{excelPC 2}
 """
 		end

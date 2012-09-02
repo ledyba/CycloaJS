@@ -41,7 +41,7 @@ if(this.needStatusRewrite){
 <%= CPU::AddrMode::Init() %>
 
 var __cpu__opbyte;
-<%= CPU::MemRead("pc", "__cpu__opbyte") %>
+<%= CPU::MemRead("__cpu__pc", "__cpu__opbyte") %>
 /**
  * @const
  * @type {number}
