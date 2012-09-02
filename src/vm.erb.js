@@ -18,6 +18,10 @@ this.tracer = new cycloa.Tracer(this);
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_pad_init.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_mapper_init.erb.js" %>
 this.__vm__reservedClockDelta = 0;
+/** @type {boolean} */
+this.NMI = false;
+/** @type {boolean} */
+this.IRQ = false;
 };
 
 /**
@@ -47,6 +51,8 @@ cycloa.VirtualMachine.prototype.run = function () {
  * @function
  */
 cycloa.VirtualMachine.prototype.onHardReset = function () {
+	this.NMI = false;
+	this.IRQ = 0;
 	this.onHardResetCPU();
 	this.__video__onHardReset();
 	this.__audio__onHardReset();
@@ -57,6 +63,8 @@ cycloa.VirtualMachine.prototype.onHardReset = function () {
 	this.__digital__onHardReset();
 };
 cycloa.VirtualMachine.prototype.onReset = function () {
+	this.NMI = false;
+	this.IRQ = 0;
 	this.onResetCPU();
 	this.__video__onReset();
 	this.__audio__onReset();

@@ -12,8 +12,6 @@ cycloa.VirtualMachine.prototype.onHardResetCPU = function(){
 		//this.PC = (this.read(0xFFFC) | (this.read(0xFFFD) << 8));
 		this.PC = (this.__cpu__rom[31][0x3FC]| (this.__cpu__rom[31][0x3FD] << 8));
 
-		this.NMI = false;
-		this.IRQ = 0;
 };
 
 cycloa.VirtualMachine.prototype.onResetCPU = function () {
@@ -25,9 +23,6 @@ cycloa.VirtualMachine.prototype.onResetCPU = function () {
 	<%= CPU::MemWrite("0x4015", "0x00") %>
 	//this.PC = (read(0xFFFC) | (read(0xFFFD) << 8));
 	this.PC = (this.__cpu__rom[31][0x3FC]| (this.__cpu__rom[31][0x3FD] << 8));
-
-	this.NMI = false;
-	this.IRQ = 0;
 };
 
 cycloa.VirtualMachine.ZNFlagCache = new Uint8Array([
