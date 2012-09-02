@@ -9,6 +9,10 @@ window.requestAnimFrame = (function () {
 			window.setTimeout(callback, 1000 / 60);
 		};
 })();
+
+/**
+ * @constructor
+ * */
 function VideoFairy() {
 	this.screen_ = document.getElementById('nes_screen');
 	this.zoomed_ = false;
@@ -55,6 +59,9 @@ VideoFairy.prototype.zoom = function(){
 	}
 	this.zoomed_ = !this.zoomed_;
 };
+/**
+ * @constructor
+ * */
 function AudioFairy() {
 	this.SAMPLE_RATE_ = 22050;
 	this.dataLength = (this.SAMPLE_RATE_ / 4) | 0;
@@ -101,6 +108,9 @@ AudioFairy.prototype.__proto__ = cycloa.AbstractAudioFairy.prototype;
 AudioFairy.prototype.recycle = function(){
 	this.dataIndex = 0;
 };
+/**
+ * @constructor
+ * */
 function PadFairy() {
 	this.state = 0;
 	var self = this;
@@ -179,6 +189,9 @@ function PadFairy() {
 	});
 }
 PadFairy.prototype.__proto__ = cycloa.AbstractPadFairy.prototype;
+/**
+ * @constructor
+ * */
 PadFairy.prototype.recycle = function(){
 	this.state = 0;
 };

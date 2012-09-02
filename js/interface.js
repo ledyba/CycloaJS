@@ -17,6 +17,9 @@ window.requestAnimFrame = (function () {
 		};
 })();
 
+/**
+ * @constructor
+ * */
 function NesController(){
 	this.videoFairy_ = new VideoFairy();
 	this.audioFairy_ = new AudioFairy();

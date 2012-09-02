@@ -77,6 +77,11 @@ cycloa.VirtualMachine.prototype.read = function(addr) {
 	return __val__;
 };
 
+cycloa.VirtualMachine.prototype.write = function(addr, val) {
+	var __cpu__rom = this.__cpu__rom; var __cpu__ram = this.__cpu__ram;
+	<%= CPU::MemWrite("addr", "val") %>;
+};
+
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_cpu_method.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_video_method.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_audio_method.erb.js" %>

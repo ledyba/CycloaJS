@@ -1,5 +1,8 @@
 "use strict";
 
+/**
+ * @constructor
+ * */
 cycloa.AbstractAudioFairy = function(){
 	this.enabled = false;//supported or not.
 	this.data = undefined;//audio data buffer to fill
@@ -11,10 +14,16 @@ cycloa.AbstractAudioFairy = function(){
 cycloa.AbstractAudioFairy.prototype.onDataFilled = function(){
 };
 
+/**
+ * @constructor
+ * */
 cycloa.AbstractVideoFairy = function(){
 	this.dispatchRendering = function(/* Uint8Array */ nesBuffer, /* Uint8 */ paletteMask){}; //called on vsync
 };
 
+/**
+ * @constructor
+ * */
 cycloa.AbstractPadFairy = function(){
 };
 
