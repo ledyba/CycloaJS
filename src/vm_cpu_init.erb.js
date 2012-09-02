@@ -12,10 +12,6 @@ this.PC = 0;
 this.SP = 0;
 /** @type {number} */
 this.P = 0;
-/** @type {boolean} */
-this.NMI = false;
-/** @type {boolean} */
-this.IRQ = false;
 /**
  * @const
  * @type {Uint8Array}
