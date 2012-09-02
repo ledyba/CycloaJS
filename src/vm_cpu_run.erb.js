@@ -40,15 +40,15 @@ if(this.needStatusRewrite){
 
 <%= CPU::AddrMode::Init() %>
 
-var opbyte;
-<%= CPU::MemRead("pc", "opbyte") %>
+var __cpu__opbyte;
+<%= CPU::MemRead("pc", "__cpu__opbyte") %>
 /**
  * @const
  * @type {number}
  */
-var inst = this.TransTable[opbyte];
+var __cpu__inst = __cpu__TransTable[__cpu__opbyte];
 // http://www.llx.com/~nparker/a2/opcodes.html
-switch( inst & <%= CPU::Middle::AddrModeMask %> ){
+switch( __cpu__inst & <%= CPU::Middle::AddrModeMask %> ){
 %	CPU::Middle::AddrMode.each do |addr, code|
 		case <%= code %>: { /* <%= addr %> */
 			<%= CPU::AddrMode::method(addr).call %>
@@ -57,13 +57,13 @@ switch( inst & <%= CPU::Middle::AddrModeMask %> ){
 %	end
 	default: { throw new cycloa.err.CoreException("Invalid opcode."); }
 }
-switch( (inst & <%= CPU::Middle::InstModeMask %>) >> 4 ){
+switch( (__cpu__inst & <%= CPU::Middle::InstModeMask %>) >> 4 ){
 %	CPU::Middle::InstMode.each do |opsym, code|
 		case <%= code>>4 %>: {  /* <%= opsym %> */
 			<%= CPU::Inst::method(opsym).call %>
 		break;}
 %	end
 }
-<%= CPU::ConsumeClock "inst >> #{CPU::Middle::ClockShift}" %>
+<%= CPU::ConsumeClock "__cpu__inst >> #{CPU::Middle::ClockShift}" %>
 
 

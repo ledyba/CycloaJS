@@ -10,7 +10,7 @@ module CPU
 /**
  * @type {number}
  */
-var clockDelta;#{UseMemory()}
+var clockDelta;var __cpu__ZNFlagCache = this.__cpu__ZNFlagCache; var __cpu__TransTable = this.__cpu__TransTable;#{UseMemory()}
 """
 	end
 	def self.UseMemory()
@@ -360,73 +360,73 @@ switch((#{addr} & 0xE000) >> 13) {
 		};
 		AddrModeMask = 0xf;
 		InstMode = {
-            :LDA => 0,
-            :LDX => 16,
-            :LDY => 32,
-            :STA => 48,
-            :STX => 64,
-            :STY => 80,
-            :TAX => 96,
-            :TAY => 112,
-            :TSX => 128,
-            :TXA => 144,
-            :TXS => 160,
-            :TYA => 176,
-            :ADC => 192,
-            :AND => 208,
-            :ASL => 224,
-            :ASL_ => 240,
-            :BIT => 256,
-            :CMP => 272,
-            :CPX => 288,
-            :CPY => 304,
-            :DEC => 320,
-            :DEX => 336,
-            :DEY => 352,
-            :EOR => 368,
-            :INC => 384,
-            :INX => 400,
-            :INY => 416,
-            :LSR => 432,
-            :LSR_ => 448,
-            :ORA => 464,
-            :ROL => 480,
-            :ROL_ => 496,
-            :ROR => 512,
-            :ROR_ => 528,
-            :SBC => 544,
-            :PHA => 560,
-            :PHP => 576,
-            :PLA => 592,
-            :PLP => 608,
-            :CLC => 624,
-            :CLD => 640,
-            :CLI => 656,
-            :CLV => 672,
-            :SEC => 688,
-            :SED => 704,
-            :SEI => 720,
-            :BRK => 736,
-            :NOP => 752,
-            :RTS => 768,
-            :RTI => 784,
-            :JMP => 800,
-            :JSR => 816,
-            :BCC => 832,
-            :BCS => 848,
-            :BEQ => 864,
-            :BMI => 880,
-            :BNE => 896,
-            :BPL => 912,
-            :BVC => 928,
-            :BVS => 944,
+			:LDA => 0,
+			:LDX => 16,
+			:LDY => 32,
+			:STA => 48,
+			:STX => 64,
+			:STY => 80,
+			:TAX => 96,
+			:TAY => 112,
+			:TSX => 128,
+			:TXA => 144,
+			:TXS => 160,
+			:TYA => 176,
+			:ADC => 192,
+			:AND => 208,
+			:ASL => 224,
+			:ASL_ => 240,
+			:BIT => 256,
+			:CMP => 272,
+			:CPX => 288,
+			:CPY => 304,
+			:DEC => 320,
+			:DEX => 336,
+			:DEY => 352,
+			:EOR => 368,
+			:INC => 384,
+			:INX => 400,
+			:INY => 416,
+			:LSR => 432,
+			:LSR_ => 448,
+			:ORA => 464,
+			:ROL => 480,
+			:ROL_ => 496,
+			:ROR => 512,
+			:ROR_ => 528,
+			:SBC => 544,
+			:PHA => 560,
+			:PHP => 576,
+			:PLA => 592,
+			:PLP => 608,
+			:CLC => 624,
+			:CLD => 640,
+			:CLI => 656,
+			:CLV => 672,
+			:SEC => 688,
+			:SED => 704,
+			:SEI => 720,
+			:BRK => 736,
+			:NOP => 752,
+			:RTS => 768,
+			:RTI => 784,
+			:JMP => 800,
+			:JSR => 816,
+			:BCC => 832,
+			:BCS => 848,
+			:BEQ => 864,
+			:BMI => 880,
+			:BNE => 896,
+			:BPL => 912,
+			:BVC => 928,
+			:BVS => 944,
 		};
 		InstModeMask = 0xfff0;
 		ClockShift = 16;
-        Opcode::eachInst do |b, opsym, addr|
-            next if addr.nil? or opsym.nil?
-            TransTable[b] = CPU::Middle::AddrMode[addr] | CPU::Middle::InstMode[opsym] | ((Opcode::Cycle[b])<< CPU::Middle::ClockShift);
-        end
+		Opcode::eachInst do |b, opsym, addr|
+			next if addr.nil? or opsym.nil?
+			TransTable[b] = CPU::Middle::AddrMode[addr] | CPU::Middle::InstMode[opsym] | ((Opcode::Cycle[b])<< CPU::Middle::ClockShift);
+		end
 	end
 	
 	def self.ConsumeClock(clk)
@@ -608,7 +608,7 @@ switch((#{addr} & 0xE000) >> 13) {
 	end
 	module Inst
 		def self.UpdateFlag(val)
-			"/* UpdateFlag */ #{Target}.P = (#{Target}.P & 0x7D) | this.ZNFlagCache[#{val}];"
+			"/* UpdateFlag */ #{Target}.P = (#{Target}.P & 0x7D) | __cpu__ZNFlagCache[#{val}];"
 		end
 		def self.LDA()
 """
@@ -801,7 +801,7 @@ var mem; #{CPU::MemRead("addr", "mem")};
 			var val; #{CPU::MemRead("addr","val")}
 			#{Target}.P = (#{Target}.P & 0x#{(0xff & ~(Opcode::Flag[:V] | Opcode::Flag[:N] | Opcode::Flag[:Z])).to_s(16)})
 				| (val & 0x#{(Opcode::Flag[:V] | Opcode::Flag[:N]).to_s(16)})
-				| (this.ZNFlagCache[#{Target}.A & val] & 0x#{Opcode::Flag[:Z].to_s(16)});
+				| (__cpu__ZNFlagCache[#{Target}.A & val] & 0x#{Opcode::Flag[:Z].to_s(16)});
 """
 		end
 		def self.ASL_
