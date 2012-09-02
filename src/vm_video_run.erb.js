@@ -1,6 +1,6 @@
 %# -*- encoding: utf-8 -*-
 
-this.__video__nowX += clockDelta * <%= Video::ClockFactor %>;
+this.__video__nowX += __vm__clockDelta * <%= Video::ClockFactor %>;
 while(this.__video__nowX >= 341){
 	this.__video__nowX -= 341;
 	/**

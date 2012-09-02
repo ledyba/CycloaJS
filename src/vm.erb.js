@@ -28,9 +28,11 @@ cycloa.VirtualMachine.prototype.run = function () {
 	<%= Video::RunInit() %>
 	<%= Audio::RunInit() %>
 	var __vm__run = true;
+	var __vm__clockDelta;
 	var __vm__reservedClockDelta = this.__vm__reservedClockDelta;
 	this.__vm__reservedClockDelta = 0;
 	while(__vm__run) {
+		__vm__clockDelta = __vm__reservedClockDelta; __vm__reservedClockDelta = 0;
 		//console.log(this.tracer.decode());
 		<%= render File.expand_path File.dirname(__FILE__)+"/vm_cpu_run.erb.js" %>
 		<%= render File.expand_path File.dirname(__FILE__)+"/vm_video_run.erb.js" %>

@@ -10,16 +10,14 @@ module CPU
 /**
  * @type {number}
  */
-var clockDelta;var __cpu__ZNFlagCache = this.__cpu__ZNFlagCache; var __cpu__TransTable = this.__cpu__TransTable;#{UseMemory()}
+var __cpu__ZNFlagCache = this.__cpu__ZNFlagCache; var __cpu__TransTable = this.__cpu__TransTable;#{UseMemory()}
 """
 	end
 	def self.UseMemory()
 	"var __cpu__rom = this.__cpu__rom; var __cpu__ram = this.__cpu__ram;"
 	end
 	def self.Init()
-"""
-clockDelta = __vm__reservedClockDelta; __vm__reservedClockDelta = 0;
-"""
+		""
 	end
 	module IRQ
 		FRAMECNT = 1;
@@ -270,7 +268,7 @@ switch((#{addr} & 0xE000) >> 13) {
 				#{CPU::MemRead("__audio__dma__addr__", "__audio_dma__val")}
 				__video__spRam[(__video__spriteAddr+i) & 0xff] = __audio_dma__val;
 			}
-			clockDelta += 512;
+			__vm__clockDelta += 512;
 			break;
 		}
 		/* ------------------------------ CTRL -------------------------------------------------- */
@@ -430,7 +428,7 @@ switch((#{addr} & 0xE000) >> 13) {
 	end
 	
 	def self.ConsumeClock(clk)
-		"clockDelta += (#{clk});"
+		"__vm__clockDelta += (#{clk});"
 	end
 	def self.ConsumeReservedClock(clk)
 		"__vm__reservedClockDelta += (#{clk});"
