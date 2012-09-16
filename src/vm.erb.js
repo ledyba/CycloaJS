@@ -1,11 +1,12 @@
 %# -*- encoding: utf-8 -*-
 %require File.expand_path File.dirname(__FILE__)+"/gen.rb";
+%MachineName="cycloa.VirtualMachine";
 
 /**
  * ファミコンエミュレータ本体を表すクラスです。
  * @constructor
  */
-cycloa.VirtualMachine = function(videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
+<%= MachineName %> = function(videoFairy, audioFairy, pad1Fairy, pad2Fairy) {
 this.tracer = new cycloa.Tracer(this);
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_cpu_init.erb.js" %>
 <%= render File.expand_path File.dirname(__FILE__)+"/vm_video_init.erb.js" %>
@@ -27,7 +28,7 @@ this.IRQ = false;
 /**
  * VMを１フレーム分実行する
  */
-cycloa.VirtualMachine.prototype.run = function () {
+<%= MachineName %>.prototype.run = function () {
 	<%= CPU::RunInit() %>
 	<%= Video::RunInit() %>
 	<%= Audio::RunInit() %>
@@ -50,7 +51,7 @@ cycloa.VirtualMachine.prototype.run = function () {
  * 関数実行時に
  * @function
  */
-cycloa.VirtualMachine.prototype.onHardReset = function () {
+<%= MachineName %>.prototype.onHardReset = function () {
 	this.NMI = false;
 	this.IRQ = 0;
 	this.onHardResetCPU();
@@ -62,7 +63,7 @@ cycloa.VirtualMachine.prototype.onHardReset = function () {
 	this.__noize__onHardReset();
 	this.__digital__onHardReset();
 };
-cycloa.VirtualMachine.prototype.onReset = function () {
+<%= MachineName %>.prototype.onReset = function () {
 	this.NMI = false;
 	this.IRQ = 0;
 	this.onResetCPU();
@@ -74,18 +75,18 @@ cycloa.VirtualMachine.prototype.onReset = function () {
 	this.__noize__onReset();
 	this.__digital__onReset();
 };
-cycloa.VirtualMachine.prototype.onVBlank = function(){
+<%= MachineName %>.prototype.onVBlank = function(){
 };
-cycloa.VirtualMachine.prototype.onIRQ = function(){
+<%= MachineName %>.prototype.onIRQ = function(){
 };
-cycloa.VirtualMachine.prototype.read = function(addr) { 
+<%= MachineName %>.prototype.read = function(addr) { 
 	var __val__;
 	var __cpu__rom = this.__cpu__rom; var __cpu__ram = this.__cpu__ram;
 	<%= CPU::MemRead("addr", "__val__") %>;
 	return __val__;
 };
 
-cycloa.VirtualMachine.prototype.write = function(addr, val) {
+<%= MachineName %>.prototype.write = function(addr, val) {
 	var __cpu__rom = this.__cpu__rom; var __cpu__ram = this.__cpu__ram;
 	<%= CPU::MemWrite("addr", "val") %>;
 };

@@ -1,6 +1,6 @@
 %# -*- encoding: utf-8 -*-
 
-cycloa.VirtualMachine.prototype.onHardResetCPU = function(){
+<%= MachineName %>.prototype.onHardResetCPU = function(){
 		//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
 		this.P = 0x24;
 		this.A = 0x0;
@@ -14,7 +14,7 @@ cycloa.VirtualMachine.prototype.onHardResetCPU = function(){
 
 };
 
-cycloa.VirtualMachine.prototype.onResetCPU = function () {
+<%= MachineName %>.prototype.onResetCPU = function () {
 	//from http://wiki.nesdev.com/w/index.php/CPU_power_up_state
 	//from http://crystal.freespace.jp/pgate1/nes/nes_cpu.htm
 	this.__vm__reservedClockDelta += <%= CPU::ResetClock %>;
@@ -25,7 +25,7 @@ cycloa.VirtualMachine.prototype.onResetCPU = function () {
 	this.PC = (this.__cpu__rom[31][0x3FC]| (this.__cpu__rom[31][0x3FD] << 8));
 };
 
-cycloa.VirtualMachine.ZNFlagCache = new Uint8Array([
+<%= MachineName %>.ZNFlagCache = new Uint8Array([
 	0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -44,5 +44,5 @@ cycloa.VirtualMachine.ZNFlagCache = new Uint8Array([
 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
 ]);
 
-cycloa.VirtualMachine.TransTable = new Uint32Array(<%= CPU::Middle::TransTable %>);
+<%= MachineName %>.TransTable = new Uint32Array(<%= CPU::Middle::TransTable %>);
 

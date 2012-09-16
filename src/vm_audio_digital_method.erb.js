@@ -1,10 +1,10 @@
 %# -*- encoding: utf-8 -*-
 
-cycloa.VirtualMachine.prototype.__digital__isIRQEnabled = function()
+<%= MachineName %>.prototype.__digital__isIRQEnabled = function()
 {
 	return this.__digital__irqEnabled;
 }
-cycloa.VirtualMachine.prototype.__digital__onHardReset = function() {
+<%= MachineName %>.prototype.__digital__onHardReset = function() {
 	this.__digital__irqEnabled = false;
 	<%= CPU::ReleaseIRQ(CPU::IRQ::DMC) %>
 	this.__digital__loopEnabled = false;
@@ -18,7 +18,7 @@ cycloa.VirtualMachine.prototype.__digital__onHardReset = function() {
 
 	this.__digital__freqCounter = 0;
 };
-cycloa.VirtualMachine.prototype.__digital__onReset = function() {
+<%= MachineName %>.prototype.__digital__onReset = function() {
 	this.__digital__onHardReset();
 };
 

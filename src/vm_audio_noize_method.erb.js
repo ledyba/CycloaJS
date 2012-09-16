@@ -1,6 +1,6 @@
 %# -*- encoding: utf-8 -*-
 
-cycloa.VirtualMachine.prototype.__noize__onHardReset = function() {
+<%= MachineName %>.prototype.__noize__onHardReset = function() {
 	//rand
 	this.__noize__shiftRegister = 1<<14;
 	this.__noize__modeFlag = false;
@@ -20,6 +20,6 @@ cycloa.VirtualMachine.prototype.__noize__onHardReset = function() {
 	//
 	this.__noize__freqCounter = 0;
 };
-cycloa.VirtualMachine.prototype.__noize__onReset = function() {
+<%= MachineName %>.prototype.__noize__onReset = function() {
 	this.__noize__onHardReset();
 };

@@ -1,6 +1,6 @@
 %# -*- encoding: utf-8 -*-
 
-cycloa.VirtualMachine.prototype.__audio__onHardReset = function() {
+<%= MachineName %>.prototype.__audio__onHardReset = function() {
 	this.__audio__clockCnt = 0;
 	this.__audio__leftClock = 0;
 
@@ -11,10 +11,10 @@ cycloa.VirtualMachine.prototype.__audio__onHardReset = function() {
 	this.__audio__frameIRQCnt = 0;
 	this.__audio__frameCnt = 0;
 };
-cycloa.VirtualMachine.prototype.__audio__onReset = function() {
+<%= MachineName %>.prototype.__audio__onReset = function() {
 };
 
-cycloa.VirtualMachine.LengthCounterConst = [
+<%= MachineName %>.LengthCounterConst = [
 		0x0A,0xFE,0x14,0x02,0x28,0x04,0x50,0x06,
 		0xA0,0x08,0x3C,0x0A,0x0E,0x0C,0x1A,0x0E,
 		0x0C,0x10,0x18,0x12,0x30,0x14,0x60,0x16,

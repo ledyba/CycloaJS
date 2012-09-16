@@ -1,6 +1,6 @@
 %# -*- encoding: utf-8 -*-
 
-cycloa.VirtualMachine.prototype.__video__onHardReset= function() {
+<%= MachineName %>.prototype.__video__onHardReset= function() {
 	//from http://wiki.nesdev.com/w/index.php/PPU_power_up_state
 	for(var i=0;i< 4;++i) {
 		var iv = this.__video__internalVram[i];
@@ -40,7 +40,7 @@ cycloa.VirtualMachine.prototype.__video__onHardReset= function() {
 	//0x2006
 	this.__video__vramAddrRegister = 0;
 };
-cycloa.VirtualMachine.prototype.__video__onReset = function() {
+<%= MachineName %>.prototype.__video__onReset = function() {
 	//from http://wiki.nesdev.com/w/index.php/PPU_power_up_state
 	//0x2000
 	this.__video__executeNMIonVBlank = false;
@@ -65,7 +65,7 @@ cycloa.VirtualMachine.prototype.__video__onReset = function() {
 	this.__video__vramBuffer = 0;
 };
 
-cycloa.VirtualMachine.prototype.__video__spriteEval = function() {
+<%= MachineName %>.prototype.__video__spriteEval = function() {
 	/**
 	 * @type {Uint8Array}
 	 * @const
@@ -151,7 +151,7 @@ cycloa.VirtualMachine.prototype.__video__spriteEval = function() {
 	}
 };
 
-cycloa.VirtualMachine.prototype.__video__buildBgLine = function(){
+<%= MachineName %>.prototype.__video__buildBgLine = function(){
 	<%= Video::UseVideoAccess() %>
 	var _color = <%= Video::EmptyBit %> | <%= Video::Palette(8, 0) %>;
 	if(!this.__video__backgroundVisibility) {
@@ -265,7 +265,7 @@ cycloa.VirtualMachine.prototype.__video__buildBgLine = function(){
 	}
 };
 
-cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
+<%= MachineName %>.prototype.__video__buildSpriteLine = function(){
 	if(!this.__video__spriteVisibility){
 		return;
 	}
@@ -416,7 +416,7 @@ cycloa.VirtualMachine.prototype.__video__buildSpriteLine = function(){
 	}
 };
 
-cycloa.VirtualMachine.prototype.__video__writeReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
+<%= MachineName %>.prototype.__video__writeReg = function(/* uint16_t */ addr, /* uint8_t */ value) {
 	<%= Video::UseVideoAccess() %>
 
 	switch(addr & 0x07) {
@@ -482,7 +482,7 @@ cycloa.VirtualMachine.prototype.__video__writeReg = function(/* uint16_t */ addr
 	}
 };
 
-cycloa.VirtualMachine.prototype.__video__readReg = function(/* uint16_t */ addr)
+<%= MachineName %>.prototype.__video__readReg = function(/* uint16_t */ addr)
 {
 	<%= Video::UseVideoAccess() %>
 	switch(addr & 0x07)
@@ -540,7 +540,7 @@ cycloa.VirtualMachine.prototype.__video__readReg = function(/* uint16_t */ addr)
 };
 
 
-cycloa.VirtualMachine.prototype.__video__writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
+<%= MachineName %>.prototype.__video__writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
 	if(addr < 0x2000) {
 		//this.__video__pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
@@ -550,7 +550,7 @@ cycloa.VirtualMachine.prototype.__video__writeVramExternal = function(/* uint16_
 };
 
 
-cycloa.VirtualMachine.prototype.__video__writeVram = function(/* uint16_t */ addr, /* uint8_t */ value) {
+<%= MachineName %>.prototype.__video__writeVram = function(/* uint16_t */ addr, /* uint8_t */ value) {
 	if((addr & 0x3f00) !== 0x3f00){
 		this.__video__writeVramExternal(addr, value);
 	}else{
@@ -565,7 +565,7 @@ cycloa.VirtualMachine.prototype.__video__writeVram = function(/* uint16_t */ add
 /**
  * @type {number} mirrorType
  */
-cycloa.VirtualMachine.prototype.__video__changeMirrorType = function(/* NesFile::MirrorType */ mirrorType) {
+<%= MachineName %>.prototype.__video__changeMirrorType = function(/* NesFile::MirrorType */ mirrorType) {
 	this.__video__mirrorType = mirrorType;
 	switch(mirrorType)
 	{

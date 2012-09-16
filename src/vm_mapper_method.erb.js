@@ -1,8 +1,8 @@
 /**
  * マッパーごとの初期化関数
  */
-cycloa.VirtualMachine.Mapper = [];
-cycloa.VirtualMachine.Mapper[0] = function(self){
+<%= MachineName %>.Mapper = [];
+<%= MachineName %>.Mapper[0] = function(self){
 	self.__mapper__writeMapperCPU = function(/* uint8_t */ addr){
 		/*do nothing!*/
 	};
@@ -23,10 +23,10 @@ cycloa.VirtualMachine.Mapper[0] = function(self){
  * __cpu__romを解析してマッパーの初期化などを行う
  * @param {ArrayBuffer} __cpu__rom
  */
-cycloa.VirtualMachine.prototype.load = function(rom){
+<%= MachineName %>.prototype.load = function(rom){
 	this.__mapper__parseROM(rom);
 	// マッパー関数のインジェクション
-	var mapperInit = cycloa.VirtualMachine.Mapper[this.__mapper__mapperNo];
+	var mapperInit = <%= MachineName %>.Mapper[this.__mapper__mapperNo];
 	if(!mapperInit){
 		throw new cycloa.err.NotSupportedException("Not supported mapper: "+this.__mapper__mapperNo);
 	}
@@ -38,7 +38,7 @@ cycloa.VirtualMachine.prototype.load = function(rom){
  * __cpu__romをパースしてセットする
  * @param {ArrayBuffer} data
  */
-cycloa.VirtualMachine.prototype.__mapper__parseROM = function(data){
+<%= MachineName %>.prototype.__mapper__parseROM = function(data){
 	var data8 = new Uint8Array(data);
 	/* check NES data8 */
 	if(!(data8[0] === 0x4e && data8[1]===0x45 && data8[2]===0x53 && data8[3] == 0x1a)){

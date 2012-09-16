@@ -19,6 +19,6 @@ this.P = 0;
 this.__cpu__ram = new Uint8Array(new ArrayBuffer(0x800));
 this.__cpu__rom = new Array(32);
 
-this.__cpu__ZNFlagCache = cycloa.VirtualMachine.ZNFlagCache;
-this.__cpu__TransTable = cycloa.VirtualMachine.TransTable;
+this.__cpu__ZNFlagCache = <%= MachineName %>.ZNFlagCache;
+this.__cpu__TransTable = <%= MachineName %>.TransTable;
 
