@@ -1,11 +1,12 @@
 require 'erb'
 
-generated = ["build/cycloa.js"];
+generated = ["build/cycloa.js", "build/cycloa_script.js"];
 
 task :default => generated;
 
 def concat(files, to)
 	src = files.reduce{|memo, t|
+		puts "reading #{t} for #{to}"
 		memo += open(t, "r").read
 	}
 	open(to,"w") { |f|
@@ -13,7 +14,7 @@ def concat(files, to)
 	}
 end
 
-file "build/cycloa.js" do |t|
+file "build/cycloa.js" => "js/cycloa/vm.js" do |t|
 	concat(["js/cycloa/cycloa.js",
      "js/cycloa/err.js",
      "js/cycloa/util.js",
@@ -24,7 +25,7 @@ file "build/cycloa.js" do |t|
 	 "js/interface_vm.js"], t.name);
 end
 
-file "build/cycloa_script.js" do |t|
+file "build/cycloa_script.js" => "js/cycloa/script.js" do |t|
 	concat(["js/cycloa/cycloa.js",
      "js/cycloa/err.js",
      "js/cycloa/util.js",
