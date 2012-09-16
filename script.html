@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>CycloaJS: JavaScript NES Emulator</title>
+	<meta name="description" content="">
+	<link rel="stylesheet" href="css/style.css">
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.0.min.js"></script>
+	<script type="text/javascript" src="build/cycloa-src.js"></script>
+</head>
+<body>
+<div id="background">
+	<h1 class="title">JavaScript NES Programming!</h1>
+</div>
+<div id="wrapper">
+	<div id="header">
+	</div>
+	<div id="content">
+		<div id="interface_box" class="control_box">
+			<input id="screen_zoom" type="button" value="zoom in/out" />
+		</div>
+		<div id="control_box" class="control_box">
+			<input id="nes_hardreset" type="button" value="HardReset"/>
+			<input id="nes_reset" type="button" value="Reset"/>
+			<input id="nes_stop" type="button" value="Stop"/>
+			<input id="nes_start" type="button" value="Start"/>
+		</div>
+		<div class="nes_screen_wrapper">
+			<canvas id="nes_screen" width="256" height="240"></canvas>
+		</div>
+		<div id="state" class="control_box"></div>
+		<hr>
+		<div>
+			<h2>Software Requirements / 動作要件</h2>
+			<p>Chrme/Firefox, Safari for iPad and Safari for Windows(v5). Sounds are available only for Chrome and Firefox (Web Audio API and Audio Data API).</p>
+			<p>Chrome/Firefox、iPad版Safari/Windows版Safari5での動作を確認しています。ChromeとFirefoxのみサウンドも出力されます（Web Audio API and Audio Data API)。</p>
+		</div>
+		<div>
+			<h2>Control / 操作方法</h2>
+			<table>
+				<tr>
+					<th>Player 1</th><th>Button</th>
+				</tr>
+				<tr>
+					<td>A</td><td>Z</td>
+				</tr>
+				<tr>
+					<td>B</td><td>X</td>
+				</tr>
+				<tr>
+					<td>Start</td><td>Enter</td>
+				</tr>
+				<tr>
+					<td>Select</td><td>Space</td>
+				</tr>
+				<tr>
+					<td>↑</td><td>↑</td>
+				</tr>
+				<tr>
+					<td>→</td><td>→</td>
+				</tr>
+				<tr>
+					<td>←</td><td>←</td>
+				</tr>
+				<tr>
+					<td>↓</td><td>↓</td>
+				</tr>
+			</table>
+			<p>Currently player2 is not supported. I have tried many times to support Gamepad API, but the API does not work at all... :(</p>
+			<p>現在プレイヤ２は対応していません。ゲームパッドAPIにも何度も対応しようとしたのですが、ゲームパッドの状態が拾えません…。</p>
+		</div>
+		<div>
+			<!-- X:S ZenBackWidget --><script type="text/javascript">document.write(unescape("%3Cscript")+" src='http://widget.zenback.jp/?base_uri=http%3A//ledyba.org/&nsid=92038585326265748%3A%3A100347200365683079&rand="+Math.ceil((new Date()*1)*Math.random())+"' type='text/javascript'"+unescape("%3E%3C/script%3E"));</script><!-- X:E ZenBackWidget -->
+		</div>
+	</div>
+	<div id="footer">
+		(C) 2012 <a href="http://ledyba.org/">PSI</a> / Fairy and Rockets
+	</div>
+</div>
+</body>
+</html>

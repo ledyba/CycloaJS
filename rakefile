@@ -1,20 +1,53 @@
 require 'erb'
 
-generated = ["build/cycloajs-src.js"];
+generated = ["build/cycloa.js"];
 
 task :default => generated;
 
-file "build/cycloajs-src.js" => "js/cycloa/vm.js" do |t|
-	sh "jake"
+def concat(files, to)
+	src = files.reduce{|memo, t|
+		memo += open(t, "r").read
+	}
+	open(to,"w") { |f|
+		f.print src
+	}
+end
+
+file "build/cycloa.js" do |t|
+	concat(["js/cycloa/cycloa.js",
+     "js/cycloa/err.js",
+     "js/cycloa/util.js",
+     "js/cycloa/trace.js",
+     "js/cycloa/default_fairy.js",
+     "js/cycloa/vm.js",
+     "js/fairy.js",
+	 "js/interface_vm.js"], t.name);
+end
+
+file "build/cycloa_script.js" do |t|
+	concat(["js/cycloa/cycloa.js",
+     "js/cycloa/err.js",
+     "js/cycloa/util.js",
+     "js/cycloa/trace.js",
+     "js/cycloa/default_fairy.js",
+     "js/cycloa/script.js",
+     "js/fairy.js",
+	 "js/interface_script.js"], t.name);
 end
 
 file "js/cycloa/vm.js" => FileList["src/vm*.erb.js", "src/*.rb"] do |t|
 	puts "generating emulation core"
-	sh "erb src/vm.erb.js > #{t.name}" 
+	sh "erb src/vm.erb.js > #{t.name}"
+end
+
+file "js/cycloa/script.js" => FileList["src/vm*.erb.js", "src/*.rb", "src/script.erb.js"] do |t|
+	puts "generating script machine core"
+	sh "erb src/script.erb.js > #{t.name}"
 end
 
 task :clean do
 	rm "js/cycloa/vm.js"
+	rm "js/cycloa/script.js"
 	rm generated
 end
 	
