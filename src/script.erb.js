@@ -40,7 +40,24 @@ this.__video__reservedClock = 0;
 	this.__vm__reservedClockDelta = 0;
 	var __video__nowY = 0;
 	var __video__reservedClock = this.__video__reservedClock;
+	var handler;
 	while(__vm__run) {
+		if(this.NMI){
+			handler = this.__handler__['NMI'];
+			if(handler){
+				handler.call(this.__handler_obj__, __video__nowY,this);
+			}
+		}
+		if(this.IRQ){
+			handler = this.__handler__['IRQ'];
+			if(handler){
+				handler.call(this.__handler_obj__, __video__nowY,this);
+			}
+		}
+		handler = this.__handler__[__video__nowY];
+		if(handler){
+			handler.call(this.__handler_obj__, __video__nowY,this);
+		}
 		__vm__clockDelta = __vm__reservedClockDelta; __vm__reservedClockDelta = 0;
 		++__video__nowY;
 		__video__reservedClock += 341;
@@ -122,6 +139,10 @@ this.__video__reservedClock = 0;
 	this.__triangle__onHardReset();
 	this.__noize__onHardReset();
 	this.__digital__onHardReset();
+	var handler = this.__handler__['onReset'];
+	if(handler){
+		handler.call(this.__handler_obj__, 0, this);
+	}
 };
 <%= MachineName %>.prototype.onReset = function () {
 	this.NMI = false;
@@ -134,6 +155,10 @@ this.__video__reservedClock = 0;
 	this.__triangle__onReset();
 	this.__noize__onReset();
 	this.__digital__onReset();
+	var handler = this.__handler__['onReset'];
+	if(handler){
+		handler.call(this.__handler_obj__, 0, this);
+	}
 };
 <%= MachineName %>.prototype.onVBlank = function(){
 };
@@ -387,6 +412,7 @@ this.__video__reservedClock = 0;
 
 <%= MachineName %>.prototype.load = function(script) {
 	this.__handler__ = {};
+	this.__handler_obj__ = {};
 	for(var i=0;i<32;++i){
 		this.__cpu__rom[i] = new Uint8Array(1024);
 	}

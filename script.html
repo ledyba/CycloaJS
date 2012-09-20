@@ -39,12 +39,16 @@
 			<input id="nes_start" type="button" value="Start"/>
 		</div>
 		<div id="editor_wrapper" style="position: relative; height: 30em; width: 100%;">
-			<div id="editor">this.registerHandler(0, function(nes){
+			<div id="editor">this.registerHandler(0, function(scanline, nes){
 });
-this.registerHandler('IRQ', function(nes){
+this.registerHandler('onReset', function(scanline, nes){
+	console.log("onReset");
+	nes.write(0x2000, 0xff);
 });
-this.registerHandler('NMI', function(nes){
-	
+this.registerHandler('IRQ', function(scanline, nes){
+});
+this.registerHandler('NMI', function(scanline, nes){
+	console.log("NMI");
 });</div>
 			</div>
 		<hr>

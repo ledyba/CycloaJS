@@ -543,7 +543,9 @@
 <%= MachineName %>.prototype.__video__writeVramExternal = function(/* uint16_t */ addr, /* uint8_t */ value)
 {
 	if(addr < 0x2000) {
-		//this.__video__pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
+% if MachineName == "cycloa.ScriptMachine"
+		this.__video__pattern[(addr >> 9) & 0xf][addr & 0x1ff] = value;
+% end
 	} else {
 		this.__video__vramMirroring[(addr >> 10) & 0x3][addr & 0x3ff] = value;
 	}
