@@ -116,9 +116,21 @@ var nesController;
 				$("#nes_stop").addClass("disable");
 			}
 		});
-		var editor = ace.edit("editor");
-		editor.setTheme("ace/theme/twilight");
-		editor.getSession().setMode("ace/mode/javascript");
+		var editor;
+		$.ajax({
+			url: 'script/sample.js',
+			dataType: 'text',
+			success: function(data, dataType) {
+				$("#editor").text(data);
+				editor = ace.edit("editor");
+				editor.setTheme("ace/theme/twilight");
+				editor.getSession().setMode("ace/mode/javascript");
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				$("#state").text("Oops. failed to load sample script. code:"+textStatus);
+			}
+		});
+		
 		$("#nes_start").bind("click", function(){
 			if(nesController.load(editor.getValue()) && nesController.start()){
 				$("#nes_stop").removeClass("disable");

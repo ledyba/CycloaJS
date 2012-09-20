@@ -6,15 +6,15 @@
 	<meta name="description" content="">
 	<link rel="stylesheet" href="css/style.css">
 <style type="text/css" media="screen">
-    #editor { 
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
+	#editor { 
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
 		left: 0;
 		margin-left: 0px;
 		margin-right: 0px;
-    }
+	}
 </style>
 </head>
 <body>
@@ -39,17 +39,7 @@
 			<input id="nes_start" type="button" value="Start"/>
 		</div>
 		<div id="editor_wrapper" style="position: relative; height: 30em; width: 100%;">
-			<div id="editor">this.registerHandler(0, function(scanline, nes){
-});
-this.registerHandler('onReset', function(scanline, nes){
-	console.log("onReset");
-	nes.write(0x2000, 0xff);
-});
-this.registerHandler('IRQ', function(scanline, nes){
-});
-this.registerHandler('NMI', function(scanline, nes){
-	console.log("NMI");
-});</div>
+			<pre id="editor"></pre>
 			</div>
 		<hr>
 		<div>
