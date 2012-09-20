@@ -88,7 +88,6 @@ this.__video__reservedClock = 0;
 		}else if(__video__nowY === 241){
 			//241: The PPU just idles during this scanline. Despite this, this scanline still occurs before the VBlank flag is set.
 			this.__video__videoFairy.dispatchRendering(__video__screenBuffer8, this.__video__paletteMask);
-			__vm__run = false;
 			this.__video__nowOnVBnank = true;
 			this.__video__spriteAddr = 0;//and typically contains 00h at the begin of the VBlank periods
 		}else if(__video__nowY === 242){
@@ -115,6 +114,7 @@ this.__video__reservedClock = 0;
 			if(this.__video__backgroundVisibility || this.__video__spriteVisibility){
 				this.__video__vramAddrRegister = (this.__video__vramAddrRegister & 0x041F) | (this.__video__vramAddrReloadRegister & 0x7BE0);
 			}
+			__vm__run = false;
 		}else{
 			throw new cycloa.err.CoreException("Invalid scanline: "+this.__video__nowY);
 		}
