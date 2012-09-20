@@ -23,7 +23,7 @@ window.requestAnimFrame = (function () {
 function NesController(){
 	this.videoFairy_ = new VideoFairy();
 	this.audioFairy_ = new AudioFairy();
-	this.padFairy_ = new PadFairy();
+	this.padFairy_ = new PadFairy($(document));
 	this.machine_ = new cycloa.VirtualMachine(this.videoFairy_, this.audioFairy_, this.padFairy_);
 	this.running_ = false;
 	this.loaded_ = false;
@@ -168,5 +168,6 @@ var nesController;
 		$("#nes_start").addClass("disable");
 
 		nesController = new NesController();
+		$("#state").text("Initialized");
 	});
 }());

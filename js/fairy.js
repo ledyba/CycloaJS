@@ -111,10 +111,10 @@ AudioFairy.prototype.recycle = function(){
 /**
  * @constructor
  * */
-function PadFairy() {
+function PadFairy($dom) {
 	this.state = 0;
 	var self = this;
-	$(window).bind("keydown", function(e){
+	$dom.bind("keydown", function(e){
 		switch (e.keyCode) {
 			case 38:
 				self.state |= self.MASK_UP;
@@ -150,7 +150,7 @@ function PadFairy() {
 				break;
 		}
 	});
-	$(window).bind("keyup", function(e){
+	$dom.bind("keyup", function(e){
 		e.preventDefault();
 		switch (e.keyCode) {
 			case 38:

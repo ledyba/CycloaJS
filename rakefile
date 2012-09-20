@@ -5,7 +5,7 @@ generated = ["build/cycloa.js", "build/cycloa_script.js"];
 task :default => generated;
 
 def concat(files, to)
-	src = files.reduce{|memo, t|
+	src = files.reduce(""){|memo, t|
 		puts "reading #{t} for #{to}"
 		memo += open(t, "r").read
 	}

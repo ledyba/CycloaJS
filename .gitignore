@@ -41,6 +41,7 @@ publish
 # build script local files
 build/*
 js/cycloa/vm.js
+js/cycloa/script.js
 
 #NES
 *.bak

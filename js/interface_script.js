@@ -23,8 +23,8 @@ window.requestAnimFrame = (function () {
 function NesController(){
 	this.videoFairy_ = new VideoFairy();
 	this.audioFairy_ = new AudioFairy();
-	this.padFairy_ = new PadFairy();
-	this.machine_ = new cycloa.VirtualMachine(this.videoFairy_, this.audioFairy_, this.padFairy_);
+	this.padFairy_ = new PadFairy($(document));
+	this.machine_ = new cycloa.ScriptMachine(this.videoFairy_, this.audioFairy_, this.padFairy_);
 	this.running_ = false;
 	this.loaded_ = false;
 	this.total_frame_ = 0;
@@ -44,11 +44,11 @@ NesController.prototype.load = function(dat){
 };
 NesController.prototype.start = function(){
 	if(this.running_){
-		$("#state").text("VM already running! Please stop the machine before loading another game.");
+		$("#state").text("VM already running! Please stop the machine before loading another script.");
 		return false;
 	}
 	if(!this.loaded_){
-		$("#state").text("VM has not loaded any games. Please load a game.");
+		$("#state").text("VM has not loaded any games. Please load a script.");
 		return false;
 	}
 	this.running_ = true;
@@ -108,42 +108,6 @@ var nesController;
 
 (function(){
 	$(document).ready(function(){
-		jQuery.event.props.push('dataTransfer');
-		 $("html").bind("drop", function(e){
-			e.stopPropagation();
-			e.preventDefault();
-			var file = e.dataTransfer.files[0];
-
-			$("#state").text("Now loading...");
-			var reader = new FileReader();
-			reader.onload = function (dat) {
-				nesController.load(dat.target.result);
-				$("#state").text("done.");
-			};
-			reader.readAsArrayBuffer(file);
-		});
-		$("html").bind("dragenter dragover", false);
-
-		$("#rom_sel").bind("change", function(e){
-			var val = e.currentTarget.value;
-			if(val){
-				$("#state").text("Now loading...");
-				var xhr = jQuery.ajaxSettings.xhr();
-				xhr.open('GET', val, true);
-				xhr.responseType = 'arraybuffer';
-				xhr.onreadystatechange = function() {
-					if (this.readyState === this.DONE) {
-						if(this.status === 200){
-							nesController.load(this.response);
-						}else{
-							$("#state").text("oops. Failed to load game... Status: "+this.status);
-						}
-					}
-				};
-				xhr.send();
-			}
-		});
-
 		$("#nes_hardreset").bind("click", function(){nesController.hardReset();});
 		$("#nes_reset").bind("click", function(){nesController.reset();});
 		$("#nes_stop").bind("click", function(){
@@ -152,8 +116,11 @@ var nesController;
 				$("#nes_stop").addClass("disable");
 			}
 		});
+		var editor = ace.edit("editor");
+		editor.setTheme("ace/theme/twilight");
+		editor.getSession().setMode("ace/mode/javascript");
 		$("#nes_start").bind("click", function(){
-			if(nesController.start()){
+			if(nesController.load(editor.getValue()) && nesController.start()){
 				$("#nes_stop").removeClass("disable");
 				$("#nes_start").addClass("disable");
 			}
@@ -163,10 +130,10 @@ var nesController;
 			nesController.zoom();
 		});
 
-		$("#rom_sel")[0].selectedIndex  = 0;
-		$("#nes_stop").removeClass("disable");
-		$("#nes_start").addClass("disable");
+		$("#nes_stop").addClass("disable");
+		$("#nes_start").removeClass("disable");
 
 		nesController = new NesController();
+		$("#state").text("Initialized.");
 	});
 }());

@@ -5,8 +5,17 @@
 	<title>CycloaJS: JavaScript NES Emulator</title>
 	<meta name="description" content="">
 	<link rel="stylesheet" href="css/style.css">
-	<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.0.min.js"></script>
-	<script type="text/javascript" src="build/cycloa-src.js"></script>
+<style type="text/css" media="screen">
+    #editor { 
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+		left: 0;
+		margin-left: 0px;
+		margin-right: 0px;
+    }
+</style>
 </head>
 <body>
 <div id="background">
@@ -19,16 +28,25 @@
 		<div id="interface_box" class="control_box">
 			<input id="screen_zoom" type="button" value="zoom in/out" />
 		</div>
-		<div id="control_box" class="control_box">
-			<input id="nes_hardreset" type="button" value="HardReset"/>
-			<input id="nes_reset" type="button" value="Reset"/>
-			<input id="nes_stop" type="button" value="Stop"/>
-			<input id="nes_start" type="button" value="Start"/>
-		</div>
-		<div class="nes_screen_wrapper">
+		<div class="nes_screen_wrapper" id="nes_screen_wrapper">
 			<canvas id="nes_screen" width="256" height="240"></canvas>
 		</div>
 		<div id="state" class="control_box"></div>
+		<div id="control_box" class="control_box">
+			<input id="nes_hardreset" type="button" value="HardReset"/>
+			<input id="nes_reset" type="button" value="Reset"/>
+			<input id="nes_stop" type="button" value="Stop" class="disable"/>
+			<input id="nes_start" type="button" value="Start"/>
+		</div>
+		<div id="editor_wrapper" style="position: relative; height: 30em; width: 100%;">
+			<div id="editor">this.registerHandler(0, function(nes){
+});
+this.registerHandler('IRQ', function(nes){
+});
+this.registerHandler('NMI', function(nes){
+	
+});</div>
+			</div>
 		<hr>
 		<div>
 			<h2>Software Requirements / 動作要件</h2>
@@ -77,5 +95,8 @@
 		(C) 2012 <a href="http://ledyba.org/">PSI</a> / Fairy and Rockets
 	</div>
 </div>
+<script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.0.min.js"></script>
+<script type="text/javascript" src="build/cycloa_script.js"></script>
 </body>
 </html>
