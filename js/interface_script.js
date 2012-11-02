@@ -23,7 +23,7 @@ window.requestAnimFrame = (function () {
 function NesController(){
 	this.videoFairy_ = new VideoFairy();
 	this.audioFairy_ = new AudioFairy();
-	this.padFairy_ = new PadFairy($(document));
+	this.padFairy_ = new PadFairy($("#nes_screen"));
 	this.machine_ = new cycloa.ScriptMachine(this.videoFairy_, this.audioFairy_, this.padFairy_);
 	this.running_ = false;
 	this.loaded_ = false;
@@ -132,7 +132,7 @@ var nesController;
 		});
 		
 		$("#nes_start").bind("click", function(){
-			if(nesController.load(editor.getValue()) && nesController.start()){
+			if(nesController.load(editor.getValue())) {
 				$("#nes_stop").removeClass("disable");
 				$("#nes_start").addClass("disable");
 			}

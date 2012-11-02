@@ -151,7 +151,6 @@ function PadFairy($dom) {
 		}
 	});
 	$dom.bind("keyup", function(e){
-		e.preventDefault();
 		switch (e.keyCode) {
 			case 38:
 				self.state &= ~self.MASK_UP;

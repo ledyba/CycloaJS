@@ -1,4 +1,4 @@
-cycloa.calc_fps_mode = true;
+cycloa.calc_fps_mode = false;
 
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 window.requestAnimFrame = (function () {
