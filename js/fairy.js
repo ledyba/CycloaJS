@@ -90,11 +90,11 @@ function AudioFairy() {
 	}else if(audioData){
 		try{
 			this.audio_ = new audioData();
-			this.audio_.mozSetup(1, this.SAMPLE_RATE_);
+			this.audio_.setup(1, this.SAMPLE_RATE_);
 			this.dataIndex = 0;
 			this.data = new Float32Array(this.dataLength);
 			this.onDataFilled = function() {
-				this.audio_.mozWriteAudio(this.data);
+				this.audio_.writeAudio(this.data);
 				this.audio_.play();
 				this.dataIndex = 0;
 			};
