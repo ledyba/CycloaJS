@@ -1,4 +1,6 @@
 # -*- encoding: utf-8 -*-
+
+require File.expand_path( File.dirname(__FILE__)+"/cpu.rb" );
 module Opcode
 =begin
 	各命令のアドレッシングモード別のオペコードを格納。nilの場合は存在しない事を示す。
@@ -955,5 +957,4 @@ module Opcode
 		2, 5, 2, 8, 4, 4, 6, 6,2, 4, 2, 7, 4, 4, 6, 7
 	];
 end
-
 
