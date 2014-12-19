@@ -39,7 +39,7 @@ publish
 .idea
 
 # build script local files
-build/*
+# build/*
 js/cycloa/vm.js
 js/cycloa/script.js
 
