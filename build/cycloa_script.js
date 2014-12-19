@@ -3215,7 +3215,7 @@ function AudioFairy() {
 			src.loop = false;
 			src.connect(this.context_.destination);
 			src.buffer = this.buffer_;
-			src.noteOn(0);
+			src.start(0);
 			this.initBuffer();
 			this.dataIndex = 0;
 		};
