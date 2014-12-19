@@ -5576,7 +5576,6 @@ function AudioFairy() {
 	if (audioContext) {
 		this.enabled = true;
 		this.context_ = new audioContext();
-		this.context_.sampleRate = this.SAMPLE_RATE_;
 		this.dataIndex = 0;
 		this.initBuffer = function () {
 			this.buffer_ = this.context_.createBuffer(1, this.dataLength, this.SAMPLE_RATE_);
