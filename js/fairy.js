@@ -66,22 +66,8 @@ function AudioFairy() {
 	this.SAMPLE_RATE_ = 22050;
 	this.dataLength = (this.SAMPLE_RATE_ / 4) | 0;
 	this.enabled = false;
-	var audioContext = window.AudioContext || window.webkitAudioContext;
-	var audioData = window.Audio;
-	if(audioData){
-		try{
-			this.audio_ = new audioData();
-			this.audio_.mozSetup(1, this.SAMPLE_RATE_);
-			this.dataIndex = 0;
-			this.data = new Float32Array(this.dataLength);
-			this.onDataFilled = function() {
-				this.audio_.mozWriteAudio(this.data);
-				this.dataIndex = 0;
-			};
-			this.enabled = true;
-		} catch (e) {
-		}
-	}else if (audioContext) {
+	var audioContext = window.AudioContext;
+	if (audioContext) {
 		this.enabled = true;
 		this.context_ = new audioContext();
 		this.context_.sampleRate = this.SAMPLE_RATE_;
@@ -100,6 +86,8 @@ function AudioFairy() {
 			this.dataIndex = 0;
 		};
 		this.initBuffer();
+	}else{
+		log.info("Audio is not available");
 	}
 }
 
