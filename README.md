@@ -1,4 +1,4 @@
-# CycloaJS
+# CycloaJS - a JavaScript NES emulator
 
 CycloaJS is a NES emulator implemented in JavaScript.
 
