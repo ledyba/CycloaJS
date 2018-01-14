@@ -10,7 +10,7 @@ You can play games with this emulator at:
 
 実際に遊べるデモはこちらです：
 
- - http://ledyba.org/utl/CycloaJS/
+ - https://app.7io.org/CycloaJS/
 
 # C++ Version
 
