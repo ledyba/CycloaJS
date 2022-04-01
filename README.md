@@ -22,5 +22,5 @@ Original C++ version is available at:
 
 # License
 
-CycloaJS is licensed under GPL v3 or later.
+CycloaJS is licensed under AGPL v3 or later.
 
